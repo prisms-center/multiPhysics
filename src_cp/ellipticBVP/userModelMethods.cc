@@ -1,5 +1,5 @@
 //Methods related to the user model functionality
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 #ifdef enableUserModel
 template <int dim>
@@ -10,4 +10,4 @@ void ellipticBVP<dim>::initQuadHistory(){
   quadHistory.reinit(TableIndices<3> (triangulation.n_locally_owned_active_cells(), num_quad_points, numQuadHistoryVariables));
 }
 #endif
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

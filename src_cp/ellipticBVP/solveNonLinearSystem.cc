@@ -1,5 +1,5 @@
 //solve non linear system of equations for ellipticBVP class
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //solve non-linear system of equations
 template <int dim>
@@ -80,4 +80,4 @@ bool ellipticBVP<dim>::solveNonLinearSystem(){
     oldSolution=solution;
     return true;
   }
-  #include "../../include/ellipticBVP_template_instantiations.h"
+  #include "../../include_cp/ellipticBVP_template_instantiations.h"

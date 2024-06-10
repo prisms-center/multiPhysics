@@ -1,5 +1,5 @@
 //constructor and destructor for ellipticBVP class
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //constructor
 template <int dim>
@@ -48,4 +48,4 @@ ellipticBVP<dim>::~ellipticBVP ()
 {
 }
 
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

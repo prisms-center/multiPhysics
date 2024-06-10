@@ -3,7 +3,7 @@
 #define CONTINUUMPLASTICITY_H
 
 //dealii headers
-#include "../../../include/ellipticBVP.h"
+#include "../../../include_cp/ellipticBVP.h"
 #include "../../../src/enrichmentModels/enhancedStrain.h"
 #include "IntegrationTools/PFunction.hh"
 #include "models/PLibrary.hh"

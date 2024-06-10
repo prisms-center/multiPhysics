@@ -1,5 +1,5 @@
 //initialization method for ellipticBVP class
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 #include <fstream>
 
 
@@ -556,4 +556,4 @@ void ellipticBVP<dim>::init(){
     oldSolution=solution;
 
   }
-  #include "../../include/ellipticBVP_template_instantiations.h"
+  #include "../../include_cp/ellipticBVP_template_instantiations.h"

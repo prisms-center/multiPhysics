@@ -1,4 +1,4 @@
-#include "../../../include/ellipticBVP.h"
+#include "../../../include_cp/ellipticBVP.h"
 
 
 void trpose(FullMatrix<double> &Atrpose, FullMatrix<double> elm);

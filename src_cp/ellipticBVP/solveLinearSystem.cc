@@ -1,5 +1,5 @@
 //solve Ax=b
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //solve linear system of equations AX=b using iterative solver
 template <int dim>
@@ -63,4 +63,4 @@ void ellipticBVP<dim>::solveLinearSystem2(AffineConstraints<double>& constraintm
   x+=completely_distributed_solutionInc;
   xGhosts=x;
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

@@ -1,5 +1,5 @@
 //projections method for ellipticBVP class
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //initialize post processed field projection
 template <int dim>
@@ -221,4 +221,4 @@ if (userInputs.tabularOutput){
     solveLinearSystem2(constraintsMassMatrix, massMatrix, *postResidual[field], *postFields[field],  *postFieldsWithGhosts[field],  *postFieldsWithGhosts[field]);
   }
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

@@ -1,5 +1,5 @@
 //methods to allow for pre/post increment level updates
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //method called before each increment
 template <int dim>
@@ -34,4 +34,4 @@ void ellipticBVP<dim>::updateAfterIncrement(){
 }
 
 
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

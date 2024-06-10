@@ -1,5 +1,5 @@
 //methods to apply Dirichlet boundary conditons
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //Specify Dirichlet boundary conditions
 template <int dim>
@@ -512,4 +512,4 @@ void ellipticBVP<dim>::applyDirichletBCs(){
   //pcout<<"debug setDirichlet 4\n";
 
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

@@ -1,5 +1,5 @@
 //methods to allow for pre/post iteration level updates
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //method called before each iteration
 template <int dim>
@@ -31,4 +31,4 @@ bool ellipticBVP<dim>::testConvergenceAfterIteration(){
   }
   return true;
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

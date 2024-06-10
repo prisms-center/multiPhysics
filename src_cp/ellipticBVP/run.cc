@@ -1,5 +1,5 @@
 //run method for ellipticBVP class
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 #include <sys/stat.h>
 
 //this source file is temporarily treated as a header file (hence
@@ -28,4 +28,4 @@ void ellipticBVP<dim>::run(){
 
   solve();
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

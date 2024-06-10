@@ -1,5 +1,5 @@
 //methods to apply initial conditions
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //methods to apply initial conditions
 template <int dim>
@@ -10,4 +10,4 @@ void ellipticBVP<dim>::applyInitialConditions(){
 			    Functions::ZeroFunction<dim>(dim),
 			    solution);
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

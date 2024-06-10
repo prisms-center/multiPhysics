@@ -1,5 +1,5 @@
 //output method for ellipticBVP class
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 #include <fstream>
 
 //output results
@@ -268,4 +268,4 @@ void ellipticBVP<dim>::output(){
     pcout << " \n\n";
   }
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"

@@ -1,6 +1,6 @@
 //mesh generation/importing method for ellipticBVP class
 #include <fstream>
-#include "../../include/ellipticBVP.h"
+#include "../../include_cp/ellipticBVP.h"
 
 //generate or import mesh
 template <int dim>
@@ -122,4 +122,4 @@ void ellipticBVP<dim>::mesh(){
       }
   }
 }
-#include "../../include/ellipticBVP_template_instantiations.h"
+#include "../../include_cp/ellipticBVP_template_instantiations.h"
