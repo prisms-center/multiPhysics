@@ -1,6 +1,10 @@
 //solve() method for MatrixFreePDE class
 
 #include "../../include/matrixFreePDE.h"
+#include <deal.II/numerics/fe_field_function.h>
+#include <deal.II/numerics/vector_tools.h>
+#include <deal.II/numerics/matrix_tools.h>
+#include <deal.II/fe/fe_tools.h>
 
 //solve BVP
 template <int dim, int degree>
@@ -25,6 +29,8 @@ void MatrixFreePDE<dim,degree>::solve(){
         // Do an initial solve to set the elliptic fields
         solveIncrement(true);
 
+        //For PRISMS-MP interpolate solution vector for Into PRISMS-Plasticity mesh
+
         //output initial conditions for time dependent BVP
         if (userInputs.outputTimeStepList[currentOutput] == currentIncrement) {
 
@@ -33,7 +39,24 @@ void MatrixFreePDE<dim,degree>::solve(){
                 constraintsOtherSet[fieldIndex]->distribute(*solutionSet[fieldIndex]);
                 solutionSet[fieldIndex]->update_ghost_values();
             }
+
             outputResults();
+            //For PRISMS-MP interpolate solution vector for Into PRISMS-Plasticity mesh
+            Functions::FEFieldFunction<dim,vectorType> fe_function_1 (*dofHandlersSet[0], *solutionSet[0]);
+            //Functions::FEFieldFunction<dim,vectorType> solution_function (*dof_handler_cp, *solution_cp);
+            VectorTools::interpolate (*dof_handler_cp, fe_function_1, *solution_cp);
+            QGauss<dim> quadrature_cp (degree+1);
+            pcout << "n_dofs_per_cell: " << fe_cp->n_dofs_per_cell() << std::endl;
+            FullMatrix<double> dof_to_qpoint_matrix (quadrature_cp.size(), fe_cp->n_dofs_per_cell());
+            FETools::compute_interpolation_to_quadrature_points_matrix(*fe_cp,quadrature_cp,dof_to_qpoint_matrix);
+            typename DoFHandler<dim>::active_cell_iterator cell = dof_handler_cp->begin_active(),
+                                               endc = dof_handler_cp->end(),
+                                               dg_cell = dof_handler_cp->begin_active();
+            for (; cell != endc; ++cell, ++dg_cell){
+                 dof_to_qpoint_matrix.vmult (local_history_values_at_qpoints[i][j],
+                                            local_history_fe_values[i][j]);
+            }
+            outputResults_cp();
             currentOutput++;
         }
 
@@ -86,6 +109,14 @@ void MatrixFreePDE<dim,degree>::solve(){
                     solutionSet[fieldIndex]->update_ghost_values();
                 }
                 outputResults();
+                
+                //For PRISMS-MP interpolate solution vector for Into PRISMS-Plasticity mesh
+                Functions::FEFieldFunction<dim,vectorType> fe_function_1 (*dofHandlersSet[0], *solutionSet[0]);
+                //Functions::FEFieldFunction<dim,vectorType> solution_function (*dof_handler_cp, *solution_cp);
+                VectorTools::interpolate (*dof_handler_cp, fe_function_1, *solution_cp);
+
+            outputResults_cp();
+            currentOutput++;
                 if (userInputs.print_timing_with_output && currentIncrement < userInputs.totalIncrements){
                     computing_timer.print_summary();
                 }

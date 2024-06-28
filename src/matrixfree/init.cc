@@ -14,6 +14,7 @@ template <int dim, int degree>
 	 pcout << "creating problem mesh...\n";
      // Create the coarse mesh and mark the boundaries
      makeTriangulation(triangulation);
+	 makeTriangulation_cp(triangulation_cp);
 
 	 // Set which (if any) faces of the triangulation are periodic
 	 setPeriodicity();
@@ -25,8 +26,26 @@ template <int dim, int degree>
      else {
          // Do the initial global refinement
     	 triangulation.refine_global (userInputs.refine_factor);
+		 triangulation_cp.refine_global (userInputs.refine_factor-1);
      }
+	 //Define cpfe finite element
+	 fe_cp = new FE_Q<dim>(1);
 
+	 //Distribute dof for dofHandler_cp
+	 dof_handler_cp=new DoFHandler<dim>(triangulation_cp);
+	 dof_handler_cp->distribute_dofs(*fe_cp);
+	 totalDOFs_cp=dof_handler_cp->n_dofs();
+	 
+	 pcout << "total DOF in the CPFE mesh: " << totalDOFs_cp << std::endl;
+
+	 //Extract locally relevant dof cpfe mesh
+	 locally_relevant_dofs_cp = new IndexSet;
+	 locally_relevant_dofs_cp->clear();
+	 DoFTools::extract_locally_relevant_dofs(*dof_handler_cp, *locally_relevant_dofs_cp);
+
+	 //Initialize solution_cp vector
+	 solution_cp = new vectorType;
+	 solution_cp->reinit(totalDOFs_cp);
 
 	 // Write out the size of the computational domain and the total number of elements
      if (dim < 3){
@@ -275,6 +294,23 @@ template <int dim, int degree>
 
 template <int dim, int degree>
  void MatrixFreePDE<dim,degree>::makeTriangulation(parallel::distributed::Triangulation<dim> & tria) const{
+     if (dim == 3){
+    	 GridGenerator::subdivided_hyper_rectangle (tria, userInputs.subdivisions, Point<dim>(), Point<dim>(userInputs.domain_size[0],userInputs.domain_size[1],userInputs.domain_size[2]));
+     }
+     else if (dim == 2){
+    	 GridGenerator::subdivided_hyper_rectangle (tria, userInputs.subdivisions, Point<dim>(), Point<dim>(userInputs.domain_size[0],userInputs.domain_size[1]));
+     }
+     else {
+    	 GridGenerator::subdivided_hyper_rectangle (tria, userInputs.subdivisions, Point<dim>(), Point<dim>(userInputs.domain_size[0]));
+     }
+
+     // Mark boundaries for applying the boundary conditions
+	 markBoundaries(tria);
+
+ }
+
+ template <int dim, int degree>
+ void MatrixFreePDE<dim,degree>::makeTriangulation_cp(parallel::distributed::Triangulation<dim> & tria) const{
      if (dim == 3){
     	 GridGenerator::subdivided_hyper_rectangle (tria, userInputs.subdivisions, Point<dim>(), Point<dim>(userInputs.domain_size[0],userInputs.domain_size[1],userInputs.domain_size[2]));
      }

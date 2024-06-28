@@ -10,7 +10,9 @@ template <int dim, int degree>
  Subscriptor(),
  pcout (std::cout, Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0),
  userInputs(_userInputs),
- triangulation (MPI_COMM_WORLD),
+ totalDOFs_cp(0),
+ triangulation(MPI_COMM_WORLD),
+ triangulation_cp(MPI_COMM_WORLD),
  currentFieldIndex(0),
  isTimeDependentBVP(false),
  isEllipticBVP(false),
@@ -58,7 +60,10 @@ template <int dim, int degree>
    for(unsigned int iter=0; iter<residualSet.size(); iter++){
        delete residualSet[iter];
    }
-
+   delete fe_cp;
+   delete dof_handler_cp;
+   delete locally_relevant_dofs_cp;
+   delete solution_cp;
  }
 
 

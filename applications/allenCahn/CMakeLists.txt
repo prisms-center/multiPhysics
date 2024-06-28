@@ -73,9 +73,9 @@ EXECUTE_PROCESS(COMMAND ${cmd}
 		WORKING_DIRECTORY ${dir})
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-	TARGET_LINK_LIBRARIES(main ${CMAKE_SOURCE_DIR}/../../libprisms_pf.a)
+	TARGET_LINK_LIBRARIES(main ${CMAKE_SOURCE_DIR}/../../libprisms_mp.a)
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "DebugRelease")
-	TARGET_LINK_LIBRARIES(main ${CMAKE_SOURCE_DIR}/../../libprisms_pf.a)
+	TARGET_LINK_LIBRARIES(main ${CMAKE_SOURCE_DIR}/../../libprisms_mp.a)
 else()
-	TARGET_LINK_LIBRARIES(main ${CMAKE_SOURCE_DIR}/../../libprisms_pf_debug.a)
+	TARGET_LINK_LIBRARIES(main ${CMAKE_SOURCE_DIR}/../../libprisms_mp_debug.a)
 endif()

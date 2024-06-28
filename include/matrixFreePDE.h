@@ -82,6 +82,8 @@ class MatrixFreePDE:public Subscriptor
   virtual void init  ();
 
   virtual void makeTriangulation(parallel::distributed::Triangulation<dim> &) const;
+  // Make triangulation for cpfe
+  virtual void makeTriangulation_cp(parallel::distributed::Triangulation<dim> &) const;
 
    /**
    * Initializes the data structures for enabling unit tests.
@@ -125,6 +127,9 @@ class MatrixFreePDE:public Subscriptor
 
   unsigned int totalDOFs;
 
+  //Total cpfe dofs
+  unsigned int totalDOFs_cp;
+
   // Virtual methods to set the attributes of the primary field variables and the postprocessing field variables
   //virtual void setVariableAttriubutes() = 0;
   //virtual void setPostProcessingVariableAttriubutes(){};
@@ -156,14 +161,19 @@ class MatrixFreePDE:public Subscriptor
   * skipOutputSteps in the parameters file.
   */
   void outputResults();
+  void outputResults_cp();
 
   /*Parallel mesh object which holds information about the FE nodes, elements and parallel domain decomposition
    */
   parallel::distributed::Triangulation<dim> triangulation;
+  parallel::distributed::Triangulation<dim> triangulation_cp;
   /*A vector of finite element objects used in a model. For problems with only one primal field,
    *the size of this vector is one,otherwise the size is the number of primal fields in the problem.
   */
   std::vector<FESystem<dim>*>          FESet;
+  //Declating element for cpfe
+  FE_Q<dim>* fe_cp;
+  
   /*A vector of all the constraint sets in the problem. A constraint set is a map which holds the mapping between the degrees
    *of freedom and the corresponding degree of freedom constraints. Currently the type of constraints stored are either
    *Dirichlet boundary conditions or hanging node constraints for adaptive meshes.
@@ -189,6 +199,11 @@ class MatrixFreePDE:public Subscriptor
   std::vector<vectorType*>             residualSet;
   /*Vector of parallel solution transfer objects. This is used only when adaptive meshing is enabled.*/
   std::vector<parallel::distributed::SolutionTransfer<dim, vectorType>*> soltransSet;
+
+  //Declaring dof objects for cpfe
+  DoFHandler<dim>*  dof_handler_cp;
+  IndexSet* locally_relevant_dofs_cp;
+  vectorType*  solution_cp;
 
   // Objects for vectors
   DoFHandler<dim>* vector_dofHandler;
