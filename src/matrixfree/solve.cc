@@ -41,6 +41,7 @@ void MatrixFreePDE<dim,degree>::solve(){
             }
 
             outputResults();
+
             //For PRISMS-MP interpolate solution vector for Into PRISMS-Plasticity mesh
             Functions::FEFieldFunction<dim,vectorType> fe_function_1 (*dofHandlersSet[0], *solutionSet[0]);
             //Functions::FEFieldFunction<dim,vectorType> solution_function (*dof_handler_cp, *solution_cp);
@@ -49,12 +50,25 @@ void MatrixFreePDE<dim,degree>::solve(){
             pcout << "n_dofs_per_cell: " << fe_cp->n_dofs_per_cell() << std::endl;
             FullMatrix<double> dof_to_qpoint_matrix (quadrature_cp.size(), fe_cp->n_dofs_per_cell());
             FETools::compute_interpolation_to_quadrature_points_matrix(*fe_cp,quadrature_cp,dof_to_qpoint_matrix);
+            FEValues<dim> fe_values_cp (*fe_cp, quadrature_cp, update_values | update_gradients | update_JxW_values | update_quadrature_points);
+            
             typename DoFHandler<dim>::active_cell_iterator cell = dof_handler_cp->begin_active(),
                                                endc = dof_handler_cp->end(),
                                                dg_cell = dof_handler_cp->begin_active();
-            for (; cell != endc; ++cell, ++dg_cell){
-                 dof_to_qpoint_matrix.vmult (local_history_values_at_qpoints[i][j],
-                                            local_history_fe_values[i][j]);
+                                               
+            unsigned int num_local_cells =triangulation_cp.n_locally_owned_active_cells();
+            std::vector<std::vector<double>>   twinfraction_iter1;
+            twinfraction_iter1.resize(num_local_cells,std::vector<double>(quadrature_cp.size(),0));
+            std::vector<double> solution_values_cp(quadrature_cp.size());
+            unsigned int cellID=0;
+            pcout << "Number of Local Cells (CP mesh): " << num_local_cells << "\n";
+            for (; cell != endc; ++cell){
+                fe_values_cp.reinit(cell);
+                fe_values_cp.get_function_values(*solution_cp, solution_values_cp);
+                for (unsigned int q=0; q<quadrature_cp.size(); ++q){
+                    twinfraction_iter1[cellID][q]= solution_values_cp[q];
+                }
+            if (cell->is_locally_owned()){cellID++;}
             }
             outputResults_cp();
             currentOutput++;
