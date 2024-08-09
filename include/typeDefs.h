@@ -32,11 +32,11 @@
 //#include <deal.II/grid/manifold_lib.h>
 
 //define data types
-#ifndef scalarType
-typedef dealii::VectorizedArray<double> scalarType;
+#ifndef scalarType_pf
+typedef dealii::VectorizedArray<double> scalarType_pf;
 #endif
-#ifndef vectorType
-typedef dealii::LinearAlgebra::distributed::Vector<double> vectorType;
+#ifndef vectorType_pf
+typedef dealii::LinearAlgebra::distributed::Vector<double> vectorType_pf;
 #endif
 //define FE system types
 #ifndef typeScalar
@@ -46,34 +46,34 @@ typedef dealii::FEEvaluation<dim,degree,degree+1,1,double>           typeScalar;
 typedef dealii::FEEvaluation<dim,degree,degree+1,dim,double>  typeVector;
 #endif
 //define data value types
-#ifndef scalarvalueType
-typedef dealii::VectorizedArray<double> scalarvalueType;
+#ifndef scalarvalueType_pf
+typedef dealii::VectorizedArray<double> scalarvalueType_pf;
 #endif
-#ifndef vectorvalueType
-typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double> > vectorvalueType;
+#ifndef vectorvalueType_pf
+typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double> > vectorvalueType_pf;
 #endif
 #if problemDIM==1
-#ifndef scalargradType
-typedef dealii::VectorizedArray<double> scalargradType;
+#ifndef scalargradType_pf
+typedef dealii::VectorizedArray<double> scalargradType_pf;
 #endif
-#ifndef vectorgradType
-typedef dealii::VectorizedArray<double> vectorgradType;
+#ifndef vectorgradType_pf
+typedef dealii::VectorizedArray<double> vectorgradType_pf;
 #endif
-#ifndef vectorhessType
-typedef dealii::VectorizedArray<double> vectorhessType;
+#ifndef vectorhessType_pf
+typedef dealii::VectorizedArray<double> vectorhessType_pf;
 #endif
 #else
-#ifndef scalargradType
-typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double> > scalargradType;
+#ifndef scalargradType_pf
+typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double> > scalargradType_pf;
 #endif
-#ifndef scalarhessType
-typedef dealii::Tensor<2,dim,dealii::VectorizedArray<double> > scalarhessType;
+#ifndef scalarhessType_pf
+typedef dealii::Tensor<2,dim,dealii::VectorizedArray<double> > scalarhessType_pf;
 #endif
-#ifndef vectorgradType
-typedef dealii::Tensor<2, dim, dealii::VectorizedArray<double> > vectorgradType;
+#ifndef vectorgradType_pf
+typedef dealii::Tensor<2, dim, dealii::VectorizedArray<double> > vectorgradType_pf;
 #endif
-#ifndef vectorhessType
-typedef dealii::Tensor<3, dim, dealii::VectorizedArray<double> > vectorhessType;
+#ifndef vectorhessType_pf
+typedef dealii::Tensor<3, dim, dealii::VectorizedArray<double> > vectorhessType_pf;
 #endif
 #endif
 

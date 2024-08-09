@@ -3,7 +3,7 @@
 #define FIELDS_H
 #include <deal.II/base/conditional_ostream.h>
 
-#include "userInputParameters.h"
+#include "userInputParameters_pf.h"
 
 template<int dim>
 class Field

@@ -1,6 +1,12 @@
 ##
-#  CMake script for the PRISMS-PF applications:
+#  CMake script for the PRISMS-MP applications:
 ##
+
+set(TARGET "main")
+
+set(TARGET_SRC
+  ${TARGET}.cc
+  )
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 
@@ -10,110 +16,16 @@ FIND_PACKAGE(deal.II 8.3.0 REQUIRED
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-# Set up the debug, release, and run targets
-ADD_CUSTOM_TARGET(debug
-  COMMAND +env ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
-  COMMAND +env ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
-  COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
-  )
-
-ADD_CUSTOM_TARGET(release
-  COMMAND +env ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-  COMMAND +env ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
-  COMMENT "Switch CMAKE_BUILD_TYPE to Release"
-  )
-
-ADD_CUSTOM_TARGET(run COMMAND main
-  COMMENT "Run with ${CMAKE_BUILD_TYPE} configuration"
-  )
-
-
+# Set up the paths to the library files
 INCLUDE_DIRECTORIES(include)
-INCLUDE_DIRECTORIES(include_cp)
 
-# Set up the paths to the library files (PRISMS-PF)
-FILE(GLOB headers include/*.h)
-FILE(GLOB matrixfree_sources src/matrixfree/*.cc)
-FILE(GLOB userinputparameters_sources src/userInputParameters/*.cc)
-FILE(GLOB solverparameters_sources src/SolverParameters/*.cc)
-FILE(GLOB equationdependencyparser_sources src/EquationDependencyParser/*.cc)
-FILE(GLOB floodfiller_sources src/FloodFiller/*.cc)
-FILE(GLOB orderparameterremapper_sources src/OrderParameterRemapper/*.cc)
-FILE(GLOB simplifiedgrainrepresentation_sources src/SimplifiedGrainRepresentation/*.cc)
+PROJECT(${TARGET})
 
-# Set up the paths to the library files (PRISMS-Plasticity)
-FILE(GLOB userInputParameters src_cp/userInputParameters/*.cc)
-FILE(GLOB EBVPfunctions src_cp/ellipticBVP/*.cc)
-FILE(GLOB CP_masterclass src_cp/materialModels/crystalPlasticity/*.cc)
-FILE(GLOB Continuum_masterclass src_cp/materialModels/continuumPlasticity/*.cc)
-##FILE(GLOB ContinuumModels_masterclass src_cp/materialModels/continuumPlasticity/models/*.cc)
-FILE(GLOB crystalOrientationsIO src_cp/utilityObjects/*.cc)
+deal_ii_invoke_autopilot()
 
-PROJECT(prisms_mp)
-SET(CMAKE_BUILD_TYPE Release)
+# Add an executable or library
+# add_executable(test_program main.cpp)
 
-# Append extra flags for the GNU compiler to suppress some warnings
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        #set(DEAL_II_CXX_FLAGS_DEBUG "${DEAL_II_CXX_FLAGS_DEBUG} -Wno-maybe-uninitialized -Wno-unused-parameter -Wno-extra")
-        #set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-unused-parameter -Wno-extra")
-        set(DEAL_II_CXX_FLAGS_DEBUG "${DEAL_II_CXX_FLAGS_DEBUG} -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
-        set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
-        #set(CMAKE_CXX_FLAGS "-Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
-endif()
+# Optionally, link to any necessary libraries if available
+# target_link_libraries(test_program ${LIBRARIES})
 
-ADD_LIBRARY(${PROJECT_NAME}
-  ${matrixfree_sources} 
-  ${userinputparameters_sources} 
-  ${solverparameters_sources} 
-  ${equationdependencyparser_sources} 
-  ${floodfiller_sources} 
-  ${orderparameterremapper_sources} 
-  ${simplifiedgrainrepresentation_sources} 
-  src/utilities/sortIndexEntryPairList.cc 
-  src/variableAttributeLoader/variableAttributeLoader.cc 
-  src/utilities/vectorBCFunction.cc 
-  src/inputFileReader/inputFileReader.cc 
-  src/parallelNucleationList/parallelNucleationList.cc 
-  src/variableContainer/variableContainer.cc
-  #${userInputParameters} 
-  ${EBVPfunctions} 
-  #${CP_masterclass} 
-  #${Continuum_masterclass} 
-  #${crystalOrientationsIO}
-)
-
-DEAL_II_SETUP_TARGET(${PROJECT_NAME})
-
-PROJECT(prisms_mp_debug)
-SET(CMAKE_BUILD_TYPE Debug)
-
-# Append extra flags for the GNU compiler to suppress some warnings
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        #set(DEAL_II_CXX_FLAGS_DEBUG "${DEAL_II_CXX_FLAGS_DEBUG} -Wno-maybe-uninitialized -Wno-unused-parameter -Wno-extra")
-        #set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-unused-parameter -Wno-extra")
-        set(DEAL_II_CXX_FLAGS_DEBUG "${DEAL_II_CXX_FLAGS_DEBUG} -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
-        set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
-        #set(CMAKE_CXX_FLAGS "-Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
-endif()
-
-ADD_LIBRARY(${PROJECT_NAME}
-  ${matrixfree_sources} 
-  ${userinputparameters_sources} 
-  ${solverparameters_sources} 
-  ${equationdependencyparser_sources} 
-  ${floodfiller_sources} 
-  ${orderparameterremapper_sources} 
-  ${simplifiedgrainrepresentation_sources} 
-  src/utilities/sortIndexEntryPairList.cc 
-  src/variableAttributeLoader/variableAttributeLoader.cc 
-  src/utilities/vectorBCFunction.cc 
-  src/inputFileReader/inputFileReader.cc 
-  src/parallelNucleationList/parallelNucleationList.cc 
-  src/variableContainer/variableContainer.cc
-  #${userInputParameters} 
-  ${EBVPfunctions} 
-  #${CP_masterclass} 
-  #${Continuum_masterclass} 
-  #${crystalOrientationsIO}
-)
-DEAL_II_SETUP_TARGET(${PROJECT_NAME})
