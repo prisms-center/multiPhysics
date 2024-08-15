@@ -63,8 +63,6 @@ public:
   virtual void init_pf();
 
   virtual void makeTriangulation(parallel::distributed::Triangulation<dim> &) const;
-  // Make triangulation for cpfe
-  virtual void makeTriangulation_cp(parallel::distributed::Triangulation<dim> &) const;
 
   /**
   * Initializes the data structures for enabling unit tests.
@@ -154,7 +152,7 @@ protected:
 
   /*Parallel mesh object which holds information about the FE nodes, elements and parallel domain decomposition
   */
-  parallel::distributed::Triangulation<dim> triangulation;
+  parallel::distributed::Triangulation<dim> triangulation_pf;
 
   /*A vector of finite element objects used in a model. For problems with only one primal field,
   *the size of this vector is one,otherwise the size is the number of primal fields in the problem.
