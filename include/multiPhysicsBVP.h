@@ -271,7 +271,7 @@ protected:
 
   virtual void postProcessedFields(const variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
                                                               variableContainer<dim,degree,dealii::VectorizedArray<double> > & pp_variable_list,
-                                                              const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {};
+                                                              const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const=0;
   void computePostProcessedFields(std::vector<vectorType_pf*> &postProcessedSet);
 
   void getPostProcessedFields(const dealii::MatrixFree<dim,double> &data,
@@ -331,9 +331,8 @@ protected:
   dealii::VectorizedArray<double> weightedDistanceFromNucleusCenter(const dealii::Point<dim,double> center, const std::vector<double> semiaxes, const dealii::Point<dim,dealii::VectorizedArray<double> > q_point_loc, const unsigned int var_index) const;
 
 
-  // Method to obtain the nucleation probability for an element, nontrival case must be implemented in the subsclass
-  virtual double getNucleationProbability(variableValueContainer, double, dealii::Point<dim>, unsigned int variable_index) const {return 0.0;};
-
+  // Method to obtain the nucleation probability for an element, nontrival case must be implemented in the subclass
+  virtual double getNucleationProbability(variableValueContainer, double, dealii::Point<dim>, unsigned int) const {return 0.0;};
   //utility functions
   /*Returns index of given field name if exists, else throw error.*/
   unsigned int getFieldIndex(std::string _name);
