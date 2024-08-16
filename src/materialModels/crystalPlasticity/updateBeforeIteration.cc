@@ -8,7 +8,7 @@ void crystalPlasticity<dim>::updateBeforeIteration()
     local_microvol=0.0;
 
     //call base class project() function to project post processed fields
-    //multiPhysicsBVP<dim>::project();
+    //MultiPhysicsBVP<dim,degree>::project();
 }
 
 #include "../../../include/crystalPlasticity_template_instantiations.h"

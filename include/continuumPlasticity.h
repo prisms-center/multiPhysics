@@ -18,13 +18,13 @@ typedef struct {
 //material model class for continuum plasticity
 //derives from ellipticBVP base abstract class
 template <int dim>
-class continuumPlasticity : public multiPhysicsBVP<dim>
+class continuumPlasticity : public MultiPhysicsBVP<dim,1>
 {
  public:
   /**
    *continuumPlasticity class constructor.
    */
-  continuumPlasticity(userInputParameters & _userInputs);
+  continuumPlasticity(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp);
   /**
    *Structure to hold the material parameters and model names.
    */

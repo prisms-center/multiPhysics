@@ -67,7 +67,7 @@ public:
   /**
   * Initializes the data structures for enabling unit tests.
   *
-  * This method initializes the MatrixFreePDE object with a fixed geometry, discretization and
+  * This method initializes the MultiPhysicsBVP object with a fixed geometry, discretization and
   * other custom selected options specifically to help with unit tests, and should not be called
   * in any of the physical models.
   */
@@ -78,7 +78,7 @@ public:
   */
   void solve_pf();
   /**
-  * This method essentially converts the MatrixFreePDE object into a matrix object which can be
+  * This method essentially converts the MultiPhysicsBVP object into a matrix object which can be
   * used with matrix free iterative solvers. Provides the A*x functionality for solving the system of
   * equations AX=b.
   */
@@ -191,7 +191,7 @@ protected:
   MatrixFree<dim,double> vector_matrixFreeObject;
 
   //matrix free objects
-  /*Object of class MatrixFree<dim>. This is primarily responsible for all the base matrix free functionality of this MatrixFreePDE<dim> class.
+  /*Object of class MatrixFree<dim>. This is primarily responsible for all the base matrix free functionality of this MultiPhysicsBVP<dim,degree> class.
   *Refer to deal.ii documentation of MatrixFree<dim> class for details.
   */
   MatrixFree<dim,double>               matrixFreeObject;
@@ -249,7 +249,7 @@ protected:
           const std::pair<unsigned int,unsigned int> &cell_range) const;
 
 
-  /*Method to calculate RHS (implicit/explicit). This is an abstract method, so every model which inherits MatrixFreePDE<dim> has to implement this method.*/
+  /*Method to calculate RHS (implicit/explicit). This is an abstract method, so every model which inherits MultiPhysicsBVP<dim,degree> has to implement this method.*/
   void getExplicitRHS (const MatrixFree<dim,double> &data,
           std::vector<vectorType_pf*> &dst,
           const std::vector<vectorType_pf*> &src,

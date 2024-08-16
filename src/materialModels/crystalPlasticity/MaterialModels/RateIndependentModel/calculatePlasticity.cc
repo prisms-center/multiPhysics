@@ -23,7 +23,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     Vector<double> rot1(dim);// Crystal orientation (Rodrigues representation)
 
     // Tolerance
-    double tol1=this->userInputs.modelStressTolerance;
+    double tol1=this->userInputs_cp.modelStressTolerance;
     std::cout.precision(16);
 
     FE_t=Fe_conv[cellID][quadPtID];
@@ -199,7 +199,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     while (iter1) {
       x_beta = 0.0;
 
-      if (iter1>this->userInputs.modelMaxSlipSearchIterations) {
+      if (iter1>this->userInputs_cp.modelMaxSlipSearchIterations) {
         flag2 = 1;
         break;
       }
@@ -783,7 +783,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     Vector<double> quat1(4), rod(3), quat2(4), quatprod(4);
 
     if (enableTwinning){
-      if (!this->userInputs.enableMultiphase){
+      if (!this->userInputs_cp.enableMultiphase){
         if (F_r > 0) {
           F_T = twinThresholdFraction + (twinSaturationFactor*F_e / F_r);
         }

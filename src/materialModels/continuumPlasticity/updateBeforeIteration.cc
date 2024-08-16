@@ -4,7 +4,7 @@ template <int dim>
 void continuumPlasticity<dim>::updateBeforeIteration()
 {
     //Currently, the initial iterations are hardcoded to elasticity for indentation problems
-    if (this->userInputs.enableIndentationBCs) {
+    if (this->userInputs_cp.enableIndentationBCs) {
         if (this->currentIteration < 4) {
             pausePlastic = true;
             this->pcout

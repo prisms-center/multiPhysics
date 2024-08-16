@@ -11,13 +11,13 @@ typedef struct {
 //material model class for crystal plasticity
 //derives from ellipticBVP base abstract class
 template <int dim>
-class crystalPlasticity : public multiPhysicsBVP<dim>
+class crystalPlasticity : public MultiPhysicsBVP<dim,1>
 {
 public:
   /**
   *crystalPlasticity class constructor.
   */
-  crystalPlasticity(userInputParameters & _userInputs);
+  crystalPlasticity(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp);
   /**
   *calculates the texture of the deformed polycrystal
   */

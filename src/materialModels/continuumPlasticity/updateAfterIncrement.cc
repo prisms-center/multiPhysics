@@ -290,7 +290,7 @@ void continuumPlasticity<dim>::updateAfterIncrement()
 	}
 
 	//call base class project() function to project post processed fields
-	multiPhysicsBVP<dim>::projection();
+	MultiPhysicsBVP<dim,1>::projection();
 
 }
 

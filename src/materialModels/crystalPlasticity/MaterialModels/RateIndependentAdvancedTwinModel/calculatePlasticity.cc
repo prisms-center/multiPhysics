@@ -21,22 +21,22 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   unsigned int quadPtID, unsigned int StiffnessCalFlag)
   {
 
-    unsigned int n_slip_systemsWOtwin = this->userInputs.numSlipSystems1;
+    unsigned int n_slip_systemsWOtwin = this->userInputs_cp.numSlipSystems1;
     n_Tslip_systems = n_slip_systemsWOtwin;
     n_twin_systems = 0;
-    if (this->userInputs.enableTwinning1) {
-      n_Tslip_systems += this->userInputs.numTwinSystems1 * 2;
-      n_twin_systems = this->userInputs.numTwinSystems1 * 2;
+    if (this->userInputs_cp.enableTwinning1) {
+      n_Tslip_systems += this->userInputs_cp.numTwinSystems1 * 2;
+      n_twin_systems = this->userInputs_cp.numTwinSystems1 * 2;
     }
     else {
       n_Tslip_systems += 1;
       n_twin_systems = 1;
     }
-    std::vector<double> ttwinvf(this->userInputs.numTwinSystems1);
+    std::vector<double> ttwinvf(this->userInputs_cp.numTwinSystems1);
     ttwinvf = twinfraction_conv[cellID][quadPtID];
 
     unsigned int tTwinMaxFlag= TwinMaxFlag_conv[cellID][quadPtID];
-    unsigned int n_twin_systems_Size = this->userInputs.numTwinSystems1;
+    unsigned int n_twin_systems_Size = this->userInputs_cp.numTwinSystems1;
     unsigned int alpha=0;
     n_slip_systems = n_Tslip_systems;
     double det_F_tau;
@@ -85,14 +85,14 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
         initialHardeningMTwin.reinit(n_twin_systems); powerLawExpTwin.reinit(n_twin_systems); saturationStressVTwin.reinit(n_twin_systems);
         for (unsigned int i = 0;i < n_slip_systemsWOtwin;i++) {
-          initialHardeningM[i] = this->userInputs.initialHardeningModulus1[i];
-          saturationStressV[i] = this->userInputs.saturationStress1[i];
-          powerLawExp[i] = this->userInputs.powerLawExponent1[i];
+          initialHardeningM[i] = this->userInputs_cp.initialHardeningModulus1[i];
+          saturationStressV[i] = this->userInputs_cp.saturationStress1[i];
+          powerLawExp[i] = this->userInputs_cp.powerLawExponent1[i];
         }
         for (unsigned int i = 0;i < n_twin_systems;i++) {
-          initialHardeningMTwin[i] = this->userInputs.initialHardeningModulusTwin1[i];
-          saturationStressVTwin[i] = this->userInputs.saturationStressTwin1[i];
-          powerLawExpTwin[i] = this->userInputs.powerLawExponentTwin1[i];
+          initialHardeningMTwin[i] = this->userInputs_cp.initialHardeningModulusTwin1[i];
+          saturationStressVTwin[i] = this->userInputs_cp.saturationStressTwin1[i];
+          powerLawExpTwin[i] = this->userInputs_cp.powerLawExponentTwin1[i];
         }
       }
       else {
@@ -123,14 +123,14 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
         initialHardeningMTwin.reinit(n_twin_systems); powerLawExpTwin.reinit(n_twin_systems); saturationStressVTwin.reinit(n_twin_systems);
         for (unsigned int i = 0;i < n_slip_systemsWOtwin;i++) {
-          initialHardeningM[i] = this->userInputs.initialHardeningModulus1[i];
-          saturationStressV[i] = this->userInputs.saturationStress1[i];
-          powerLawExp[i] = this->userInputs.powerLawExponent1[i];
+          initialHardeningM[i] = this->userInputs_cp.initialHardeningModulus1[i];
+          saturationStressV[i] = this->userInputs_cp.saturationStress1[i];
+          powerLawExp[i] = this->userInputs_cp.powerLawExponent1[i];
         }
         for (unsigned int i = 0;i < n_twin_systems;i++) {
-          initialHardeningMTwin[i] = this->userInputs.initialHardeningModulusTwin1[i+ (n_twin_systems_Size )];
-          saturationStressVTwin[i] = this->userInputs.saturationStressTwin1[i + (n_twin_systems_Size)];
-          powerLawExpTwin[i] = this->userInputs.powerLawExponentTwin1[i + (n_twin_systems_Size)];
+          initialHardeningMTwin[i] = this->userInputs_cp.initialHardeningModulusTwin1[i+ (n_twin_systems_Size )];
+          saturationStressVTwin[i] = this->userInputs_cp.saturationStressTwin1[i + (n_twin_systems_Size)];
+          powerLawExpTwin[i] = this->userInputs_cp.powerLawExponentTwin1[i + (n_twin_systems_Size)];
         }
       }
 
@@ -140,7 +140,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
       // Tolerance
 
-      double tol1 = this->userInputs.modelStressTolerance;
+      double tol1 = this->userInputs_cp.modelStressTolerance;
 
 
       std::cout.precision(16);
@@ -176,7 +176,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       Vector<double> vec1(2 * dim), vec2(dim*dim);
       for (unsigned int i = 0;i < 6;i++) {
         for (unsigned int j = 0;j < 6;j++) {
-          elasticStiffnessMatrix[i][j] = this->userInputs.elasticStiffness1[i][j];
+          elasticStiffnessMatrix[i][j] = this->userInputs_cp.elasticStiffness1[i][j];
         }
       }
 
@@ -242,7 +242,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       Fpn_inv = 0.0; Fpn_inv.invert(FP_t);
       s_alpha_tau = s_alpha_t;
 
-      if (this->userInputs.enableOneTwinSys_Reorien){
+      if (this->userInputs_cp.enableOneTwinSys_Reorien){
         for (unsigned int i = 0;i < n_twin_systems;i++) {//
           if (s_alpha_tau(n_slip_systemsWOtwin + i) > 10000*saturationStressVTwin[i]) {
             saturationStressVTwin[i]=s_alpha_tau(n_slip_systemsWOtwin + i)*10;
@@ -364,7 +364,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     while (iter1) {
       x_beta = 0.0;
 
-      if (iter1 > this->userInputs.modelMaxSlipSearchIterations) {
+      if (iter1 > this->userInputs_cp.modelMaxSlipSearchIterations) {
         flag2 = 1;
         break;
       }
@@ -551,7 +551,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             resolved_shear_tau(i) += T_star_tau[j][k] * SCHMID_TENSOR1[dim*i + j][k];
           }
         }
-        /*if (i > this->userInputs.numSlipSystems - 1) {
+        /*if (i > this->userInputs_cp.numSlipSystems - 1) {
         if (resolved_shear_tau(i) < 0)
         resolved_shear_tau(i) = 0;
       }*/
@@ -1050,7 +1050,7 @@ for (unsigned int ii = 0;ii < NumberOfTwinnedRegionK;ii++) {
   int alpha = activeTwinSystems[ii];
   for (unsigned int i = 0;i < dim;i++) {
     for (unsigned int j = 0;j < dim;j++) {
-      dgammadEmatRegion[i][j] = ((1 - RegionsTwinvf[0])*dgammadEmat1[0][alpha-1][i][j] - RegionsTwinvf[1 + ii] * dgammadEmat1[1 + ii][0][i][j]) / this->userInputs.twinShear1;
+      dgammadEmatRegion[i][j] = ((1 - RegionsTwinvf[0])*dgammadEmat1[0][alpha-1][i][j] - RegionsTwinvf[1 + ii] * dgammadEmat1[1 + ii][0][i][j]) / this->userInputs_cp.twinShear1;
       UntwinnedRegionsTwinvfDiff[i][j] = UntwinnedRegionsTwinvfDiff[i][j] + dgammadEmatRegion[i][j];
     }
   }
@@ -1132,7 +1132,7 @@ for (unsigned int i = 0;i < 2;i++) {
 
 
 for (unsigned int i = 0;i < n_twin_systems_Size;i++) {
-  ttwinvf[i] = ttwinvf[i] + (1 - Totaltwinvf)*(tslipvfsys[0][n_slip_systemsWOtwin + i] - tslipvfsys[0][n_slip_systemsWOtwin + n_twin_systems_Size + i]) / this->userInputs.twinShear1;
+  ttwinvf[i] = ttwinvf[i] + (1 - Totaltwinvf)*(tslipvfsys[0][n_slip_systemsWOtwin + i] - tslipvfsys[0][n_slip_systemsWOtwin + n_twin_systems_Size + i]) / this->userInputs_cp.twinShear1;
 }
 
 unsigned int numberOfTwinnedRegion = NumberOfTwinnedRegionK;
@@ -1140,8 +1140,8 @@ std::vector<unsigned int> ActiveTwinSystemsR = tActiveTwinSystems;
 
 for (unsigned int i = 0;i < NumberOfTwinnedRegionK;i++) {
   unsigned int alpha = tActiveTwinSystems[i];
-  ttwinvf[alpha - 1] = ttwinvf[alpha - 1] * (1 - (tslipvfsys[alpha][n_slip_systemsWOtwin] - tslipvfsys[alpha][n_slip_systemsWOtwin + 1]) / this->userInputs.twinShear1);
-  if (ttwinvf[alpha - 1] < this->userInputs.twinThresholdFraction1) {
+  ttwinvf[alpha - 1] = ttwinvf[alpha - 1] * (1 - (tslipvfsys[alpha][n_slip_systemsWOtwin] - tslipvfsys[alpha][n_slip_systemsWOtwin + 1]) / this->userInputs_cp.twinShear1);
+  if (ttwinvf[alpha - 1] < this->userInputs_cp.twinThresholdFraction1) {
     if (numberOfTwinnedRegion > 1) {
       numberOfTwinnedRegion = numberOfTwinnedRegion - 1;
       ActiveTwinSystemsR.resize(numberOfTwinnedRegion);
@@ -1188,9 +1188,9 @@ for (unsigned int i = 0;i < NumberOfTwinnedRegionK;i++) {
 NumberOfTwinnedRegionK = numberOfTwinnedRegion;
 
 for (unsigned int i = 0;i < NumberOfNonTwinnedRegionK;i++) {
-  if ((!this->userInputs.enableOneTwinSys_Reorien)||(NumberOfTwinnedRegionK==0)){
+  if ((!this->userInputs_cp.enableOneTwinSys_Reorien)||(NumberOfTwinnedRegionK==0)){
     unsigned int alpha = DeactiveTwinSystems[i];
-    if (ttwinvf[alpha - 1] >= this->userInputs.twinThresholdFraction1) {
+    if (ttwinvf[alpha - 1] >= this->userInputs_cp.twinThresholdFraction1) {
       if (NumberOfTwinnedRegionK > 0) {
         NumberOfTwinnedRegionK = NumberOfTwinnedRegionK + 1;
         if (NumberOfTwinnedRegionK>1){
@@ -1223,8 +1223,8 @@ for (unsigned int i = 0;i < NumberOfNonTwinnedRegionK;i++) {
       for (unsigned int k = 0;k < n_slip_systemsWOtwin;k++) {
         s_alpha_iter[cellID][quadPtID][n_Tslip_systems*alpha+k] = s_alpha_iter[cellID][quadPtID][k];
       }
-      s_alpha_iter[cellID][quadPtID][alpha*n_Tslip_systems +n_slip_systemsWOtwin]= this->userInputs.initialSlipResistanceTwin1[n_twin_systems_Size * 2 - 1];
-      s_alpha_iter[cellID][quadPtID][alpha*n_Tslip_systems +n_slip_systemsWOtwin+1]= this->userInputs.initialSlipResistanceTwin1[n_twin_systems_Size * 2 - 1];
+      s_alpha_iter[cellID][quadPtID][alpha*n_Tslip_systems +n_slip_systemsWOtwin]= this->userInputs_cp.initialSlipResistanceTwin1[n_twin_systems_Size * 2 - 1];
+      s_alpha_iter[cellID][quadPtID][alpha*n_Tslip_systems +n_slip_systemsWOtwin+1]= this->userInputs_cp.initialSlipResistanceTwin1[n_twin_systems_Size * 2 - 1];
       for (unsigned int k = 0;k < dim;k++) {
         rotnew_iter[cellID][quadPtID][alpha*dim + k] = rot[cellID][quadPtID][alpha*dim + k];
       }
@@ -1235,7 +1235,7 @@ for (unsigned int i = 0;i < NumberOfNonTwinnedRegionK;i++) {
       TwinFlag_iter[cellID][quadPtID][alpha - 1] = 1;
 
 
-      if (this->userInputs.enableOneTwinSys_Reorien){
+      if (this->userInputs_cp.enableOneTwinSys_Reorien){
         for (unsigned int kk = 0;kk < n_twin_systems_Size;kk++) {
           if (kk!=(alpha - 1)){
             s_alpha_iter[cellID][quadPtID][kk+n_slip_systemsWOtwin] = s_alpha_iter[cellID][quadPtID][kk+n_slip_systemsWOtwin]*1000000000;
@@ -1268,7 +1268,7 @@ RegionsTwinvf[0] = 1 - Totaltwinvf;
 
 TotaltwinvfK[cellID][quadPtID] = Totaltwinvf;
 
-if (Totaltwinvf > this->userInputs.twinSaturationFactor1) {
+if (Totaltwinvf > this->userInputs_cp.twinSaturationFactor1) {
   TwinMaxFlag_iter[cellID][quadPtID] = 0;
 }
 else{

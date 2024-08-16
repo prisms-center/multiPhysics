@@ -26,11 +26,11 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   unsigned int num_local_cells = this->triangulation.n_locally_owned_active_cells();
   F.reinit(dim, dim);
 
-  unsigned int n_slip_systemsWOtwin = this->userInputs.numSlipSystems1;
+  unsigned int n_slip_systemsWOtwin = this->userInputs_cp.numSlipSystems1;
   unsigned int n_slip_systems= n_slip_systemsWOtwin;
-  if(this->userInputs.enableTwinning1){
-    n_slip_systems+=this->userInputs.numTwinSystems1*2;
-    n_twin_systems =this->userInputs.numTwinSystems1*2;
+  if(this->userInputs_cp.enableTwinning1){
+    n_slip_systems+=this->userInputs_cp.numTwinSystems1*2;
+    n_twin_systems =this->userInputs_cp.numTwinSystems1*2;
   }
   else{
     n_slip_systems+=1;
@@ -44,7 +44,7 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   q_phase1.reinit(n_slip_systems,n_slip_systems);
   q_phase1=0;
   //open data file to read latent hardening ratios
-  std::ifstream latentHardeningratioFile(this->userInputs.latentHardeningRatioFileName1);
+  std::ifstream latentHardeningratioFile(this->userInputs_cp.latentHardeningRatioFileName1);
   //read data
   unsigned int id=0;
   if (latentHardeningratioFile.is_open()){
@@ -62,7 +62,7 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   }
 
   //open data file to read slip normals
-  std::ifstream slipNormalsDataFile(this->userInputs.slipNormalsFile1);
+  std::ifstream slipNormalsDataFile(this->userInputs_cp.slipNormalsFile1);
   //read data
   id=0;
   if (slipNormalsDataFile.is_open()){
@@ -89,7 +89,7 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   }
 
   //open data file to read slip directions
-  std::ifstream slipDirectionsDataFile(this->userInputs.slipDirectionsFile1);
+  std::ifstream slipDirectionsDataFile(this->userInputs_cp.slipDirectionsFile1);
   //read data
   id=0;
   if (slipDirectionsDataFile.is_open()){
@@ -115,9 +115,9 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
     exit(1);
   }
 
-  if(this->userInputs.enableTwinning1){
+  if(this->userInputs_cp.enableTwinning1){
     //open data file to read twin normals
-    std::ifstream twinNormalsDataFile(this->userInputs.twinNormalsFile1);
+    std::ifstream twinNormalsDataFile(this->userInputs_cp.twinNormalsFile1);
     //read data
     id= n_slip_systemsWOtwin;
     if (twinNormalsDataFile.is_open()){
@@ -137,9 +137,9 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
 
         id=id+1;
       }
-      for(unsigned int i=n_slip_systemsWOtwin;i<this->userInputs.numTwinSystems1+n_slip_systemsWOtwin;i++){
+      for(unsigned int i=n_slip_systemsWOtwin;i<this->userInputs_cp.numTwinSystems1+n_slip_systemsWOtwin;i++){
         for(unsigned int j=0;j<dim;j++){
-          n_alpha[i+this->userInputs.numTwinSystems1][j]=n_alpha[i][j];
+          n_alpha[i+this->userInputs_cp.numTwinSystems1][j]=n_alpha[i][j];
         }
       }
     }
@@ -149,7 +149,7 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
     }
 
     //open data file to read twin directions
-    std::ifstream twinDirectionsDataFile(this->userInputs.twinDirectionsFile1);
+    std::ifstream twinDirectionsDataFile(this->userInputs_cp.twinDirectionsFile1);
     //read data
     id= n_slip_systemsWOtwin;
     if (twinDirectionsDataFile.is_open()){
@@ -170,9 +170,9 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
 
         id=id+1;
       }
-      for(unsigned int i=n_slip_systemsWOtwin;i<this->userInputs.numTwinSystems1+n_slip_systemsWOtwin;i++){
+      for(unsigned int i=n_slip_systemsWOtwin;i<this->userInputs_cp.numTwinSystems1+n_slip_systemsWOtwin;i++){
         for(unsigned int j=0;j<dim;j++){
-          m_alpha[i+this->userInputs.numTwinSystems1][j]=m_alpha[i][j];
+          m_alpha[i+this->userInputs_cp.numTwinSystems1][j]=m_alpha[i][j];
         }
       }
     }
@@ -198,7 +198,7 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
 
   for(unsigned int i=0;i<6;i++){
     for(unsigned int j=0;j<6;j++){
-      Dmat[i][j] = this->userInputs.elasticStiffness1[i][j];
+      Dmat[i][j] = this->userInputs_cp.elasticStiffness1[i][j];
     }
   }
 
@@ -215,13 +215,13 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   std::vector<unsigned int> twin_init2(n_twin_systems / 2);
   for (unsigned int i=0;i<n_slip_systemsWOtwin;i++){
     for (unsigned int j = 0;j < (n_twin_systems / 2) + 1;j++) {
-      s0_init(i+ n_slip_systems*j) = this->userInputs.initialSlipResistance1[i];
+      s0_init(i+ n_slip_systems*j) = this->userInputs_cp.initialSlipResistance1[i];
     }
   }
 
   for (unsigned int i=0;i<n_twin_systems;i++){
     for (unsigned int j = 0;j < (n_twin_systems / 2) + 1;j++) {
-      s0_init(i + n_slip_systemsWOtwin + n_slip_systems*j) = this->userInputs.initialSlipResistanceTwin1[i];
+      s0_init(i + n_slip_systemsWOtwin + n_slip_systems*j) = this->userInputs_cp.initialSlipResistanceTwin1[i];
     }
   }
 
@@ -262,18 +262,18 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   }
 
 
-  if (this->userInputs.enableUserMaterialModel){
-    if (this->userInputs.enableUserMaterialModel1){
-      if (this->userInputs.numberofUserMatStateVar1==0){
+  if (this->userInputs_cp.enableUserMaterialModel){
+    if (this->userInputs_cp.enableUserMaterialModel1){
+      if (this->userInputs_cp.numberofUserMatStateVar1==0){
         n_UserMatStateVar_SinglePhase=1;
         stateVar_init.reinit(n_UserMatStateVar_SinglePhase);
         stateVar_init=0;
       }
       else{
-        n_UserMatStateVar_SinglePhase=this->userInputs.numberofUserMatStateVar1;
+        n_UserMatStateVar_SinglePhase=this->userInputs_cp.numberofUserMatStateVar1;
         stateVar_init.reinit(n_UserMatStateVar_SinglePhase);
         for (unsigned int i=0;i<n_UserMatStateVar_SinglePhase;i++){
-          stateVar_init(i)=this->userInputs.UserMatStateVar1[i];
+          stateVar_init(i)=this->userInputs_cp.UserMatStateVar1[i];
         }
       }
     }
@@ -318,12 +318,12 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   ActiveTwinSystems_iter.resize(num_local_cells, std::vector<std::vector<unsigned int> >(num_quad_points, twin_init2));
   NumberOfTwinnedRegion_iter.resize(num_local_cells, std::vector<unsigned int>(num_quad_points, 0));
 
-  if (this->userInputs.enableUserMaterialModel){
+  if (this->userInputs_cp.enableUserMaterialModel){
       stateVar_conv.resize(num_local_cells,std::vector<Vector<double> >(num_quad_points,stateVar_init));
       stateVar_iter.resize(num_local_cells,std::vector<Vector<double> >(num_quad_points,stateVar_init));
   }
 
-  double s0_twin=this->userInputs.initialSlipResistanceTwin1[n_twin_systems-1];
+  double s0_twin=this->userInputs_cp.initialSlipResistanceTwin1[n_twin_systems-1];
   for (unsigned int cell = 0; cell<num_local_cells; cell++) {
     for (unsigned int region = 1; region<(n_twin_systems / 2) + 1; region++) {
       for (unsigned int q = 0; q<num_quad_points; q++) {

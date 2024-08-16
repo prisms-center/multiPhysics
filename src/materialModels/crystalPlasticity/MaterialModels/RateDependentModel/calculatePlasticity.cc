@@ -107,8 +107,8 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     std::cout.precision(16);
     F_tau=F; // Deformation Gradient
 
-    tol1=this->userInputs.modelStressTolerance;
-    delgam_ref = UserMatConstants(0)*this->userInputs.delT ; // Reference slip increment
+    tol1=this->userInputs_cp.modelStressTolerance;
+    delgam_ref = UserMatConstants(0)*this->userInputs_cp.delT ; // Reference slip increment
     strexp=UserMatConstants(1); // Strain rate sensitivity exponent ; the higher the less sensitive
     locres_tol=UserMatConstants(2); // Tolerance for innter residual of nonlinear constitutive model
     locres_tol2=UserMatConstants(3); // Tolerance for outer slip resistance loop
@@ -252,14 +252,14 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     Delta_F=0;
     div_Delta_F=0;
 
-    if (!this->userInputs.flagTaylorModel){
+    if (!this->userInputs_cp.flagTaylorModel){
       Delta_F.add(-1,F_t,1.0,F_tau) ;
-      if (this->userInputs.numberTaylorSubsteps==1){
+      if (this->userInputs_cp.numberTaylorSubsteps==1){
         Criteria_Delta_F=fabs(Delta_F[0][0])+fabs(Delta_F[1][1])+fabs(Delta_F[2][2])+2*fabs(Delta_F[0][1])+2*fabs(Delta_F[0][2])+2*fabs(Delta_F[1][2])+2*fabs(Delta_F[1][0])+2*fabs(Delta_F[2][0])+2*fabs(Delta_F[2][1]);
-        numberOfCuts=std::floor(Criteria_Delta_F/this->userInputs.criticalDeltaFCriteria);
+        numberOfCuts=std::floor(Criteria_Delta_F/this->userInputs_cp.criticalDeltaFCriteria);
       }
       else{
-        numberOfCuts=this->userInputs.numberTaylorSubsteps;
+        numberOfCuts=this->userInputs_cp.numberTaylorSubsteps;
       }
 
       if (numberOfCuts==0) numberOfCuts=1;
@@ -267,7 +267,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       div_Delta_F.add(inverseNumberOfCuts,Delta_F);
     }
     else{
-      numberOfCuts=this->userInputs.numberTaylorSubsteps;
+      numberOfCuts=this->userInputs_cp.numberTaylorSubsteps;
       if (numberOfCuts==0) numberOfCuts=1;
       inverseNumberOfCuts=1.0/numberOfCuts;
     }
@@ -296,7 +296,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       ///This is the condition when we have right after reorientation
       ///In the case of Taylor model, we should march all the way to the current F from the identity matrix.
       ///The number of Cuts should be defined in this case as below:
-      if ((this->userInputs.flagTaylorModel)||(this->userInputs.numberTaylorSubsteps>1)){
+      if ((this->userInputs_cp.flagTaylorModel)||(this->userInputs_cp.numberTaylorSubsteps>1)){
         delgam_ref=delgam_ref/numberOfCuts;
         numberOfCuts=numberOfCuts*(this->currentIncrement+1);
         inverseNumberOfCuts=1.0/(this->currentIncrement+1.0);
@@ -315,7 +315,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     Dmat.vmult(vtmp1,vecform(temp)) ;
     T_star_iter = 0 ;
     matform(T_star_iter,vtmp1) ;
-    if(this->userInputs.enableAdvRateDepModel)
+    if(this->userInputs_cp.enableAdvRateDepModel)
     T_star_iter.add(1.0,Tinter_diff_guess) ;
     nv1 = vecform(T_star_iter) ;
     for(unsigned int j=0;j<2*dim;j++){
@@ -334,7 +334,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
     for(unsigned int Inc=0;Inc<numberOfCuts;Inc++){
 
-      if (!this->userInputs.flagTaylorModel){
+      if (!this->userInputs_cp.flagTaylorModel){
         F_tau.add(1,div_Delta_F) ;
         if (Inc==(numberOfCuts-1)) F_tau=F;
       }
@@ -344,7 +344,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
         temp1.reinit(dim,dim);
         temp1=this->targetVelGrad;
         ///We should use Dt/numberOfCuts as new Dt in this part (not the Algorithmic tangent modulus).
-        temp1*=this->delT/this->userInputs.numberTaylorSubsteps;
+        temp1*=this->delT/this->userInputs_cp.numberTaylorSubsteps;
         iMinusL.add(-1,temp1); //I-L
         temp.invert(iMinusL); //inverse(I-L)
         temp.mmult(F_tau,F_tau); // F=inverse(I-L)*Fprev
@@ -878,7 +878,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       ///for this is the initial value are brought back to the previously converged values.
       ///Accordingly, the time between the variable_t and variable_tau is the original Dt and not the one divided by numberOfCuts
       ///for constitutive model integration. Hence, Dt should be brought back to the original value in line 111 as below:
-      delgam_ref = UserMatConstants(0)*this->userInputs.delT ;
+      delgam_ref = UserMatConstants(0)*this->userInputs_cp.delT ;
       // Contribution 1 - Most straightforward because no need to invoke constitutive model
       FE_tau.mmult(temp,T_star_tau);
       temp.mTmult(temp1,FE_tau);
@@ -1166,13 +1166,13 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     for(unsigned int i=0 ; i<n_slip_systems ; i++)
     slipfraction_iter[cellID][quadPtID][i]=slipfraction_tau(i);
 
-    if (this->userInputs.flagTaylorModel){
+    if (this->userInputs_cp.flagTaylorModel){
       F=F_tau; // Updating Deformation Gradient if it is Taylor model
     }
     /////// REORIENTATION Due to TWINNING ////////////////////
 
     if (enableTwinning){
-      if (!this->userInputs.enableMultiphase){
+      if (!this->userInputs_cp.enableMultiphase){
         if (F_r > 0) {
           F_T = twinThresholdFraction + (twinSaturationFactor*F_e / F_r);
         }
