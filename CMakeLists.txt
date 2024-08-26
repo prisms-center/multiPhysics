@@ -41,6 +41,7 @@ FILE(GLOB equationdependencyparser_sources src/EquationDependencyParser/*.cc)
 FILE(GLOB floodfiller_sources src/FloodFiller/*.cc)
 FILE(GLOB orderparameterremapper_sources src/OrderParameterRemapper/*.cc)
 FILE(GLOB simplifiedgrainrepresentation_sources src/SimplifiedGrainRepresentation/*.cc)
+FILE(GLOB customPDE_sources src/customPDE/*.cc)
 
 # Plasticity source files
 FILE(GLOB userInputParameters_cp src/userInputParameters_cp/*.cc)
@@ -59,7 +60,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
 endif()
 
-ADD_LIBRARY(${PROJECT_NAME} ${multiphysics_sources} ${userinputparameters_pf_sources} ${solverparameters_pf_sources} ${equationdependencyparser_sources} ${floodfiller_sources} ${orderparameterremapper_sources} ${simplifiedgrainrepresentation_sources} ${userInputParameters_cp} ${CP_masterclass} ${Continuum_masterclass} ${crystalOrientationsIO} src/utilities/sortIndexEntryPairList.cc src/variableAttributeLoader/variableAttributeLoader.cc src/utilities/vectorBCFunction.cc src/inputFileReader/inputFileReader.cc src/parallelNucleationList/parallelNucleationList.cc src/variableContainer/variableContainer.cc )
+ADD_LIBRARY(${PROJECT_NAME} ${multiphysics_sources} ${userinputparameters_pf_sources} ${solverparameters_pf_sources} ${equationdependencyparser_sources} ${floodfiller_sources} ${orderparameterremapper_sources} ${simplifiedgrainrepresentation_sources} ${customPDE_sources} ${userInputParameters_cp} ${CP_masterclass} ${Continuum_masterclass} ${crystalOrientationsIO} src/utilities/sortIndexEntryPairList.cc src/variableAttributeLoader/variableAttributeLoader.cc src/utilities/vectorBCFunction.cc src/inputFileReader/inputFileReader.cc src/parallelNucleationList/parallelNucleationList.cc src/variableContainer/variableContainer.cc )
 DEAL_II_SETUP_TARGET(${PROJECT_NAME})
 
 PROJECT(prisms_mp_debug)
@@ -71,6 +72,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
 endif()
 
-ADD_LIBRARY(${PROJECT_NAME} ${multiphysics_sources} ${userinputparameters_pf_sources} ${solverparameters_pf_sources} ${equationdependencyparser_sources} ${floodfiller_sources} ${orderparameterremapper_sources} ${simplifiedgrainrepresentation_sources} ${userInputParameters_cp} ${CP_masterclass} ${Continuum_masterclass} ${crystalOrientationsIO} src/utilities/sortIndexEntryPairList.cc src/variableAttributeLoader/variableAttributeLoader.cc src/utilities/vectorBCFunction.cc src/inputFileReader/inputFileReader.cc src/parallelNucleationList/parallelNucleationList.cc src/variableContainer/variableContainer.cc )
+ADD_LIBRARY(${PROJECT_NAME} ${multiphysics_sources} ${userinputparameters_pf_sources} ${solverparameters_pf_sources} ${equationdependencyparser_sources} ${floodfiller_sources} ${orderparameterremapper_sources} ${simplifiedgrainrepresentation_sources} ${customPDE_sources} ${userInputParameters_cp} ${CP_masterclass} ${Continuum_masterclass} ${crystalOrientationsIO} src/utilities/sortIndexEntryPairList.cc src/variableAttributeLoader/variableAttributeLoader.cc src/utilities/vectorBCFunction.cc src/inputFileReader/inputFileReader.cc src/parallelNucleationList/parallelNucleationList.cc src/variableContainer/variableContainer.cc )
 DEAL_II_SETUP_TARGET(${PROJECT_NAME})
 

@@ -100,13 +100,21 @@ public:
 
   // Non-uniform boundary conditions function
   virtual void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC) = 0;
-  
+
   //PRISMS-Plasticity functions
   void run   ();
   crystalOrientationsIO<dim> orientations_Mesh;
 
 protected:
-  //PRISMS-PF functions
+  //PRISMS-PF functions (This section contains all member functions also declared in customPDE)
+
+  // ================================================================
+  // Model constants specific to this subclass
+  // ================================================================
+
+  double MnV;
+  double KnV;
+
   /**
   * Initializes the mesh, degrees of freedom, constraints and data structures using the user provided
   * inputs in the application parameters file.

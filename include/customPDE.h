@@ -1,12 +1,14 @@
-#include "multiPhysicsPDE.h"
+#include "multiPhysicsBVP.h"
 
 template <int dim, int degree>
 class customPDE: public MultiPhysicsBVP<dim,degree>
 {
 public:
-    // Constructor
-    customPDE(userInputParameters<dim> _userInputs): MultiPhysicsBVP<dim,degree>(_userInputs) , userInputs(_userInputs) {};
-
+    // Original Constructor
+		//customPDE(userInputParameters<dim> _userInputs): MatrixFreePDE<dim,degree>(_userInputs) , userInputs(_userInputs) {};
+		//New Constructor
+		//customPDE(userInputParameters_pf<dim> _userInputs_pf): MultiPhysicsBVP(_userInputs_pf, _userInputs_cp) , userInputs_pf(_userInputs_pf) {};
+    customPDE(userInputParameters_pf<dim> _userInputs_pf): userInputs_pf(_userInputs_pf) {};
     // Function to set the initial conditions (in ICs_and_BCs.h)
     void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC);
 
@@ -16,7 +18,7 @@ public:
 private:
 	#include "typeDefs.h"
 
-	const userInputParameters<dim> userInputs;
+	const userInputParameters_pf<dim> userInputs_pf;
 
 	// Function to set the RHS of the governing equations for explicit time dependent equations (in equations.cc)
     void explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
@@ -39,8 +41,8 @@ private:
 	// Model constants specific to this subclass
 	// ================================================================
 
-	double MnV = userInputs.get_model_constant_double("MnV");
-	double KnV = userInputs.get_model_constant_double("KnV");
+	double MnV = userInputs_pf.get_model_constant_double("MnV");
+	double KnV = userInputs_pf.get_model_constant_double("KnV");
 
 	// ================================================================
 

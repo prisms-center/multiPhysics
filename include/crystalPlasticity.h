@@ -4,6 +4,7 @@
 
 //dealii headers
 #include "multiPhysicsBVP.h"
+#include "customPDE.h"
 
 typedef struct {
   FullMatrix<double> m_alpha,n_alpha, eulerAngles2;
@@ -65,6 +66,12 @@ public:
   crystalOrientationsIO<dim> orientations;
 
 private:
+  /**
+  Creating an instance of the main PRISMS-PF derived class - customPDE
+  */
+  //userInputParameters_pf<dim> userInputs_pf;
+  customPDE<dim, 1> pf_object(userInputParameters_pf<dim> userInputs_pf) ;
+
   void init(unsigned int num_quad_points);
   void init2(unsigned int num_quad_points);
   void setBoundaryValues(const Point<dim>& node, const unsigned int dof, bool& flag, double& value);
