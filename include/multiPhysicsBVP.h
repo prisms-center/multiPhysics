@@ -96,10 +96,9 @@ public:
   ConditionalOStream  pcout;
 
   // Initial conditions function
-  virtual void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC) = 0;
-
+  virtual void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC)=0;
   // Non-uniform boundary conditions function
-  virtual void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC) = 0;
+  virtual void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC)=0;
 
   //PRISMS-Plasticity functions
   void run   ();
@@ -269,17 +268,17 @@ protected:
             const std::pair<unsigned int,unsigned int> &cell_range) const;
 
   virtual void explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-                                                        dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const=0;
+                                                        dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
 
   virtual void nonExplicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-                                                        dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const=0;
+                                                        dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
 
   virtual void equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-                                dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const=0;
+                                dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
 
   virtual void postProcessedFields(const variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
                                                               variableContainer<dim,degree,dealii::VectorizedArray<double> > & pp_variable_list,
-                                                              const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const=0;
+                                                              const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
   void computePostProcessedFields(std::vector<vectorType_pf*> &postProcessedSet);
 
   void getPostProcessedFields(const dealii::MatrixFree<dim,double> &data,

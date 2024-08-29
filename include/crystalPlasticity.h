@@ -65,6 +65,10 @@ public:
   //orientation maps
   crystalOrientationsIO<dim> orientations;
 
+  //PRISMS-PF functions
+  void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC) override {};
+  void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC) override {};
+
 private:
   /**
   Creating an instance of the main PRISMS-PF derived class - customPDE
