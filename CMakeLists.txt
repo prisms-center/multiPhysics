@@ -36,7 +36,7 @@ FILE(GLOB headers include/*.h)
 
 # Phase-field source files
 FILE(GLOB userinputparameters_pf_sources src/userInputParameters_pf/*.cc)
-FILE(GLOB solverparameters_fp_sources src/SolverParameters/*.cc)
+FILE(GLOB solverparameters_pf_sources src/SolverParameters/*.cc)
 FILE(GLOB equationdependencyparser_sources src/EquationDependencyParser/*.cc)
 FILE(GLOB floodfiller_sources src/FloodFiller/*.cc)
 FILE(GLOB orderparameterremapper_sources src/OrderParameterRemapper/*.cc)
