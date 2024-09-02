@@ -29,7 +29,7 @@ private:
 					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
 
 	// Function to set the LHS of the governing equations (in equations.cc)
-	void equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
+		void equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
 
 	// ================================================================

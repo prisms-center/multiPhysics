@@ -69,11 +69,14 @@ public:
   void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC) override {};
   void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC) override {};
   void explicitEquationRHS(variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) override {};
+					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
   void nonExplicitEquationRHS(variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) override {};
+					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
   void equationLHS(variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) override {};
+					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
+  void postProcessedFields(const variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
+                                                              variableContainer<dim,1,dealii::VectorizedArray<double> > & pp_variable_list,
+                                                              const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
   
 private:
   /**
