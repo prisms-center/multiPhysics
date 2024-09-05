@@ -50,17 +50,19 @@ int main (int argc, char **argv)
       crystalPlasticity<3> problem(userInputs_pf, userInputs_cp);
 
       //reading materials atlas files
-      /*
-      if(!userInputs.readExternalMesh){
+      
+      if(!userInputs_cp.readExternalMesh)
+      {
         problem.orientations.loadOrientations(userInputs_cp.grainIDFile,
-  					    userInputs.headerLinesGrainIDFile,
-  					    userInputs.grainOrientationsFile,
-  					    userInputs.numPts,
-  					    userInputs.span);}
-      */
-      //problem.orientations.loadOrientationVector(userInputs.grainOrientationsFile, userInputs.enableMultiphase, userInputs.additionalVoxelInfo);
+  					    userInputs_cp.headerLinesGrainIDFile,
+  					    userInputs_cp.grainOrientationsFile,
+  					    userInputs_cp.numPts,
+  					    userInputs_cp.span);
+      }
+      
+      problem.orientations.loadOrientationVector(userInputs_cp.grainOrientationsFile, userInputs_cp.enableMultiphase, userInputs_cp.additionalVoxelInfo);
 
-      //problem.run ();
+      problem.run ();
     }
   catch (std::exception &exc)
     {

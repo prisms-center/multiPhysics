@@ -15,6 +15,8 @@ void MultiPhysicsBVP<dim,degree>::run(){
   #else
   computing_timer_cp.enter_subsection("mesh and initialization");
   #endif
+
+  //READING AND INITIALIZATION (PRISMS-Plasticity)
   //read mesh;
   mesh();
   //initialize FE objects and global data structures
@@ -26,6 +28,11 @@ void MultiPhysicsBVP<dim,degree>::run(){
   computing_timer_cp.leave_subsection("mesh and initialization");
   #endif
 
-  solve_cp();
+  //READING AND INITIALIZATION (PRISMS-PF)
+  buildFields();
+  init_pf();
+
+  //solve_cp();
+  //solve_pf();
 }
 #include "../../include/multiPhysicsBVP_template_instantiations.h"
