@@ -96,3 +96,5 @@ template <int dim, int degree>
 void customPDE<dim,degree>::equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 		dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
 }
+
+#include "../../include/customPDE_template_instantiations.h"

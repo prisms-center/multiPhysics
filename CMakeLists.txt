@@ -52,6 +52,12 @@ FILE(GLOB Continuum_masterclass src/materialModels/continuumPlasticity/*.cc)
 FILE(GLOB crystalOrientationsIO src/utilityObjects/*.cc)
 
 PROJECT(prisms_mp)
+
+# Check if postprocess.cc and nucleation.cc exist and set preprocessor variables
+if (EXISTS "src/customPDE/postprocess.cc")
+	add_definitions(-DPOSTPROCESS_FILE_EXISTS)
+endif()
+
 SET(CMAKE_BUILD_TYPE Release)
 
 # Append extra flags for the GNU compiler to suppress some warnings

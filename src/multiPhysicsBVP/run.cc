@@ -29,8 +29,8 @@ void MultiPhysicsBVP<dim,degree>::run(){
   #endif
 
   //READING AND INITIALIZATION (PRISMS-PF)
-  buildFields();
-  init_pf();
+  //pf_object.buildFields();
+  //init_pf();
 
   //solve_cp();
   //solve_pf();

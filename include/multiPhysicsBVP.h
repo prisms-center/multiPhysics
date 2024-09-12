@@ -88,7 +88,7 @@ public:
   * the kind of PDE (ELLIPTIC/PARABOLIC) used to compute them and a character identifier  (e.g.: "c" for composition)
   * which is used to write the fields to the output files.
   */
-  std::vector<Field<dim> >                  fields;
+  std::vector<Field<dim> > fields;
 
   void buildFields();
 
@@ -101,7 +101,7 @@ public:
   virtual void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC)=0;
 
   //PRISMS-Plasticity functions
-  void run   ();
+  virtual void run() = 0;
   crystalOrientationsIO<dim> orientations_Mesh;
 
 protected:

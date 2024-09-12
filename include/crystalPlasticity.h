@@ -77,13 +77,17 @@ public:
   void postProcessedFields(const variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
                                                               variableContainer<dim,1,dealii::VectorizedArray<double> > & pp_variable_list,
                                                               const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
-  
-private:
   /**
   Creating an instance of the main PRISMS-PF derived class - customPDE
   */
   //userInputParameters_pf<dim> userInputs_pf;
-  customPDE<dim, 1> pf_object(userInputParameters_pf<dim> userInputs_pf) ;
+  //customPDE<dim, 1> pf_object(userInputParameters_pf<dim> userInputs_pf);
+  customPDE<dim, 1> pf_object;
+
+  // Override run function
+  void run() override;
+  
+private:
 
   void init(unsigned int num_quad_points);
   void init2(unsigned int num_quad_points);

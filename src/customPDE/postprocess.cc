@@ -1,3 +1,4 @@
+#include "../../include/customPDE.h"
 // =================================================================================
 // Set the attributes of the postprocessing variables
 // =================================================================================
@@ -48,18 +49,18 @@ void customPDE<dim,degree>::postProcessedFields(const variableContainer<dim,degr
 // --- Getting the values and derivatives of the model variables ---
 
 // The order parameter and its derivatives
-scalarvalueType n = variable_list.get_scalar_value(0);
-scalargradType nx = variable_list.get_scalar_gradient(0);
+scalarvalueType_pf n = variable_list.get_scalar_value(0);
+scalargradType_pf nx = variable_list.get_scalar_gradient(0);
 
 // --- Setting the expressions for the terms in the postprocessing expressions ---
 
-scalarvalueType f_tot = constV(0.0);
+scalarvalueType_pf f_tot = constV(0.0);
 
 // The homogenous free energy
-scalarvalueType f_chem = (n*n*n*n - 2.0*n*n*n + n*n);
+scalarvalueType_pf f_chem = (n*n*n*n - 2.0*n*n*n + n*n);
 
 // The gradient free energy
-scalarvalueType f_grad = constV(0.0);
+scalarvalueType_pf f_grad = constV(0.0);
 
 for (int i=0; i<dim; i++){
   for (int j=0; j<dim; j++){
@@ -77,3 +78,5 @@ pp_variable_list.set_scalar_value_term_RHS(0, std::sqrt(nx[0]*nx[0]+nx[1]*nx[1])
 pp_variable_list.set_scalar_value_term_RHS(1, f_tot);
 
 }
+
+#include "../../include/customPDE_template_instantiations.h"

@@ -8,7 +8,8 @@ F_tau(dim,dim),
 FP_tau(dim,dim),
 FE_tau(dim,dim),
 T(dim,dim),
-P(dim,dim)
+P(dim,dim),
+pf_object(_userInputs_pf,_userInputs_cp)
 {
     initCalled = false;
 

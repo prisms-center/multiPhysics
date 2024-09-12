@@ -58,3 +58,5 @@ void customPDE<dim,degree>::setNonUniformDirichletBCs(const dealii::Point<dim> &
     // -------------------------------------------------------------------------
 
 }
+
+#include "../../include/customPDE_template_instantiations.h"
