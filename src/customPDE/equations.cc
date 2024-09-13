@@ -49,9 +49,13 @@ scalargradType_pf nx = variable_list.get_scalar_gradient(0);
 
 // --- Setting the expressions for the terms in the governing equations ---
 
-scalarvalueType_pf fnV = (4.0*n*(n-1.0)*(n-0.5));
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*MnV)*fnV);
-scalargradType_pf eqx_n = (-constV(userInputs_pf.dtValue*KnV*MnV)*nx);
+scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
+scalargradType_pf kappagradn;
+kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
+kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
+
+scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV));
+scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
 
 // --- Submitting the terms for the governing equations ---
 

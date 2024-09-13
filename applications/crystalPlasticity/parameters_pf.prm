@@ -1,16 +1,16 @@
 # =================================================================================
 # Set the number of dimensions (2 or 3 for a 2D or 3D calculation)
 # =================================================================================
-set Number of dimensions = 2
+set Number of dimensions = 3
 
 # =================================================================================
 # Set the length of the domain in all three dimensions
 # (Domain size Z ignored in 2D)
 # =================================================================================
 # Each axes spans from zero to the specified length
-set Domain size X = 100
-set Domain size Y = 100
-set Domain size Z = 100
+set Domain size X = 1.0
+set Domain size Y = 1.0
+set Domain size Z = 1.0
 
 # =================================================================================
 # Set the element parameters
@@ -31,7 +31,7 @@ set Element degree = 1
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 1.0e-2
+set Time step = 0.0001
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
@@ -85,8 +85,29 @@ set Boundary condition for variable n = NATURAL
 # options currently are DOUBLE, INT, BOOL, TENSOR, and [symmetry] ELASTIC CONSTANTS
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
-# The mobility, MnV in equations.cc
-set Model constant MnV = 1.0, DOUBLE
+# The mobility, L in equations.cpp
+set Model constant L = 5.0, DOUBLE
 
-# The gradient energy coefficient, KnV in equations.cc
-set Model constant KnV = 2.0, DOUBLE
+# The gradient energy coefficients
+# In the twin plane reference plane
+# ANISOTROPIC
+# set Model constant Kij_tp = ((20.0,0),(0,1.0)), tensor
+# ISOTROPIC
+set Model constant Kij_tp = ((0.000244141,0,0),(0,0.000244141,0),(0,0,0.000244141)), tensor
+
+# Twin energy barrier (double well height)
+# set Model constant delf_tw = 50.0, DOUBLE
+set Model constant delf_tw = 1.0, DOUBLE
+
+# The rotation angle from the reference plane
+# to the twin plane reference frame
+set Model constant th = 0.0, DOUBLE
+
+# Unit lenght (in m)
+set Model constant l0 = 1.0e-6, DOUBLE
+
+# Radius of initial semimajor axis of the elliptical seed
+set Model constant a0 = 0.25, DOUBLE
+
+# eccentricity of the elliptical seed
+set Model constant ecc = 0.95, DOUBLE

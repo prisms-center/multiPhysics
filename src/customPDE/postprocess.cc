@@ -11,22 +11,13 @@
 
 void variableAttributeLoader::loadPostProcessorVariableAttributes(){
 	// Variable 0
-	set_variable_name				(0,"mg_n");
+	set_variable_name				(0,"mu_twV");
 	set_variable_type				(0,SCALAR);
 
-	set_dependencies_value_term_RHS(0, "grad(n)");
-    set_dependencies_gradient_term_RHS(0, "");
+	set_dependencies_value_term_RHS(0, "n, grad(n)");
+  set_dependencies_gradient_term_RHS(0, "");
 
-    set_output_integral         	(0,true);
-
-	// Variable 1
-	set_variable_name				(1,"f_tot");
-	set_variable_type				(1,SCALAR);
-
-    set_dependencies_value_term_RHS(1, "n, grad(n)");
-    set_dependencies_gradient_term_RHS(1, "");
-
-    set_output_integral         	(1,true);
+  set_output_integral         	(0,true);
 
 }
 
@@ -52,30 +43,10 @@ void customPDE<dim,degree>::postProcessedFields(const variableContainer<dim,degr
 scalarvalueType_pf n = variable_list.get_scalar_value(0);
 scalargradType_pf nx = variable_list.get_scalar_gradient(0);
 
+scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
+
 // --- Setting the expressions for the terms in the postprocessing expressions ---
-
-scalarvalueType_pf f_tot = constV(0.0);
-
-// The homogenous free energy
-scalarvalueType_pf f_chem = (n*n*n*n - 2.0*n*n*n + n*n);
-
-// The gradient free energy
-scalarvalueType_pf f_grad = constV(0.0);
-
-for (int i=0; i<dim; i++){
-  for (int j=0; j<dim; j++){
-	  f_grad += constV(0.5*KnV)*nx[i]*nx[j];
-  }
-}
-
-// The total free energy
-f_tot = f_chem + f_grad;
-
-// --- Submitting the terms for the postprocessing expressions ---
-
-pp_variable_list.set_scalar_value_term_RHS(0, std::sqrt(nx[0]*nx[0]+nx[1]*nx[1]));
-
-pp_variable_list.set_scalar_value_term_RHS(1, f_tot);
+pp_variable_list.set_scalar_value_term_RHS(0, mu_twV);
 
 }
 

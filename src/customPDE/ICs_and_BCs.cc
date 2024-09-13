@@ -17,21 +17,42 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     // by a hyperbolic tangent function. The center of each circle/sphere is
     // given by "center" and its radius is given by "radius".
 
-  double center[12][3] = {{0.1,0.3,0},{0.8,0.7,0},{0.5,0.2,0},{0.4,0.4,0},{0.3,0.9,0},{0.8,0.1,0},{0.9,0.5,0},{0.0,0.1,0},{0.1,0.6,0},{0.5,0.6,0},{1,1,0},{0.7,0.95,0}};
-  double rad[12] = {12, 14, 19, 16, 11, 12, 17, 15, 20, 10, 11, 14};
-  double dist;
+  double center[2] = {0.5,0.5};
+  double dist, edist;
+  double b0=a0*std::sqrt((1.0-ecc*ecc));
+  double cth, sth, nX, nY;
+  double pi=3.141592;
   scalar_IC = 0;
-  for (unsigned int i=0; i<12; i++){
-	  dist = 0.0;
-	  for (unsigned int dir = 0; dir < dim; dir++){
-		  dist += (p[dir]-center[i][dir]*userInputs_pf.domain_size[dir])*(p[dir]-center[i][dir]*userInputs_pf.domain_size[dir]);
-	  }
-	  dist = std::sqrt(dist);
+  
+  //Elliptical seed of semimajor axis
+ 
+  if (index==0){
+    //Calculating distance from center of the system
+    dist = 0.0;
+    for (unsigned int dir = 0; dir < 2; dir++){
+      dist += (p[dir]-center[dir]*userInputs_pf.domain_size[dir])*(p[dir]-center[dir]*userInputs_pf.domain_size[dir]);
+    }
+    dist = std::sqrt(dist);
+    
+    //Calculating distance from center to perimeter of the ellipse
+    cth=(p[0]-center[0]*userInputs_pf.domain_size[0])/(dist + 1.0e-7);
+    sth=(p[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
+    
+    //Rotated unit vector with respect to the twin plane
+    
+    nX=cth*std::cos(0.5*pi-th)-sth*std::sin(0.5*pi-th);
+    nY=cth*std::sin(0.5*pi-th)+sth*std::cos(0.5*pi-th);
 
-	  scalar_IC +=	0.5*(1.0-std::tanh((dist-rad[i])/1.5));
+    //Distance to the center of the ellipse
+    edist = a0*b0/std::sqrt(b0*b0*(1.0-nX*nX) + a0*a0*nX*nX);
+                     
+    scalar_IC =  0.5*(1.0-std::tanh((dist-edist)/(1.0*del0)));
+
+    if (scalar_IC > 1.0) scalar_IC = 1.0;
+                     
+  } else {
+    scalar_IC = 0.0;
   }
-  if (scalar_IC > 1.0) scalar_IC = 1.0;
-
   // ---------------------------------------------------------------------
 }
 

@@ -13,8 +13,29 @@ public:
 		//customPDE(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp);
     // Constructor definition inside the class
     customPDE(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp)
-        : MultiPhysicsBVP<dim, degree>(_userInputs_pf, _userInputs_cp), userInputs_pf(_userInputs_pf) {
-        // Optional: Additional constructor logic can go here
+        : MultiPhysicsBVP<dim, degree>(_userInputs_pf, _userInputs_cp), userInputs_pf(_userInputs_pf) 
+    {
+      // Optional: Additional constructor logic can go here
+      double cth = std::cos(th);
+      double sth = std::sin(th);
+    
+      //Rotation Matrix
+      double R[2][2] = {{cth,-sth},{sth,cth}};
+      
+      //Gradient energy coefficient in the reference frame of the parent phase
+      //dealii::Tensor<2,dim> R = ((cth,-sth),(sth,sth));
+      for (unsigned int m=0;m<2;m++){
+        for (unsigned int n=0;n<2;n++){
+          K[m][n]=0.0;
+          for(unsigned int i=0;i<2;i++){
+            for(unsigned int j=0;j<2;j++){
+              K[m][n] = K[m][n] + R[m][i]*R[n][j]*Kij_tp[i][j];
+            }
+          }
+        }
+      }
+      //Average equilibrium interface width
+      del0 = std::sqrt(2.0*(K[0][0]+K[1][1])/delf_tw);
     }
     // Function to set the initial conditions (in ICs_and_BCs.h)
     void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC);
@@ -62,11 +83,21 @@ private:
 	// Model constants specific to this subclass
 	// ================================================================
 
-	double MnV = userInputs_pf.get_model_constant_double("MnV");
-	double KnV = userInputs_pf.get_model_constant_double("KnV");
+    double L = userInputs_pf.get_model_constant_double("L");
+    dealii::Tensor<2,dim> Kij_tp = userInputs_pf.get_model_constant_rank_2_tensor("Kij_tp");
+    double delf_tw = userInputs_pf.get_model_constant_double("delf_tw");
+    double th = userInputs_pf.get_model_constant_double("th");
+    double l0 = userInputs_pf.get_model_constant_double("l0");
+    double a0 = userInputs_pf.get_model_constant_double("a0");
+    double ecc = userInputs_pf.get_model_constant_double("ecc");
 
+    dealii::Tensor<2,2> K;
+    double cth;
+    double sth;
+		
+    //Average equilibrium interface width
+    double del0;
 	// ================================================================
-
 };
 
 #endif
