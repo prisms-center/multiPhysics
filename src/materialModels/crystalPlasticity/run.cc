@@ -27,7 +27,7 @@ void crystalPlasticity<dim>::run(){
   #else
   this->computing_timer_cp.leave_subsection("mesh and initialization");
   #endif
-  //this->solve_cp();
+  this->solve_cp();
 
   //READING AND INITIALIZATION (PRISMS-PF)
   pf_object.buildFields();
