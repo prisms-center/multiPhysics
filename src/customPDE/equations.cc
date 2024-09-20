@@ -16,13 +16,29 @@
 // rate calculations.
 
 void variableAttributeLoader::loadVariableAttributes(){
-	// Variable 0
+	// Variable 0 - Order Parameter
 	set_variable_name				(0,"n");
 	set_variable_type				(0,SCALAR);
 	set_variable_equation_type		(0,EXPLICIT_TIME_DEPENDENT);
 
-    set_dependencies_value_term_RHS(0, "n");
+    set_dependencies_value_term_RHS(0, "n, dndt, strain_df");
     set_dependencies_gradient_term_RHS(0, "grad(n)");
+	
+	// Variable 1 - Time Derivative of Order Parameter
+	set_variable_name				(1,"dndt");
+	set_variable_type				(1,SCALAR);
+	set_variable_equation_type		(1,AUXILIARY);
+
+    set_dependencies_value_term_RHS(1, "n, dndt, strain_df");
+    set_dependencies_gradient_term_RHS(1, "grad(n)");
+
+	// Variable 2 - Strain driving force
+	set_variable_name				(2,"strain_df");
+	set_variable_type				(2,SCALAR);
+	set_variable_equation_type		(1,AUXILIARY);
+
+    set_dependencies_value_term_RHS(2, "strain_df");
+    set_dependencies_gradient_term_RHS(2, "");
 
 }
 
@@ -47,6 +63,12 @@ void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dea
 scalarvalueType_pf n = variable_list.get_scalar_value(0);
 scalargradType_pf nx = variable_list.get_scalar_gradient(0);
 
+// The time derivative of the order parameter
+scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
+
+// The strain contribiution to the driving force
+scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
+
 // --- Setting the expressions for the terms in the governing equations ---
 
 scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
@@ -54,13 +76,17 @@ scalargradType_pf kappagradn;
 kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
 kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
 
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV));
+scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV+strain_df));
 scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
+
+scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV+strain_df);
+scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
 
 // --- Submitting the terms for the governing equations ---
 
 variable_list.set_scalar_value_term_RHS(0,eq_n);
 variable_list.set_scalar_gradient_term_RHS(0,eqx_n);
+
 
 }
 
@@ -79,6 +105,37 @@ variable_list.set_scalar_gradient_term_RHS(0,eqx_n);
 template <int dim, int degree>
 void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 				 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
+// --- Getting the values and derivatives of the model variables ---
+
+// The order parameter and its derivatives
+scalarvalueType_pf n = variable_list.get_scalar_value(0);
+scalargradType_pf nx = variable_list.get_scalar_gradient(0);
+
+// The time derivative of the order parameter
+scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
+
+// The strain contribiution to the driving force
+scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
+
+// --- Setting the expressions for the terms in the governing equations ---
+
+scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
+scalargradType_pf kappagradn;
+kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
+kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
+
+scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV+strain_df));
+scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
+
+scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV+strain_df);
+scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
+
+// --- Submitting the terms for the governing equations ---
+
+variable_list.set_scalar_value_term_RHS(1,eq_dndt);
+variable_list.set_scalar_gradient_term_RHS(1,eqx_dndt);
+
+variable_list.set_scalar_value_term_RHS(2,strain_df);
 
 }
 
