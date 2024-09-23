@@ -33,8 +33,8 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       n_twin_systems = 1;
     }
     std::vector<double> ttwinvf(this->userInputs_cp.numTwinSystems1);
-    ttwinvf = twinfraction_conv[cellID][quadPtID];
-
+    //ttwinvf = twinfraction_conv[cellID][quadPtID]; //cp
+    ttwinvf = this->twinfraction_iter1[cellID][quadPtID];  //cp_try
     unsigned int tTwinMaxFlag= TwinMaxFlag_conv[cellID][quadPtID];
     unsigned int n_twin_systems_Size = this->userInputs_cp.numTwinSystems1;
     unsigned int alpha=0;
@@ -481,7 +481,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       inactive_slip_removal(active, x_beta_old, x_beta, n_PA, n_slip_systems, PA, b, A, A_PA,n_slip_systemsWOtwin);//cp
     //cp
     for(unsigned int i=0;i<n_twin_systems/2;i++){
-    x_beta[n_slip_systemsWOtwin+i]=0.129*dtwinfraction_iter[cellID][quadPtID][i]; //cp
+    x_beta[n_slip_systemsWOtwin+i]=0.129*(this->dtwinfraction_iter1[cellID][quadPtID][i]); //cp
     x_beta_old[n_slip_systemsWOtwin+i]=x_beta_old[n_slip_systemsWOtwin+i]+x_beta[n_slip_systemsWOtwin+i];
     }
     //cp
@@ -1143,7 +1143,7 @@ for (unsigned int i = 0;i < 2;i++) {
   
 for (unsigned int i = 0;i < n_twin_systems_Size;i++) {
   //ttwinvf[i] = ttwinvf[i] + (1 - Totaltwinvf)*(tslipvfsys[0][n_slip_systemsWOtwin + i] - tslipvfsys[0][n_slip_systemsWOtwin + n_twin_systems_Size + i]) / this->userInputs_cp.twinShear1;
-   ttwinvf[i] = ttwinvf[i] + dtwinfraction_iter[cellID][quadPtID][i];
+   ttwinvf[i] = ttwinvf[i] + (this->dtwinfraction_iter1[cellID][quadPtID][i]);
 }
 
 unsigned int numberOfTwinnedRegion = NumberOfTwinnedRegionK;
