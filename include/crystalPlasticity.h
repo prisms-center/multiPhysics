@@ -84,6 +84,11 @@ public:
   //customPDE<dim, 1> pf_object(userInputParameters_pf<dim> userInputs_pf);
   customPDE<dim, 1> pf_object;
 
+  //Override the getter to return pf_object
+  virtual customPDE<dim, 1>& get_pf_object() override {
+      return pf_object;
+  }
+
   // Override run function
   void run() override;
   

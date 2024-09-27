@@ -45,6 +45,9 @@ typedef dealii::LinearAlgebra::distributed::Vector<double> vectorType_pf;
 #define constV(a) make_vectorized_array(a)
 
 template <int dim, int degree>
+class customPDE;  // Forward declaration of the template
+
+template <int dim, int degree>
 class MultiPhysicsBVP:public Subscriptor
 {
 public:
@@ -103,6 +106,15 @@ public:
   //PRISMS-Plasticity functions
   virtual void run() = 0;
   crystalOrientationsIO<dim> orientations_Mesh;
+
+  //Getter functions
+  const std::vector<const DoFHandler<dim>*>& getDofHandlersSet() const {
+       return dofHandlersSet;
+  }
+
+   const std::vector<vectorType_pf*>& getSolutionSet() const {
+       return solutionSet;
+  }
 
 protected:
   //PRISMS-PF functions (This section contains all member functions also declared in customPDE)
@@ -383,6 +395,11 @@ protected:
           const std::vector<vectorType_pf*> &src,
           const std::pair<unsigned int,unsigned int> &cell_range);
 
+  // Virtual getter for pf_object
+  //virtual customPDE<dim, 1>& get_pf_object() = 0;
+  virtual customPDE<dim, 1>& get_pf_object() {
+    throw std::logic_error("get_pf_object() not implemented");
+  }
   //PRISMS-Plasticity functions
 
   //parallel objects

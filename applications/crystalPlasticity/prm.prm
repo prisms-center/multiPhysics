@@ -104,7 +104,8 @@ set Quarter cycle time                           = 1.2
 set Time increments                              = 0.05
 
 #Total simulation time
-set Total time                                   = 2
+#set Total time                                   = 2
+set Total time                                   = 0.05
 
 
 # Maximum iterations for linear solver

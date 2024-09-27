@@ -35,7 +35,7 @@ set Time step = 0.0001
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 5000
+set Number of time steps = 1000
 
 # =================================================================================
 # Set the output parameters
@@ -46,13 +46,15 @@ set Output condition = EQUAL_SPACING
 
 # Number of times the program outputs the fields (total number for "EQUAL_SPACING"
 # and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
-set Number of outputs = 5
+set Number of outputs = 1
 
 # Whether to print timing information every time the code outputs
 set Print timing information with output = true
 
 # The number of time steps between updates being printed to the screen
 set Skip print steps = 1000
+
+set Number of checkpoints = 0
 
 # =================================================================================
 # Set the boundary conditions

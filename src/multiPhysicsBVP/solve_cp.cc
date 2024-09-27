@@ -1,5 +1,11 @@
 //solve method for multiPhysicsBVP class
 #include "../../include/multiPhysicsBVP.h"
+#include "customPDE.h"
+
+#include <deal.II/numerics/fe_field_function.h>
+#include <deal.II/numerics/vector_tools.h>
+#include <deal.II/numerics/matrix_tools.h>
+#include <deal.II/fe/fe_tools.h>
 
 //loop over increments and solve each increment
 template <int dim, int degree>
@@ -68,7 +74,45 @@ void MultiPhysicsBVP<dim,degree>::solve_cp(){
   }
   else
     for (;currentIncrement_cp<totalIncrements; ++currentIncrement_cp){
-    pcout << "\nincrement: "  << currentIncrement_cp << std::endl;
+      pcout << "\nincrement: "  << currentIncrement_cp << std::endl;
+
+      //Interpolate twin fraction and twinfraction change from PF mesh into CPFE mesh 
+      //Initial interpolation of twin seed (Order parameter "n", solutionSet[0]) in phase-field mesh into variable dtwinfraction_iter in CPFE mesh
+      
+      //Define object fe_function_1 for phase field data given dof handler and the given solution vector. . This object can evaluate the finite 
+      //element solution at given points in the domain.
+      // Accessing pf_object through the virtual function
+      auto& pf_obj = this->get_pf_object();
+      pcout << "\npf_obj access successful " << std::endl;
+      Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(*pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
+      pcout << "\nCreated fe_function_1 object " << std::endl;
+      /*
+      //Interpolate into the CPFE domain
+      VectorTools::interpolate (*dof_handler_cp, fe_function_1, *solution_cp);
+      //Define dof_to_qpoint_matrix 
+      FullMatrix<double> dof_to_qpoint_matrix (quadrature_cp.size(), fe_cp->n_dofs_per_cell());
+      //Interpolate into CPFE mesh quadrature points
+      FETools::compute_interpolation_to_quadrature_points_matrix(*fe_cp,quadrature_cp,dof_to_qpoint_matrix);
+      
+      FEValues<dim> fe_values_cp (*fe_cp, quadrature_cp, update_values | update_gradients | update_JxW_values | update_quadrature_points);
+      typename DoFHandler<dim>::active_cell_iterator cell = dof_handler_cp->begin_active(),
+                                                  endc = dof_handler_cp->end(),
+                                                  dg_cell = dof_handler_cp->begin_active();
+      unsigned int num_local_cells =triangulation_cp.n_locally_owned_active_cells();
+      std::vector<std::vector<double>> twinfraction_iter1; //This should be dtwinfraction_iter
+      twinfraction_iter1.resize(num_local_cells,std::vector<double>(quadrature_cp.size(),0));
+      std::vector<double> solution_values_cp(quadrature_cp.size());
+      unsigned int cellID=0;
+      for (; cell != endc; ++cell){
+        fe_values_cp.reinit(cell);
+        fe_values_cp.get_function_values(*solution_cp, solution_values_cp);
+        for (unsigned int q=0; q<quadrature_cp.size(); ++q){
+          twinfraction_iter1[cellID][q]= solution_values_cp[q];
+        }
+        if (cell->is_locally_owned()){cellID++;}
+      } 
+      //End of Initial Interpolation
+      */
     if (userInputs_cp.enableIndentationBCs){
         MultiPhysicsBVP<dim,degree>::updateBeforeIncrement();
         if (!userInputs_cp.continuum_Isotropic)
@@ -77,8 +121,6 @@ void MultiPhysicsBVP<dim,degree>::solve_cp(){
     else{
         updateBeforeIncrement();
     }
-    //call updateBeforeIncrement, if any
-
 
     if (!userInputs_cp.flagTaylorModel){
       //solve time increment
