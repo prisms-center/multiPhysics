@@ -583,6 +583,8 @@ protected:
   matrixType_cp massMatrix;
   Table<4,double> postprocessValues;
   Table<2,double> postprocessValuesAtCellCenters;
+   //cp try
+   std::vector<std::vector<  std::vector<double> > >  twinfraction_iter1,dtwinfraction_iter1;
   //user model related variables and methods
   #ifdef enableUserModel
   unsigned int numQuadHistoryVariables;

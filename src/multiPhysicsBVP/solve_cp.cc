@@ -14,7 +14,20 @@ void MultiPhysicsBVP<dim,degree>::solve_cp(){
   bool success;
   //load increments
   unsigned int successiveIncs=0;
-
+//cp_twinfraction_addition
+	 //local variables
+  QGauss<dim>  quadrature(userInputs_cp.quadOrder);
+  FEValues<dim> fe_values (FE, quadrature, update_values | update_gradients | update_JxW_values);
+  const unsigned int   dofs_per_cell   = FE.dofs_per_cell;
+  const unsigned int   num_quad_points = quadrature.size();
+  unsigned int num_local_cells = triangulation_cp.n_locally_owned_active_cells();
+   std::vector<double> twin_init(userInputs_cp.numTwinSystems1);
+    for (unsigned int i=0;i<userInputs_cp.numTwinSystems1;i++){
+    twin_init[i]=0.0;
+      }
+  twinfraction_iter1.resize(num_local_cells,std::vector<std::vector<double> >(num_quad_points,twin_init));
+  dtwinfraction_iter1.resize(num_local_cells,std::vector<std::vector<double> >(num_quad_points,twin_init));
+	//
   if(userInputs_cp.enableAdaptiveTimeStepping){
     for (;totalLoadFactor<totalIncrements;){
       ++currentIncrement_cp;
