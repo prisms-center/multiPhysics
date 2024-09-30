@@ -99,33 +99,41 @@ void MultiPhysicsBVP<dim,degree>::solve_cp(){
       pcout << "\npf_obj access successful " << std::endl;
       Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(*pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
       pcout << "\nCreated fe_function_1 object " << std::endl;
-      /*
       //Interpolate into the CPFE domain
-      VectorTools::interpolate (*dof_handler_cp, fe_function_1, *solution_cp);
+      vectorType_cp solution_cp;  // No pointer, just a regular object
+      IndexSet own_dofs = dofHandler.locally_owned_dofs();
+      DoFTools::extract_locally_relevant_dofs (dofHandler, locally_relevant_dofs);
+      solution_cp.reinit(own_dofs, locally_relevant_dofs ,mpi_communicator);
+      VectorTools::interpolate (dofHandler, fe_function_1, solution_cp); //Works but not in parallel
+      pcout << "\nInterpolated into solution_cp " << std::endl;
       //Define dof_to_qpoint_matrix 
-      FullMatrix<double> dof_to_qpoint_matrix (quadrature_cp.size(), fe_cp->n_dofs_per_cell());
+      FullMatrix<double> dof_to_qpoint_matrix (quadrature.size(),FE.n_dofs_per_cell());
+      pcout << "\nDeclared dof_to_qpoint_matrix " << std::endl;
       //Interpolate into CPFE mesh quadrature points
-      FETools::compute_interpolation_to_quadrature_points_matrix(*fe_cp,quadrature_cp,dof_to_qpoint_matrix);
-      
-      FEValues<dim> fe_values_cp (*fe_cp, quadrature_cp, update_values | update_gradients | update_JxW_values | update_quadrature_points);
-      typename DoFHandler<dim>::active_cell_iterator cell = dof_handler_cp->begin_active(),
-                                                  endc = dof_handler_cp->end(),
-                                                  dg_cell = dof_handler_cp->begin_active();
-      unsigned int num_local_cells =triangulation_cp.n_locally_owned_active_cells();
-      std::vector<std::vector<double>> twinfraction_iter1; //This should be dtwinfraction_iter
-      twinfraction_iter1.resize(num_local_cells,std::vector<double>(quadrature_cp.size(),0));
-      std::vector<double> solution_values_cp(quadrature_cp.size());
+      FETools::compute_interpolation_to_quadrature_points_matrix(FE,quadrature,dof_to_qpoint_matrix);
+      pcout << "\nCalculated dof_to_qpoint_matrix " << std::endl;
+      //FEValues<dim> fe_values_cp (*FE, quadrature, update_values | update_gradients | update_JxW_values | update_quadrature_points);
+      typename DoFHandler<dim>::active_cell_iterator cell = dofHandler.begin_active(),
+                                                  endc = dofHandler.end(),
+                                                  dg_cell = dofHandler.begin_active();
+      pcout << "\nDefined cell iterator" << std::endl;
+      //unsigned int num_local_cells = triangulation_cp.n_locally_owned_active_cells();
+      //std::vector<std::vector<double>> twinfraction_iter1; //This should be dtwinfraction_iter
+      //twinfraction_iter1.resize(num_local_cells,std::vector<double>(quadrature_cp.size(),0));
+      std::vector<double> solution_values_cp(quadrature.size());
+      pcout << "\nDefined solution_values_cp for the cell" << std::endl;
       unsigned int cellID=0;
       for (; cell != endc; ++cell){
-        fe_values_cp.reinit(cell);
-        fe_values_cp.get_function_values(*solution_cp, solution_values_cp);
-        for (unsigned int q=0; q<quadrature_cp.size(); ++q){
-          twinfraction_iter1[cellID][q]= solution_values_cp[q];
+        fe_values.reinit(cell);
+        fe_values.get_function_values(solution_cp, solution_values_cp);
+        for (unsigned int q=0; q<quadrature.size(); ++q){
+          twinfraction_iter1[cellID][q][0]= solution_values_cp[q]; //Passing the solution for twin of index =0
         }
         if (cell->is_locally_owned()){cellID++;}
       } 
       //End of Initial Interpolation
-      */
+      pcout << "\nInterpolation complete" << std::endl;
+
     if (userInputs_cp.enableIndentationBCs){
         MultiPhysicsBVP<dim,degree>::updateBeforeIncrement();
         if (!userInputs_cp.continuum_Isotropic)
