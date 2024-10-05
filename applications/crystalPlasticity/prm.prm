@@ -54,19 +54,22 @@ set Write Output                                 = true
 set Output Directory                             = results
 
 # Skip Output Steps
-set Skip Output Steps                            = 10000
+set Skip Output Steps                            = 1
 
 # Output Equivalent strain
-set Output Equivalent strain                     = true
+set Output Equivalent strain                     = false
 
 # Output Equivalent stress
-set Output Equivalent stress                     = true
+set Output Equivalent stress                     = false
 
 # Output Grain ID
 set Output Grain ID                              = true
 
 # Output Twin fractions
-set Output Twin fractions                        = true
+set Output Twin fractions                        = false
+
+# Output Variable 2
+set Output Variable 2                            = true
 
 ####################################
 # Boundary condition information
