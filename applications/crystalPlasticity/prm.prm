@@ -29,13 +29,13 @@ set Domain size Z                                = 1.0
 # Mesh parameters
 ####################################
 # The number of mesh subdivisions in the x direction.
-set Subdivisions X                               = 8
+set Subdivisions X                               = 32
 
 # The number of mesh subdivisions in the y direction.
-set Subdivisions Y                               = 9
+set Subdivisions Y                               = 32
 
 # The number of mesh subdivisions in the z direction.
-set Subdivisions Z                               = 15
+set Subdivisions Z                               = 32
 
 # The number of initial refinements of the coarse mesh.
 set Refine factor                                = 0
