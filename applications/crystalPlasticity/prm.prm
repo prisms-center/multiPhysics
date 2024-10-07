@@ -23,7 +23,7 @@ set Domain size X                                = 1.0
 set Domain size Y                                = 1.0
 
 # The size of the domain in the z direction.
-set Domain size Z                                = 1.0
+set Domain size Z                                = 0.0625
 
 ####################################
 # Mesh parameters
@@ -35,7 +35,7 @@ set Subdivisions X                               = 32
 set Subdivisions Y                               = 32
 
 # The number of mesh subdivisions in the z direction.
-set Subdivisions Z                               = 32
+set Subdivisions Z                               = 2
 
 # The number of initial refinements of the coarse mesh.
 set Refine factor                                = 0
