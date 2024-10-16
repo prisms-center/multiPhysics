@@ -68,6 +68,9 @@ set Output Grain ID                              = true
 # Output Twin fractions
 set Output Twin fractions                        = false
 
+# Output Variable 1
+set Output Variable 1                            = true
+
 # Output Variable 2
 set Output Variable 2                            = true
 
