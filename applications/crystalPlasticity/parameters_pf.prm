@@ -35,7 +35,7 @@ set Time step = 0.0001
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 1000
+set Number of time steps = 1
 
 # =================================================================================
 # Set the output parameters
@@ -105,7 +105,7 @@ set Model constant delf_tw = 1.0, DOUBLE
 
 # The rotation angle from the reference plane
 # to the twin plane reference frame
-set Model constant th = 0.0, DOUBLE
+set Model constant th = 0.753213, DOUBLE
 
 # Unit lenght (in m)
 set Model constant l0 = 1.0e-6, DOUBLE

@@ -70,8 +70,11 @@ set Output Grain ID                              = true
 set Output Twin fractions                        = true
 
 # Output Variable 2
-set Output Variable 1                            = true
-set Output Variable 2                            = true
+set Output Variable 1                            = true 
+#dtwinfraction_iter1
+set Output Variable 2                            = true 
+#twinfraction_iter1
+set Output Variable 3                            = true
 ####################################
 # Boundary condition information
 ####################################
@@ -120,7 +123,7 @@ set Time increments                              = 0.05
 
 #Total simulation time
 #set Total time                                   = 2
-set Total time                                   = 5
+set Total time                                   = 0.05
 
 
 # Maximum iterations for linear solver

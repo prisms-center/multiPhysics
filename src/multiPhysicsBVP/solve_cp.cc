@@ -42,11 +42,11 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   // Define dof_to_qpoint_matrix
   FullMatrix<double> dof_to_qpoint_matrix(quadrature.size(),
                                           FE.n_dofs_per_cell());
-  pcout << "\nDeclared dof_to_qpoint_matrix " << std::endl;
+  //pcout << "\nDeclared dof_to_qpoint_matrix " << std::endl;
   // Interpolate into CPFE mesh quadrature points
-  FETools::compute_interpolation_to_quadrature_points_matrix(
-      FE, quadrature, dof_to_qpoint_matrix);
-  pcout << "\nCalculated dof_to_qpoint_matrix " << std::endl;
+  //FETools::compute_interpolation_to_quadrature_points_matrix(
+  //    FE, quadrature, dof_to_qpoint_matrix);
+  //pcout << "\nCalculated dof_to_qpoint_matrix " << std::endl;
 
   if (userInputs_cp.enableAdaptiveTimeStepping) {
     for (; totalLoadFactor < totalIncrements;) {
