@@ -38,6 +38,8 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   auto &pf_obj = this->get_pf_object();
   pcout << "\npf_obj access successful " << std::endl;
   IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
+  IndexSet locally_relevant_dofs;
+  DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
   //DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
   // Define dof_to_qpoint_matrix
   //FullMatrix<double> dof_to_qpoint_matrix(quadrature.size(),
@@ -130,17 +132,20 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
       pcout << "\nCreated fe_function_1 object " << std::endl;
       // Interpolate into the CPFE domain
-      vectorType_cp solution_cp; // No pointer, just a regular object
+      vectorType_cp non_ghosted_solution_cp; // No pointer, just a regular object
+      vectorType_cp solution_cp;
       //vectorType_cp non_ghosted_solution_cp;
       //non_ghosted_solution_cp.reinit(solution_cp.locally_owned_elements(), MPI_COMM_WORLD);
       //non_ghosted_solution_cp = solution_cp; // Copy the contents without ghost elements      
-      //solution_cp.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
-      solution_cp.reinit(own_dofs, mpi_communicator);
+      solution_cp.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
+      non_ghosted_solution_cp.reinit(own_dofs, mpi_communicator);
       pcout << "\nreinit of solution_cp successful " << std::endl;
       //VectorTools::interpolate(dofHandler, fe_function_1,
       //                        solution_cp); // Works but not in parallel
       VectorTools::interpolate(dofHandler_Scalar, fe_function_1,
-                              solution_cp); // Works but not in parallel
+                              non_ghosted_solution_cp); // Works but not in parallel
+      solution_cp = non_ghosted_solution_cp;
+      solution_cp.compress(VectorOperation::insert);                 
       pcout << "\nInterpolated into solution_cp " << std::endl;
       std::vector<double> solution_values_cp(quadrature.size());
       pcout << "\nDefined solution_values_cp for the cell" << std::endl;
@@ -184,9 +189,16 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       pcout << "\nCreated fe_function_2 object " << std::endl;
       // Interpolate into the CPFE domain
       vectorType_cp solution_cp_2; // No pointer, just a regular object
-      solution_cp_2.reinit(own_dofs, mpi_communicator);
+      vectorType_cp non_ghosted_solution_cp_2;
+      solution_cp_2.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
+      non_ghosted_solution_cp_2.reinit(own_dofs, mpi_communicator);
+      pcout << "\nreinit of solution_cp_2 successful " << std::endl;
+      //VectorTools::interpolate(dofHandler, fe_function_1,
+      //                        solution_cp); // Works but not in parallel
       VectorTools::interpolate(dofHandler_Scalar, fe_function_2,
-                               solution_cp_2); // Works but not in parallel
+                              non_ghosted_solution_cp_2); // Works but not in parallel
+      solution_cp_2 = non_ghosted_solution_cp_2;
+      solution_cp_2.compress(VectorOperation::insert); 
       pcout << "\nInterpolated into solution_cp_2 " << std::endl;
       std::vector<double> solution_values_cp_2(quadrature.size());
       pcout << "\nDefined solution_values_cp_2 for the cell" << std::endl;
@@ -213,7 +225,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       }
       pcout << "\nInterpolation of dndt complete" << std::endl;
       // ++++++ End of Interpolation of "dndt" ++++++
-
+      
       if (userInputs_cp.enableIndentationBCs) {
         MultiPhysicsBVP<dim, degree>::updateBeforeIncrement();
         if (!userInputs_cp.continuum_Isotropic)
