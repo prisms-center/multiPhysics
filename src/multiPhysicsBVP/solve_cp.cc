@@ -243,6 +243,24 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       if ((success) || (userInputs_cp.flagTaylorModel)) {
         updateAfterIncrement();
 
+      //trial interpolation
+      // Interpolate twin fraction and twinfraction change from CPFE mesh into
+      // PF mesh.
+
+      // ***** Interpolation of twin energy ******
+      //
+      // Define object fe_function_3 with CPFE vector
+      Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
+          dofHandler_Scalar, *postFieldsWithGhosts[3]);
+      pcout << "\nCreated fe_function_3 object " << std::endl;
+      // Interpolate into the PF domain
+      VectorTools::interpolate(*pf_obj.getDofHandlersSet()[0], fe_function_3,
+                               *pf_obj.getSolutionSet()[0]); // Works but not in parallel
+      pcout << "\nInterpolated into solution_pf1 " << std::endl;
+      //cp
+    
+
+        
         // update totalLoadFactor
         totalLoadFactor += loadFactorSetByModel;
 
