@@ -258,4 +258,4 @@ set Grain ID file name                           = grainID_single32_check.txt
 set Header Lines GrainID File                    = 1
 
 # Grain orientations file name
-set Orientations file name                       = orientations_twin_single
+set Orientations file name                       = orientations_twin_single.txt
