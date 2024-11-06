@@ -254,8 +254,8 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           dofHandler_Scalar, *postFieldsWithGhosts[3]);
       pcout << "\nCreated fe_function_3 object " << std::endl;
       // Interpolate into the PF domain
-      VectorTools::interpolate(*pf_obj.getDofHandlersSet()[0], fe_function_3,
-                               *pf_obj.getSolutionSet()[0]); // Works but not in parallel
+      VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3,
+                               *pf_obj.getSolutionSet()[2]); // Works but not in parallel
       pcout << "\nInterpolated into solution_pf1 " << std::endl;
       //cp
     
