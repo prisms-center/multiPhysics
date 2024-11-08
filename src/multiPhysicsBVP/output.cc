@@ -255,7 +255,7 @@ void MultiPhysicsBVP<dim,degree>::output(){
 				      ".pvtu");
     std::ofstream master_output (filenamepvtu.c_str());
     data_out.write_pvtu_record (master_output, filenames);
-    pcout << "output written to: " << filenamepvtu.c_str();
+    pcout << "CPFE output written to: " << filenamepvtu.c_str();
     //
     if (numPostProcessedFieldsWritten>0){
       const std::string filenamepvtuForProjectedFields = (dir+"projectedFields-" +

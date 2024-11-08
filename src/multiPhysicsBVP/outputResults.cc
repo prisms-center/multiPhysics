@@ -142,7 +142,7 @@ void MultiPhysicsBVP<dim,degree>::outputResults() {
             std::ofstream master_output (pvtuFileName);
 
             data_out.write_pvtu_record (master_output, filenames);
-            pcout << "Output written to:" << pvtuFileName << "\n\n";
+            pcout << "PF Output written to:" << pvtuFileName << "\n\n";
           }
 
       }
@@ -151,14 +151,14 @@ void MultiPhysicsBVP<dim,degree>::outputResults() {
           char svtuFileName[100];
           snprintf(svtuFileName, sizeof(svtuFileName),"%s.%s", baseFileName ,userInputs_pf.output_file_type.c_str());
           data_out.write_vtu_in_parallel(svtuFileName, MPI_COMM_WORLD);
-          pcout << "Output written to:" << svtuFileName << "\n\n";
+          pcout << "PF Output written to:" << svtuFileName << "\n\n";
       }
   }
   else if (userInputs_pf.output_file_type == "vtk"){
       // Write the results to separate files for each process
       std::ofstream output (vtuFileName);
 	  data_out.write_vtk (output);
-      pcout << "Output written to:" << vtuFileName << "\n\n";
+      pcout << "PF Output written to:" << vtuFileName << "\n\n";
   }
   else {
 	  std::cerr << "PRISMS-PF Error: The parameter 'outputFileType' must be either \"vtu\" or \"vtk\"" << std::endl;

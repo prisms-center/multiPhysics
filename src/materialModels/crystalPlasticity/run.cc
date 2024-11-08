@@ -36,6 +36,6 @@ template <int dim> void crystalPlasticity<dim>::run() {
 
   this->solve_cp();
 
-  // pf_object.solve_pf();
+  pf_object.solve_pf();
 }
 #include "../../../include/crystalPlasticity_template_instantiations.h"
