@@ -102,7 +102,7 @@ set Model constant L = 5000.0, DOUBLE
 # ANISOTROPIC
 # set Model constant Kij_tp = ((20.0,0),(0,1.0)), tensor
 # ISOTROPIC
-set Model constant Kij_tp = ((0.0764869,0,0),(0,0.0764869,0),(0,0,0.0764869)), tensor
+set Model constant Kij_tp = ((0.0043213,0,0),(0,0.0043213,0),(0,0,0.0043213)), tensor
 
 # Twin energy barrier (double well height)
 set Model constant delf_tw = 17.7, DOUBLE
