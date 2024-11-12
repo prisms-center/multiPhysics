@@ -1,3 +1,8 @@
+# Application units
+# Unit energy density = 1 MPa
+# Unit length = 1 micron
+# Unit time = 1 second 
+
 # =================================================================================
 # Set the number of dimensions (2 or 3 for a 2D or 3D calculation)
 # =================================================================================
@@ -31,7 +36,7 @@ set Element degree = 1
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 0.0001
+set Time step = 4.0e-08
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
@@ -90,18 +95,17 @@ set Boundary condition for variable strain_df = NATURAL
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
 # The mobility, L in equations.cpp
-set Model constant L = 5.0, DOUBLE
+set Model constant L = 5000.0, DOUBLE
 
 # The gradient energy coefficients
 # In the twin plane reference plane
 # ANISOTROPIC
 # set Model constant Kij_tp = ((20.0,0),(0,1.0)), tensor
 # ISOTROPIC
-set Model constant Kij_tp = ((0.000244141,0,0),(0,0.000244141,0),(0,0,0.000244141)), tensor
+set Model constant Kij_tp = ((0.0764869,0,0),(0,0.0764869,0),(0,0,0.0764869)), tensor
 
 # Twin energy barrier (double well height)
-# set Model constant delf_tw = 50.0, DOUBLE
-set Model constant delf_tw = 1.0, DOUBLE
+set Model constant delf_tw = 17.7, DOUBLE
 
 # The rotation angle from the reference plane
 # to the twin plane reference frame
