@@ -1,4 +1,4 @@
-# Application units
+# Application units (Parameters by Hu et al. 2020, except for mobility, bu Liu et al. 2021)
 # Unit energy density = 1 MPa
 # Unit length = 1 micron
 # Unit time = 1 second 
@@ -36,11 +36,11 @@ set Element degree = 1
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 4.0e-08
+set Time step = 5.65e-3
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 10
+set Number of time steps = 40
 
 # =================================================================================
 # Set the output parameters
@@ -51,7 +51,7 @@ set Output condition = EQUAL_SPACING
 
 # Number of times the program outputs the fields (total number for "EQUAL_SPACING"
 # and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
-set Number of outputs = 10
+set Number of outputs = 40
 
 # Whether to print timing information every time the code outputs
 set Print timing information with output = true
@@ -95,7 +95,7 @@ set Boundary condition for variable strain_df = NATURAL
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
 # The mobility, L in equations.cpp
-set Model constant L = 5000.0, DOUBLE
+set Model constant L = 5.0, DOUBLE
 
 # The gradient energy coefficients
 # In the twin plane reference plane
