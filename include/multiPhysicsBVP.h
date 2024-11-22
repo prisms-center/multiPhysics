@@ -108,12 +108,36 @@ public:
   crystalOrientationsIO<dim> orientations_Mesh;
 
   //Getter functions
-  const std::vector<const DoFHandler<dim>*>& getDofHandlersSet() const {
+  //std::vector<const DoFHandler<dim>*>  dofHandlersSet;
+  std::vector<const DoFHandler<dim>*>& getDofHandlersSet() {
        return dofHandlersSet;
   }
 
-   const std::vector<vectorType_pf*>& getSolutionSet() const {
+ std::vector<vectorType_pf*>& getSolutionSet() {
        return solutionSet;
+  }
+
+  void getSolveIncrement(bool skip_time_dependent) {
+        solveIncrement(skip_time_dependent);
+  }
+
+  void getSetNonlinearEqInitialGuess() {
+        setNonlinearEqInitialGuess();
+  }
+
+  //std::vector<const AffineConstraints<double>*> constraintsDirichletSet, constraintsOtherSet;
+
+  std::vector<const AffineConstraints<double>*>& getConstraintsDirichletSet() {
+        return constraintsDirichletSet;
+  }
+
+  std::vector<const AffineConstraints<double>*>& getConstraintsOtherSet() {
+        return constraintsOtherSet;
+  }
+
+  //void outputResults();
+  void getOutputResults(){
+        outputResults();
   }
 
 protected:

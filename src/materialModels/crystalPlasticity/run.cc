@@ -32,10 +32,10 @@ template <int dim> void crystalPlasticity<dim>::run() {
   // READING AND INITIALIZATION (PRISMS-PF)
   pf_object.buildFields();
   pf_object.init_pf();
-  pf_object.solve_pf();
+  //pf_object.solve_pf();
 
   this->solve_cp();
 
-  pf_object.solve_pf();
+  //pf_object.solve_pf();
 }
 #include "../../../include/crystalPlasticity_template_instantiations.h"

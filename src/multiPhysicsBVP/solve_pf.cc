@@ -22,11 +22,39 @@ void MultiPhysicsBVP<dim,degree>::solve_pf(){
             setNonlinearEqInitialGuess();
             generatingInitialGuess = false;
 
+            std::cout << "Debug: Inside solve_pf BEFORE solveIncrement:" << std::endl;
+            std::cout << "Fields size: " << fields.size() << std::endl;
+            std::cout << "SolutionSet size: " << solutionSet.size() << std::endl;
+
+            for (size_t i = 0; i < solutionSet.size(); ++i) {
+                if (solutionSet[i] != nullptr) {
+                    std::cout << "SolutionSet[" << i << "]: size=" << solutionSet[i]->size() << std::endl;
+                } else {
+                    std::cout << "SolutionSet[" << i << "] is nullptr!" << std::endl;
+                }
+            }
+
             // Do an initial solve to set the elliptic fields
             solveIncrement(true);
 
+            std::cout << "Debug: Inside solve_pf AFTER solveIncrement:" << std::endl;
+            std::cout << "Fields size: " << fields.size() << std::endl;
+            std::cout << "SolutionSet size: " << solutionSet.size() << std::endl;
+
+            for (size_t i = 0; i < solutionSet.size(); ++i) {
+                if (solutionSet[i] != nullptr) {
+                    std::cout << "SolutionSet[" << i << "]: size=" << solutionSet[i]->size() << std::endl;
+                } else {
+                    std::cout << "SolutionSet[" << i << "] is nullptr!" << std::endl;
+                }
+            }
+
             //output initial conditions for time dependent BVP
             if (userInputs_pf.outputTimeStepList[currentOutput] == currentIncrement_pf) {
+
+                std::cout << "ConstraintsDirichletSet size: " << constraintsDirichletSet.size() << std::endl;
+                std::cout << "ConstraintsOtherSet size: " << constraintsOtherSet.size() << std::endl;
+                std::cout << "SolutionSet size: " << solutionSet.size() << std::endl;
 
                 for(unsigned int fieldIndex=0; fieldIndex<fields.size(); fieldIndex++){
                     constraintsDirichletSet[fieldIndex]->distribute(*solutionSet[fieldIndex]);
@@ -55,7 +83,7 @@ void MultiPhysicsBVP<dim,degree>::solve_pf(){
 
             //time stepping
             pcout << "\nTime stepping parameters: timeStep: " << userInputs_pf.dtValue << "  timeFinal: " << userInputs_pf.finalTime << "  timeIncrements: " << userInputs_pf.totalIncrements << "\n";
-            }
+        }
         // This is the main time-stepping loop
         //for (; currentIncrement_pf<=userInputs_pf.totalIncrements; ++currentIncrement_pf){
             //increment current time

@@ -29,79 +29,74 @@ void MultiPhysicsBVP<dim,degree>::outputResults() {
   // Test section for outputting postprocessed fields
   // Currently there are hacks in place, using the matrixFreeObject, invM, constraints, and DoFHandler as the primary variables
   if (userInputs_pf.postProcessingRequired){
-	  std::vector<vectorType_pf*> postProcessedSet;
-      computePostProcessedFields(postProcessedSet);
-#if (DEAL_II_VERSION_MAJOR == 9 && DEAL_II_VERSION_MINOR < 4)
-	  unsigned int invM_size = invM.local_size();
-	  for(unsigned int fieldIndex=0; fieldIndex<postProcessedSet.size(); fieldIndex++){
-		  for (unsigned int dof=0; dof<postProcessedSet[fieldIndex]->local_size(); ++dof){
-#else
-          unsigned int invM_size = invM.locally_owned_size();
-          for(unsigned int fieldIndex=0; fieldIndex<postProcessedSet.size(); fieldIndex++){
-                  for (unsigned int dof=0; dof<postProcessedSet[fieldIndex]->locally_owned_size(); ++dof){
-#endif
-			  postProcessedSet[fieldIndex]->local_element(dof)=			\
-					  invM.local_element(dof%invM_size)*postProcessedSet[fieldIndex]->local_element(dof);
+    std::vector<vectorType_pf*> postProcessedSet;
+    computePostProcessedFields(postProcessedSet);
 
-		  }
-		  constraintsOtherSet[0]->distribute(*postProcessedSet[fieldIndex]);
-		  postProcessedSet[fieldIndex]->update_ghost_values();
-	  }
+    unsigned int invM_size = invM.locally_owned_size();
+    for(unsigned int fieldIndex=0; fieldIndex<postProcessedSet.size(); fieldIndex++){
+        for (unsigned int dof=0; dof<postProcessedSet[fieldIndex]->locally_owned_size(); ++dof){
+            postProcessedSet[fieldIndex]->local_element(dof)=			\
+                    invM.local_element(dof%invM_size)*postProcessedSet[fieldIndex]->local_element(dof);
 
-      // Integrate over selected post-processed fields and output them to the screen and a text file
-      std::ofstream output_file;
+        }
+        constraintsOtherSet[0]->distribute(*postProcessedSet[fieldIndex]);
+        postProcessedSet[fieldIndex]->update_ghost_values();
+    }
 
-      if (userInputs_pf.num_integrated_fields > 0){
-          if (first_integrated_var_output_complete){
-              output_file.open("integratedFields.txt", std::ios::app);
-          }
-          else {
-              output_file.open("integratedFields.txt", std::ios::out);
-          }
-          output_file.precision(10);
+    // Integrate over selected post-processed fields and output them to the screen and a text file
+    std::ofstream output_file;
 
-          if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0){
-              output_file << currentTime_pf;
-          }
+    if (userInputs_pf.num_integrated_fields > 0){
+        if (first_integrated_var_output_complete){
+            output_file.open("integratedFields.txt", std::ios::app);
+        }
+        else {
+            output_file.open("integratedFields.txt", std::ios::out);
+        }
+        output_file.precision(10);
 
-          for (unsigned int i=0; i<userInputs_pf.pp_number_of_variables; i++){
-              if (userInputs_pf.pp_calc_integral[i]){
-                  double integrated_field;
-                  computeIntegral(integrated_field,i,postProcessedSet);
-                  pcout << "Integrated value of " << userInputs_pf.pp_var_name[userInputs_pf.integrated_field_indices[i]] << ": " << integrated_field << std::endl;
-                  if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0){
-                      output_file << "\t" << userInputs_pf.pp_var_name[userInputs_pf.integrated_field_indices[i]] << "\t" << integrated_field;
-                  }
-                   integrated_postprocessed_fields.at(userInputs_pf.integrated_field_indices[i]) = integrated_field;
-              }
-          }
-          if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0){
-              output_file << std::endl;
-          }
-          output_file.close();
-          first_integrated_var_output_complete = true;
-      }
+        if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0){
+            output_file << currentTime_pf;
+        }
 
-	  // Add the postprocessed fields to data_out
-	  for(unsigned int fieldIndex=0; fieldIndex<userInputs_pf.pp_number_of_variables; fieldIndex++){
-		  //mark field as scalar/vector
-		  unsigned int components;
-		  if (userInputs_pf.pp_varInfoList[fieldIndex].is_scalar){
-			  components = 1;
-			  std::vector<DataComponentInterpretation::DataComponentInterpretation> dataType(components,DataComponentInterpretation::component_is_scalar);
-			  std::vector<std::string> solutionNames (components, userInputs_pf.pp_var_name[fieldIndex].c_str());
-			  //add field to data_out
-			  data_out.add_data_vector(*dofHandlersSet[0], *postProcessedSet[fieldIndex], solutionNames, dataType);
-		  }
-		  else {
-			  components = dim;
-			  std::vector<DataComponentInterpretation::DataComponentInterpretation> dataType(components,DataComponentInterpretation::component_is_part_of_vector);
-			  std::vector<std::string> solutionNames (components, userInputs_pf.pp_var_name[fieldIndex].c_str());
-			  //add field to data_out
-			  //data_out.add_data_vector(*vector_dofHandler, *postProcessedSet[fieldIndex], solutionNames, dataType);
-			  data_out.add_data_vector(*dofHandlersSet[0], *postProcessedSet[fieldIndex], solutionNames, dataType);
-		  }
-	  }
+        for (unsigned int i=0; i<userInputs_pf.pp_number_of_variables; i++){
+            if (userInputs_pf.pp_calc_integral[i]){
+                double integrated_field;
+                computeIntegral(integrated_field,i,postProcessedSet);
+                pcout << "Integrated value of " << userInputs_pf.pp_var_name[userInputs_pf.integrated_field_indices[i]] << ": " << integrated_field << std::endl;
+                if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0){
+                    output_file << "\t" << userInputs_pf.pp_var_name[userInputs_pf.integrated_field_indices[i]] << "\t" << integrated_field;
+                }
+                integrated_postprocessed_fields.at(userInputs_pf.integrated_field_indices[i]) = integrated_field;
+            }
+        }
+        if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0){
+            output_file << std::endl;
+        }
+        output_file.close();
+        first_integrated_var_output_complete = true;
+    }
+
+    // Add the postprocessed fields to data_out
+    for(unsigned int fieldIndex=0; fieldIndex<userInputs_pf.pp_number_of_variables; fieldIndex++){
+        //mark field as scalar/vector
+        unsigned int components;
+        if (userInputs_pf.pp_varInfoList[fieldIndex].is_scalar){
+            components = 1;
+            std::vector<DataComponentInterpretation::DataComponentInterpretation> dataType(components,DataComponentInterpretation::component_is_scalar);
+            std::vector<std::string> solutionNames (components, userInputs_pf.pp_var_name[fieldIndex].c_str());
+            //add field to data_out
+            data_out.add_data_vector(*dofHandlersSet[0], *postProcessedSet[fieldIndex], solutionNames, dataType);
+        }
+        else {
+            components = dim;
+            std::vector<DataComponentInterpretation::DataComponentInterpretation> dataType(components,DataComponentInterpretation::component_is_part_of_vector);
+            std::vector<std::string> solutionNames (components, userInputs_pf.pp_var_name[fieldIndex].c_str());
+            //add field to data_out
+            //data_out.add_data_vector(*vector_dofHandler, *postProcessedSet[fieldIndex], solutionNames, dataType);
+            data_out.add_data_vector(*dofHandlersSet[0], *postProcessedSet[fieldIndex], solutionNames, dataType);
+        }
+    }
   }
 
   data_out.build_patches (degree);

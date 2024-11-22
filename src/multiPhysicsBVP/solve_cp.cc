@@ -7,9 +7,64 @@
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/vector_tools.h>
 
-// loop over increments and solve each increment
+// Loop over increments and solve each increment in PF and CPFE
+
 template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
-  pcout << "begin solve...\n\n";
+
+  //Section for first phase field step solution BEGINS
+  //  Accessing pf_object through the virtual function
+  auto &pf_obj = this->get_pf_object();
+  pcout << "\npf_obj access successful " << std::endl;
+
+  //log time
+  computing_timer_pf.enter_subsection("multiPhysicsBVP: solve");
+  pcout << "\nsolving PF (first step)";
+
+  pcout << "\ncurrentIncrement_pf = " << currentIncrement_pf << "\n\n";
+
+  // For any nonlinear equation, set the initial guess as the solution to Laplace's equations
+  generatingInitialGuess = true;
+  pf_obj.getSetNonlinearEqInitialGuess();
+  generatingInitialGuess = false;
+
+  // Do an initial solve to set the elliptic fields
+  pf_obj.getSolveIncrement(true);
+  
+  //Apply constraints and update ghost values
+  for(unsigned int fieldIndex=0; fieldIndex<pf_obj.fields.size(); fieldIndex++){     
+      pf_obj.getConstraintsDirichletSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
+      pf_obj.getConstraintsOtherSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
+      pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
+  }
+
+  //Output Result for initial conditions
+  pf_obj.getOutputResults();
+  currentOutput++;
+
+  //Output initial condition checkpoint (uncomment later)
+  //if (userInputs_pf.checkpointTimeStepList[currentCheckpoint] == currentIncrement_pf) {
+  //    save_checkpoint();
+  //    currentCheckpoint++;
+  //}
+
+  // Increase the current increment from 0 to 1 now that the initial conditions have been output
+  currentIncrement_pf++;
+
+  // Cycle up to the proper output counter
+  while (userInputs_pf.outputTimeStepList.size() > 0 && userInputs_pf.outputTimeStepList[currentOutput] < currentIncrement_pf){
+      currentOutput++;
+  }
+// Cycle up to the proper checkpoint counter (uncomment later)
+  //while (userInputs_pf.checkpointTimeStepList.size() > 0 && userInputs_pf.checkpointTimeStepList[currentCheckpoint] < currentIncrement_pf){
+  //    currentCheckpoint++;
+  //}
+  
+  //time stepping
+  pcout << "\nTime stepping parameters: timeStep: " << userInputs_pf.dtValue << "  timeFinal: " << userInputs_pf.finalTime << "  timeIncrements: " << userInputs_pf.totalIncrements << "\n";
+  //Section for first phase field step solution ENDS
+
+  pcout << "begin solve... CPFE\n\n";
+
   bool success;
   // load increments
   unsigned int successiveIncs = 0;
@@ -34,21 +89,9 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   // Needed for interpolation below
   //  Interpolate twin fraction and twinfraction change from PF mesh into
   // CPFE mesh.
-  //  Accessing pf_object through the virtual function
-  auto &pf_obj = this->get_pf_object();
-  pcout << "\npf_obj access successful " << std::endl;
   IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
   IndexSet locally_relevant_dofs;
   DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
-  //DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
-  // Define dof_to_qpoint_matrix
-  //FullMatrix<double> dof_to_qpoint_matrix(quadrature.size(),
-  //                                        FE.n_dofs_per_cell());
-  //pcout << "\nDeclared dof_to_qpoint_matrix " << std::endl;
-  // Interpolate into CPFE mesh quadrature points
-  //FETools::compute_interpolation_to_quadrature_points_matrix(
-  //    FE, quadrature, dof_to_qpoint_matrix);
-  //pcout << "\nCalculated dof_to_qpoint_matrix " << std::endl;
 
   if (userInputs_cp.enableAdaptiveTimeStepping) {
     for (; totalLoadFactor < totalIncrements;) {
@@ -182,7 +225,6 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       // Define object fe_function_1 for phase field data given dof handler and
       // the given solution vector. . This object can evaluate the finite
       // element solution at given points in the domain.
-      //  Accessing pf_object through the virtual function
       
       Functions::FEFieldFunction<dim, vectorType_pf> fe_function_2(
           *pf_obj.getDofHandlersSet()[1], *pf_obj.getSolutionSet()[1]);
