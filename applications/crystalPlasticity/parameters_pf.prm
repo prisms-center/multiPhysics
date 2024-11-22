@@ -40,7 +40,7 @@ set Time step = 4.0e-08
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 3
+set Number of time steps = 10
 
 # =================================================================================
 # Set the output parameters
@@ -51,7 +51,7 @@ set Output condition = EQUAL_SPACING
 
 # Number of times the program outputs the fields (total number for "EQUAL_SPACING"
 # and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
-set Number of outputs = 3
+set Number of outputs = 10
 
 # Whether to print timing information every time the code outputs
 set Print timing information with output = true

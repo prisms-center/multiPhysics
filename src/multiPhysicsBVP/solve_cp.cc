@@ -20,12 +20,12 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   computing_timer_pf.enter_subsection("multiPhysicsBVP: solve");
   pcout << "\nsolving PF (first step)";
 
-  pcout << "\ncurrentIncrement_pf = " << currentIncrement_pf << "\n\n";
+  pcout << "\ncurrentIncrement_pf = " << pf_obj.getCurrentIncrement_pf() << "\n\n";
 
   // For any nonlinear equation, set the initial guess as the solution to Laplace's equations
-  generatingInitialGuess = true;
-  pf_obj.getSetNonlinearEqInitialGuess();
-  generatingInitialGuess = false;
+  //generatingInitialGuess = true;
+  //pf_obj.getSetNonlinearEqInitialGuess();
+  //generatingInitialGuess = false;
 
   // Do an initial solve to set the elliptic fields
   pf_obj.getSolveIncrement(true);
@@ -39,7 +39,8 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
 
   //Output Result for initial conditions
   pf_obj.getOutputResults();
-  currentOutput++;
+  //currentOutput++;
+  pf_obj.getCurrentOutput() += 1;
 
   //Output initial condition checkpoint (uncomment later)
   //if (userInputs_pf.checkpointTimeStepList[currentCheckpoint] == currentIncrement_pf) {
@@ -48,11 +49,13 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   //}
 
   // Increase the current increment from 0 to 1 now that the initial conditions have been output
-  currentIncrement_pf++;
+  //currentIncrement_pf++;
+  pf_obj.getCurrentIncrement_pf() += 1;
 
   // Cycle up to the proper output counter
-  while (userInputs_pf.outputTimeStepList.size() > 0 && userInputs_pf.outputTimeStepList[currentOutput] < currentIncrement_pf){
-      currentOutput++;
+  while (userInputs_pf.outputTimeStepList.size() > 0 && userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] < pf_obj.getCurrentIncrement_pf()){
+      //currentOutput++;
+      pf_obj.getCurrentOutput() += 1;
   }
 // Cycle up to the proper checkpoint counter (uncomment later)
   //while (userInputs_pf.checkpointTimeStepList.size() > 0 && userInputs_pf.checkpointTimeStepList[currentCheckpoint] < currentIncrement_pf){
@@ -133,23 +136,12 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
                   loadFactorSetByModel);
           pcout << buffer1;
         }
-#if ((DEAL_II_VERSION_MAJOR < 9) ||                                            \
-     ((DEAL_II_VERSION_MINOR < 3) && (DEAL_II_VERSION_MAJOR == 9)))
-        computing_timer_cp.enter_section("postprocess");
-#else
         computing_timer_cp.enter_subsection("postprocess");
-#endif
 
         if (currentIncrement_cp % userInputs_cp.skipOutputSteps == 0)
           if (userInputs_cp.writeOutput)
             output();
-
-#if ((DEAL_II_VERSION_MAJOR < 9) ||                                            \
-     ((DEAL_II_VERSION_MINOR < 3) && (DEAL_II_VERSION_MAJOR == 9)))
-        computing_timer_cp.exit_section("postprocess");
-#else
         computing_timer_cp.leave_subsection("postprocess");
-#endif
 
       } else {
         successiveIncs = 0;
@@ -160,7 +152,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
     pcout << buffer;
   } else
     for (; currentIncrement_cp < totalIncrements; ++currentIncrement_cp) {
-      pcout << "\nincrement: " << currentIncrement_cp << std::endl;
+      pcout << "\nincrement CPFE: " << currentIncrement_cp << std::endl;
 
       // Interpolate twin fraction and twinfraction change from PF mesh into
       // CPFE mesh.
@@ -285,44 +277,35 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       if ((success) || (userInputs_cp.flagTaylorModel)) {
         updateAfterIncrement();
 
-      //trial interpolation
-      // Interpolate twin fraction and twinfraction change from CPFE mesh into
-      // PF mesh.
+        //trial interpolation
+        // Interpolate twin fraction and twinfraction change from CPFE mesh into
+        // PF mesh.
 
-      // ***** Interpolation of twin energy ******
-      //
-      // Define object fe_function_3 with CPFE vector
-      Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
-          dofHandler_Scalar, *postFieldsWithGhosts[3]);
-      pcout << "\nCreated fe_function_3 object " << std::endl;
-      // Interpolate into the PF domain
-      VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3,
-                               *pf_obj.getSolutionSet()[2]); // Works but not in parallel
-      pcout << "\nInterpolated into solution_pf1 " << std::endl;
-      //cp
+        // ***** Interpolation of twin energy ******
+        //
+        // Define object fe_function_3 with CPFE vector
+        Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
+            dofHandler_Scalar, *postFieldsWithGhosts[3]);
+        pcout << "\nCreated fe_function_3 object " << std::endl;
+        // Interpolate into the PF domain
+        VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3,
+                                *pf_obj.getSolutionSet()[2]); // Works but not in parallel
+        pcout << "\nInterpolated into solution_pf1 " << std::endl;
+        //cp
     
-
-        
         // update totalLoadFactor
         totalLoadFactor += loadFactorSetByModel;
 
         // increase loadFactorSetByModel, if succesiveIncForIncreasingTimeStep
         // satisfied.
         successiveIncs++;
-// output results to file
-//
-#if ((DEAL_II_VERSION_MAJOR < 9) ||                                            \
-     ((DEAL_II_VERSION_MINOR < 3) && (DEAL_II_VERSION_MAJOR == 9)))
-        computing_timer_cp.enter_section("postprocess");
-#else
+        // output results to file
         computing_timer_cp.enter_subsection("postprocess");
-#endif
 
         //////////////////////TabularOutput Start///////////////
         std::vector<unsigned int> tabularTimeInputIncInt;
         std::vector<double> tabularTimeInputInc;
         if (userInputs_cp.tabularOutput) {
-
           tabularTimeInputInc = userInputs_cp.tabularTimeOutput;
           for (unsigned int i = 0; i < userInputs_cp.tabularTimeOutput.size();
                i++) {
@@ -349,16 +332,60 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           if (userInputs_cp.writeOutput)
             output();
         }
-
-#if ((DEAL_II_VERSION_MAJOR < 9) ||                                            \
-     ((DEAL_II_VERSION_MINOR < 3) && (DEAL_II_VERSION_MAJOR == 9)))
-        computing_timer_cp.exit_section("postprocess");
-#else
         computing_timer_cp.leave_subsection("postprocess");
-#endif
       } else {
         successiveIncs = 0;
       }
+      //Phase-Field regular step STARTS
+      //increment current time
+      pf_obj.getCurrentTime_pf() += userInputs_pf.dtValue;
+      if (pf_obj.getCurrentIncrement_pf()%userInputs_pf.skip_print_steps==0){
+          pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement_pf() << "  time: " << pf_obj.getCurrentTime_pf() << "\n";
+          pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() << "\n";
+      }
+
+      //check and perform adaptive mesh refinement
+      //adaptiveRefine(currentIncrement_pf);
+
+      // Update the list of nuclei (if relevant)
+      //updateNucleiList();
+
+      // If grain reassignment is activated, reassign grains
+      //if (userInputs_pf.grain_remapping_activated and (currentIncrement_pf%userInputs_pf.skip_grain_reassignment_steps == 0 or currentIncrement_pf == 0) ) {
+      //    reassignGrains();
+      //}
+
+      //solve time increment
+      pf_obj.getSolveIncrement(false);
+
+      if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement_pf()) {
+        //Apply constraints and update ghost values
+        for(unsigned int fieldIndex=0; fieldIndex<pf_obj.fields.size(); fieldIndex++){     
+          pf_obj.getConstraintsDirichletSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
+          pf_obj.getConstraintsOtherSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
+          pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
+        }
+
+        //Output Result for initial conditions
+        pf_obj.getOutputResults();
+        /*
+        if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements){
+            computing_timer_pf.print_summary();
+        }
+        */
+        //currentOutput++;
+        pf_obj.getCurrentOutput() += 1;
+      }
+      /*
+      // Create a checkpoint (on the proper increments)
+      if (userInputs_pf.checkpointTimeStepList[currentCheckpoint] == currentIncrement_pf) {
+          save_checkpoint();
+          currentCheckpoint++;
+      }
+      */
+      //currentIncrement_pf++;
+      pf_obj.getCurrentIncrement_pf() += 1;
+      //Phase-Field regular step ENDS
     }
 }
 #include "../../include/multiPhysicsBVP_template_instantiations.h"

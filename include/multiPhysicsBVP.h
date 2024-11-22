@@ -140,6 +140,22 @@ public:
         outputResults();
   }
 
+  //double currentTime_pf;
+  double& getCurrentTime_pf() {
+  return currentTime_pf;
+  }
+
+  //unsigned int currentIncrement_pf, currentOutput, currentCheckpoint, current_grain_reassignment;
+  unsigned int& getCurrentIncrement_pf() {
+  return currentIncrement_pf;
+  }
+
+  unsigned int& getCurrentOutput() {
+  return currentOutput;
+  }
+
+
+
 protected:
   //PRISMS-PF functions (This section contains all member functions also declared in customPDE)
 
