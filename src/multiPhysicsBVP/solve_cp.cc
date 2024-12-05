@@ -163,104 +163,103 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       // element solution at given points in the domain.
 
       if (currentIncrement_cp*delT >=  timeBeforeS){
-        pcout << "\n Passing order parameter from phase field as twinfraction_iter1 " << std::endl;
-      }
-      Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(
-          *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
-      pcout << "\nCreated fe_function_1 object " << std::endl;
-      // Interpolate into the CPFE domain
-      vectorType_cp non_ghosted_solution_cp; // No pointer, just a regular object
-      vectorType_cp solution_cp;
-      //vectorType_cp non_ghosted_solution_cp;
-      //non_ghosted_solution_cp.reinit(solution_cp.locally_owned_elements(), MPI_COMM_WORLD);
-      //non_ghosted_solution_cp = solution_cp; // Copy the contents without ghost elements      
-      solution_cp.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
-      non_ghosted_solution_cp.reinit(own_dofs, mpi_communicator);
-      pcout << "\nreinit of solution_cp successful " << std::endl;
-      //VectorTools::interpolate(dofHandler, fe_function_1,
-      //                        solution_cp); // Works but not in parallel
-      VectorTools::interpolate(dofHandler_Scalar, fe_function_1,
-                              non_ghosted_solution_cp); // Works but not in parallel
-      solution_cp = non_ghosted_solution_cp;
-      solution_cp.compress(VectorOperation::insert);                 
-      pcout << "\nInterpolated into solution_cp " << std::endl;
-      std::vector<double> solution_values_cp(quadrature.size());
-      pcout << "\nDefined solution_values_cp for the cell" << std::endl;
-      typename DoFHandler<dim>::active_cell_iterator
-          cell = dofHandler_Scalar.begin_active(),
-          endc = dofHandler_Scalar.end(), dg_cell = dofHandler_Scalar.begin_active();
-      pcout << "\nDefined cell iterator" << std::endl;
-      unsigned int cellID = 0;
-      for (; cell != endc; ++cell) {
-        //pcout << "\nInside cell loop" << std::endl;
-        fe_values.reinit(cell);
-        //pcout << "\nReinit cell successful" << std::endl;
-        fe_values.get_function_values(solution_cp, solution_values_cp);
-        for (unsigned int q = 0; q < quadrature.size(); ++q) {
-          unsigned int i = Utilities::MPI::this_mpi_process(mpi_communicator);
-          // std::cout << "Processor " << i
-          //           << ", solution_values_cp=" << solution_values_cp[q]
-          //           << std::endl;
-          twinfraction_iter1[cellID][q][0] =
-              solution_values_cp[q]; // Passing the solution for twin of index
-                                     // =0
+        pcout << "\n Passing order parameter from phase field as twinfraction_iter1 " << std::endl; 
+        Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(
+            *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
+        pcout << "\nCreated fe_function_1 object " << std::endl;
+        // Interpolate into the CPFE domain
+        vectorType_cp non_ghosted_solution_cp; // No pointer, just a regular object
+        vectorType_cp solution_cp;
+        //vectorType_cp non_ghosted_solution_cp;
+        //non_ghosted_solution_cp.reinit(solution_cp.locally_owned_elements(), MPI_COMM_WORLD);
+        //non_ghosted_solution_cp = solution_cp; // Copy the contents without ghost elements      
+        solution_cp.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
+        non_ghosted_solution_cp.reinit(own_dofs, mpi_communicator);
+        pcout << "\nreinit of solution_cp successful " << std::endl;
+        //VectorTools::interpolate(dofHandler, fe_function_1,
+        //                        solution_cp); // Works but not in parallel
+        VectorTools::interpolate(dofHandler_Scalar, fe_function_1,
+                                non_ghosted_solution_cp); // Works but not in parallel
+        solution_cp = non_ghosted_solution_cp;
+        solution_cp.compress(VectorOperation::insert);                 
+        pcout << "\nInterpolated into solution_cp " << std::endl;
+        std::vector<double> solution_values_cp(quadrature.size());
+        pcout << "\nDefined solution_values_cp for the cell" << std::endl;
+        typename DoFHandler<dim>::active_cell_iterator
+            cell = dofHandler_Scalar.begin_active(),
+            endc = dofHandler_Scalar.end(), dg_cell = dofHandler_Scalar.begin_active();
+        pcout << "\nDefined cell iterator" << std::endl;
+        unsigned int cellID = 0;
+        for (; cell != endc; ++cell) {
+          //pcout << "\nInside cell loop" << std::endl;
+          fe_values.reinit(cell);
+          //pcout << "\nReinit cell successful" << std::endl;
+          fe_values.get_function_values(solution_cp, solution_values_cp);
+          for (unsigned int q = 0; q < quadrature.size(); ++q) {
+            unsigned int i = Utilities::MPI::this_mpi_process(mpi_communicator);
+            // std::cout << "Processor " << i
+            //           << ", solution_values_cp=" << solution_values_cp[q]
+            //           << std::endl;
+            twinfraction_iter1[cellID][q][0] =
+                solution_values_cp[q]; // Passing the solution for twin of index
+                                      // =0
+          }
+          if (cell->is_locally_owned()) {
+            cellID++;
+          }
         }
-        if (cell->is_locally_owned()) {
-          cellID++;
-        }
-      }
+        pcout << "\nInterpolation of n complete" << std::endl;
+        // ****** End of Interpolation of "n" ******
 
-      pcout << "\nInterpolation of n complete" << std::endl;
-      // ****** End of Interpolation of "n" ******
-
-      // ++++++ Interpolation of Order parameter time derivative  "dndt" ++++++
-      // solutionSet[1]) in phase-field mesh into variable dtwinfraction_iter in
-      // CPFE mesh
-      // Define object fe_function_1 for phase field data given dof handler and
-      // the given solution vector. . This object can evaluate the finite
-      // element solution at given points in the domain.
-      
-      Functions::FEFieldFunction<dim, vectorType_pf> fe_function_2(
-          *pf_obj.getDofHandlersSet()[1], *pf_obj.getSolutionSet()[1]);
-      pcout << "\nCreated fe_function_2 object " << std::endl;
-      // Interpolate into the CPFE domain
-      vectorType_cp solution_cp_2; // No pointer, just a regular object
-      vectorType_cp non_ghosted_solution_cp_2;
-      solution_cp_2.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
-      non_ghosted_solution_cp_2.reinit(own_dofs, mpi_communicator);
-      pcout << "\nreinit of solution_cp_2 successful " << std::endl;
-      //VectorTools::interpolate(dofHandler, fe_function_1,
-      //                        solution_cp); // Works but not in parallel
-      VectorTools::interpolate(dofHandler_Scalar, fe_function_2,
-                              non_ghosted_solution_cp_2); // Works but not in parallel
-      solution_cp_2 = non_ghosted_solution_cp_2;
-      solution_cp_2.compress(VectorOperation::insert); 
-      pcout << "\nInterpolated into solution_cp_2 " << std::endl;
-      std::vector<double> solution_values_cp_2(quadrature.size());
-      pcout << "\nDefined solution_values_cp_2 for the cell" << std::endl;
-      typename DoFHandler<dim>::active_cell_iterator
-          cell2 = dofHandler_Scalar.begin_active(),
-          endc2 = dofHandler_Scalar.end(), dg_cell2 = dofHandler_Scalar.begin_active();
-      pcout << "\nDefined cell iterator 2" << std::endl;
-      unsigned int cellID2 = 0;
-      for (; cell2 != endc2; ++cell2) {
-        fe_values.reinit(cell2);
-        fe_values.get_function_values(solution_cp_2, solution_values_cp_2);
-        for (unsigned int q = 0; q < quadrature.size(); ++q) {
-          unsigned int i = Utilities::MPI::this_mpi_process(mpi_communicator);
-          // std::cout << "Processor " << i
-          //           << ", solution_values_cp_2=" << solution_values_cp_2[q]
-          //           << std::endl;
-          dtwinfraction_iter1[cellID2][q][0] =
-              solution_values_cp_2[q]; // Passing the solution for twin of index
-                                       // = 0
+        // ++++++ Interpolation of Order parameter time derivative  "dndt" ++++++
+        // solutionSet[1]) in phase-field mesh into variable dtwinfraction_iter in
+        // CPFE mesh
+        // Define object fe_function_1 for phase field data given dof handler and
+        // the given solution vector. . This object can evaluate the finite
+        // element solution at given points in the domain.
+        pcout << "\n Passing dndt from phase field as dtwinfraction_iter1 " << std::endl; 
+        Functions::FEFieldFunction<dim, vectorType_pf> fe_function_2(
+            *pf_obj.getDofHandlersSet()[1], *pf_obj.getSolutionSet()[1]);
+        pcout << "\nCreated fe_function_2 object " << std::endl;
+        // Interpolate into the CPFE domain
+        vectorType_cp solution_cp_2; // No pointer, just a regular object
+        vectorType_cp non_ghosted_solution_cp_2;
+        solution_cp_2.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
+        non_ghosted_solution_cp_2.reinit(own_dofs, mpi_communicator);
+        pcout << "\nreinit of solution_cp_2 successful " << std::endl;
+        //VectorTools::interpolate(dofHandler, fe_function_1,
+        //                        solution_cp); // Works but not in parallel
+        VectorTools::interpolate(dofHandler_Scalar, fe_function_2,
+                                non_ghosted_solution_cp_2); // Works but not in parallel
+        solution_cp_2 = non_ghosted_solution_cp_2;
+        solution_cp_2.compress(VectorOperation::insert); 
+        pcout << "\nInterpolated into solution_cp_2 " << std::endl;
+        std::vector<double> solution_values_cp_2(quadrature.size());
+        pcout << "\nDefined solution_values_cp_2 for the cell" << std::endl;
+        typename DoFHandler<dim>::active_cell_iterator
+            cell2 = dofHandler_Scalar.begin_active(),
+            endc2 = dofHandler_Scalar.end(), dg_cell2 = dofHandler_Scalar.begin_active();
+        pcout << "\nDefined cell iterator 2" << std::endl;
+        unsigned int cellID2 = 0;
+        for (; cell2 != endc2; ++cell2) {
+          fe_values.reinit(cell2);
+          fe_values.get_function_values(solution_cp_2, solution_values_cp_2);
+          for (unsigned int q = 0; q < quadrature.size(); ++q) {
+            unsigned int i = Utilities::MPI::this_mpi_process(mpi_communicator);
+            // std::cout << "Processor " << i
+            //           << ", solution_values_cp_2=" << solution_values_cp_2[q]
+            //           << std::endl;
+            dtwinfraction_iter1[cellID2][q][0] =
+                solution_values_cp_2[q]; // Passing the solution for twin of index
+                                        // = 0
+          }
+          if (cell2->is_locally_owned()) {
+            cellID2++;
+          }
         }
-        if (cell2->is_locally_owned()) {
-          cellID2++;
-        }
+        pcout << "\nInterpolation of dndt complete" << std::endl;
+        // ++++++ End of Interpolation of "dndt" ++++++
       }
-      pcout << "\nInterpolation of dndt complete" << std::endl;
-      // ++++++ End of Interpolation of "dndt" ++++++
       
       if (userInputs_cp.enableIndentationBCs) {
         MultiPhysicsBVP<dim, degree>::updateBeforeIncrement();
@@ -279,22 +278,23 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       if ((success) || (userInputs_cp.flagTaylorModel)) {
         updateAfterIncrement();
 
-        //trial interpolation
-        // Interpolate twin fraction and twinfraction change from CPFE mesh into
-        // PF mesh.
+        if (currentIncrement_cp*delT >=  timeBeforeS){
+          // Interpolate twin fraction and twinfraction change from CPFE mesh into
+          // PF mesh.
 
-        // ***** Interpolation of twin energy ******
-        //
-        // Define object fe_function_3 with CPFE vector
-        Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
-            dofHandler_Scalar, *postFieldsWithGhosts[3]);
-        pcout << "\nCreated fe_function_3 object " << std::endl;
-        // Interpolate into the PF domain
-        VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3,
-                                *pf_obj.getSolutionSet()[2]); // Works but not in parallel
-        pcout << "\nInterpolated into solution_pf1 " << std::endl;
-        //cp
-    
+          // ***** Interpolation of twin energy ******
+          //
+          // Define object fe_function_3 with CPFE vector
+          pcout << "\n Passing twin energy from CPFE into Phase Field " << std::endl; 
+          Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
+              dofHandler_Scalar, *postFieldsWithGhosts[3]);
+          pcout << "\nCreated fe_function_3 object " << std::endl;
+          // Interpolate into the PF domain
+          VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3,
+                                  *pf_obj.getSolutionSet()[2]); // Works but not in parallel
+          pcout << "\n Interpolation of twin driving force complete " << std::endl;
+          // ***** End of interpolation of twin energy ******
+        }
         // update totalLoadFactor
         totalLoadFactor += loadFactorSetByModel;
 
@@ -338,56 +338,60 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       } else {
         successiveIncs = 0;
       }
-      //Phase-Field regular step STARTS
-      //increment current time
-      pf_obj.getCurrentTime_pf() += userInputs_pf.dtValue;
-      if (pf_obj.getCurrentIncrement_pf()%userInputs_pf.skip_print_steps==0){
-          pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement_pf() << "  time: " << pf_obj.getCurrentTime_pf() << "\n";
-          pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() << "\n";
-      }
+      if (currentIncrement_cp*delT >=  timeBeforeS){
+        for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe; pf_step++){
+          //Phase-Field regular step STARTS
+          //increment current time
+          pf_obj.getCurrentTime_pf() += userInputs_pf.dtValue;
+          if (pf_obj.getCurrentIncrement_pf()%userInputs_pf.skip_print_steps==0){
+              pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement_pf() << "  time: " << pf_obj.getCurrentTime_pf() << "\n";
+              pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() << "\n";
+          }
 
-      //check and perform adaptive mesh refinement
-      //adaptiveRefine(currentIncrement_pf);
+          //check and perform adaptive mesh refinement
+          //adaptiveRefine(currentIncrement_pf);
 
-      // Update the list of nuclei (if relevant)
-      //updateNucleiList();
+          // Update the list of nuclei (if relevant)
+          //updateNucleiList();
 
-      // If grain reassignment is activated, reassign grains
-      //if (userInputs_pf.grain_remapping_activated and (currentIncrement_pf%userInputs_pf.skip_grain_reassignment_steps == 0 or currentIncrement_pf == 0) ) {
-      //    reassignGrains();
-      //}
+          // If grain reassignment is activated, reassign grains
+          //if (userInputs_pf.grain_remapping_activated and (currentIncrement_pf%userInputs_pf.skip_grain_reassignment_steps == 0 or currentIncrement_pf == 0) ) {
+          //    reassignGrains();
+          //}
 
-      //solve time increment
-      pf_obj.getSolveIncrement(false);
+          //solve time increment
+          pf_obj.getSolveIncrement(false);
 
-      if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement_pf()) {
-        //Apply constraints and update ghost values
-        for(unsigned int fieldIndex=0; fieldIndex<pf_obj.fields.size(); fieldIndex++){     
-          pf_obj.getConstraintsDirichletSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
-          pf_obj.getConstraintsOtherSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
-          pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
+          //if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement_pf()) {
+          //Apply constraints and update ghost values
+          for(unsigned int fieldIndex=0; fieldIndex<pf_obj.fields.size(); fieldIndex++){     
+            pf_obj.getConstraintsDirichletSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
+            pf_obj.getConstraintsOtherSet()[fieldIndex]->distribute(*pf_obj.getSolutionSet()[fieldIndex]);
+            pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
+          }
+
+          //Output Results
+          pf_obj.getOutputResults();
+          /*
+          if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements){
+              computing_timer_pf.print_summary();
+          }
+          */
+          //currentOutput++;
+          pf_obj.getCurrentOutput() += 1;
+          //}
+          /*
+          // Create a checkpoint (on the proper increments)
+          if (userInputs_pf.checkpointTimeStepList[currentCheckpoint] == currentIncrement_pf) {
+              save_checkpoint();
+              currentCheckpoint++;
+          }
+          */
+          //currentIncrement_pf++;
+          pf_obj.getCurrentIncrement_pf() += 1;
+          //Phase-Field regular step ENDS
         }
-
-        //Output Result for initial conditions
-        pf_obj.getOutputResults();
-        /*
-        if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements){
-            computing_timer_pf.print_summary();
-        }
-        */
-        //currentOutput++;
-        pf_obj.getCurrentOutput() += 1;
       }
-      /*
-      // Create a checkpoint (on the proper increments)
-      if (userInputs_pf.checkpointTimeStepList[currentCheckpoint] == currentIncrement_pf) {
-          save_checkpoint();
-          currentCheckpoint++;
-      }
-      */
-      //currentIncrement_pf++;
-      pf_obj.getCurrentIncrement_pf() += 1;
-      //Phase-Field regular step ENDS
     }
 }
 #include "../../include/multiPhysicsBVP_template_instantiations.h"

@@ -276,6 +276,7 @@ void inputFileReader::declare_parameters(dealii::ParameterHandler & parameter_ha
     }
 
     parameter_handler.declare_entry("Number of time steps","-1",dealii::Patterns::Integer(),"The time step size for the simulation.");
+    parameter_handler.declare_entry("Number of phase field steps per CPFE step","-1",dealii::Patterns::Integer(),"The number of phase field steps per CPFE step.");
     parameter_handler.declare_entry("Time step","-0.1",dealii::Patterns::Double(),"The time step size for the simulation.");
     parameter_handler.declare_entry("Simulation end time","-0.1",dealii::Patterns::Double(),"The value of simulated time where the simulation ends.");
 

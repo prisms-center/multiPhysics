@@ -137,7 +137,7 @@ set Maximum non linear iterations                = 4
 # PRISMS-MP parameters
 ####################################
 
-set Time before seeding                          = 0.25
+set Time before seeding                          = 0.5
 
 ####################################
 # Elasticity parameters

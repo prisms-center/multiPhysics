@@ -96,6 +96,7 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
     // Time stepping parameters
     dtValue = parameter_handler.get_double("Time step");
     int totalIncrements_temp = parameter_handler.get_integer("Number of time steps");
+    increments_pftocpfe = parameter_handler.get_integer("Number of phase field steps per CPFE step");
     finalTime = parameter_handler.get_double("Simulation end time");
 
     // Linear solver parameters

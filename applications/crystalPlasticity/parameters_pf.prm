@@ -36,11 +36,14 @@ set Element degree = 1
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 5.65e-3
+set Time step = 5.0e-3
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 40
+set Number of time steps = 100
+
+# The number of phase field steps per CPFE step
+set Number of phase field steps per CPFE step = 10
 
 # =================================================================================
 # Set the output parameters

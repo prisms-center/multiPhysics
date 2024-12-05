@@ -85,6 +85,7 @@ public:
 	double dtValue;
 	double finalTime;
 	unsigned int totalIncrements;
+	unsigned int increments_pftocpfe;
 
 	// Elliptic solver parameters
     LinearSolverParameters linear_solver_parameters;
