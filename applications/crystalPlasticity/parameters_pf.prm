@@ -115,7 +115,7 @@ set Model constant th = 0.753213, DOUBLE
 set Model constant l0 = 1.0e-6, DOUBLE
 
 # Radius of initial semimajor axis of the elliptical seed
-set Model constant a0 = 0.25, DOUBLE
+set Model constant a0 = 0.15, DOUBLE
 
 # eccentricity of the elliptical seed
 set Model constant ecc = 0.95, DOUBLE

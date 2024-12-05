@@ -122,9 +122,7 @@ set Quarter cycle time                           = 1.2
 set Time increments                              = 0.05
 
 #Total simulation time
-#set Total time                                   = 2
-set Total time                                   = 2
-
+set Total time                                   = 1
 
 # Maximum iterations for linear solver
 set Maximum linear solver iterations             = 1000000
@@ -134,6 +132,12 @@ set Relative linear solver tolerance             = 1.0e-9
 
 # Maximum no. of non-linear iterations
 set Maximum non linear iterations                = 4
+
+####################################
+# PRISMS-MP parameters
+####################################
+
+set Time before seeding                          = 0.25
 
 ####################################
 # Elasticity parameters

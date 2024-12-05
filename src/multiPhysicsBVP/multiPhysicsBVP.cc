@@ -23,6 +23,7 @@ MultiPhysicsBVP<dim,degree>:: MultiPhysicsBVP(userInputParameters_pf<dim> _userI
   dofHandler_Scalar (triangulation_cp),
   delT(_userInputs_cp.delT),
   totalT(_userInputs_cp.totalTime),
+  timeBeforeS(_userInputs_cp.timeBeforeSeeding),
   currentIteration(0),
   currentIncrement_cp(0),
   resetIncrement(false),

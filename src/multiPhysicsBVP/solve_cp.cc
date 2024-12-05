@@ -90,8 +90,6 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
                                                   num_quad_points, twin_init));
 
   // Needed for interpolation below
-  //  Interpolate twin fraction and twinfraction change from PF mesh into
-  // CPFE mesh.
   IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
   IndexSet locally_relevant_dofs;
   DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
@@ -152,7 +150,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
     pcout << buffer;
   } else
     for (; currentIncrement_cp < totalIncrements; ++currentIncrement_cp) {
-      pcout << "\nincrement CPFE: " << currentIncrement_cp << std::endl;
+      pcout << "\nincrement CPFE: " << currentIncrement_cp << ", Time CPFE: "<< currentIncrement_cp*delT << std::endl;
 
       // Interpolate twin fraction and twinfraction change from PF mesh into
       // CPFE mesh.
@@ -163,6 +161,10 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       // Define object fe_function_1 for phase field data given dof handler and
       // the given solution vector. . This object can evaluate the finite
       // element solution at given points in the domain.
+
+      if (currentIncrement_cp*delT >=  timeBeforeS){
+        pcout << "\n Passing order parameter from phase field as twinfraction_iter1 " << std::endl;
+      }
       Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(
           *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
       pcout << "\nCreated fe_function_1 object " << std::endl;
