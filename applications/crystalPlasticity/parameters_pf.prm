@@ -43,7 +43,7 @@ set Time step = 5.0e-3
 set Number of time steps = 100
 
 # The number of phase field steps per CPFE step
-set Number of phase field steps per CPFE step = 10
+set Number of phase field steps per CPFE step = 1
 
 # =================================================================================
 # Set the output parameters

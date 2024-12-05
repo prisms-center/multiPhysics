@@ -119,7 +119,7 @@ set Quarter cycle time                           = 1.2
 # Solver parameters
 ####################################
 #delta T for every increment
-set Time increments                              = 0.05
+set Time increments                              = 0.005
 
 #Total simulation time
 set Total time                                   = 1
@@ -238,10 +238,10 @@ set Characteristic Twin Shear                    = 0.129
 set Stress Tolerance                             = 1e-9
 
 # Maximum no. of active slip search iterations
-set Max Slip Search Iterations                   = 1
+set Max Slip Search Iterations                   = 2
 
 # Maximum no. of iterations to achieve non-linear convergence
-set Max Solver Iterations                        = 1
+set Max Solver Iterations                        = 2
 
 ####################################
 # Input microstructure
