@@ -111,7 +111,7 @@ void MultiPhysicsBVP<dim,degree>::setPeriodicityConstraintsInit(){
   }
   else {
     for(unsigned int i=0;i<totalNumVerticesDOFs;i++){
-      periodicBCsInput2_Orig[0][i]=periodicBCsInput2_Orig[0][i]/totalIncrements;
+      periodicBCsInput2_Orig[0][i]=periodicBCsInput2_Orig[0][i]/totalIncrements_cp;
     }
   }
 

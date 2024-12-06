@@ -338,11 +338,11 @@ void MultiPhysicsBVP<dim,degree>::init_cp(){
           ss>>faceID>>dof;
           faceDOFConstrained[faceID-1][dof-1]=true;
           ss>>totalU;
-          deluConstraint[faceID-1][dof-1]=totalU/totalIncrements;
+          deluConstraint[faceID-1][dof-1]=totalU/totalIncrements_cp;
         }
 
         if(userInputs_cp.enableCyclicLoading){
-          deluConstraint[userInputs_cp.cyclicLoadingFace-1][userInputs_cp.cyclicLoadingDOF-1]=deluConstraint[userInputs_cp.cyclicLoadingFace-1][userInputs_cp.cyclicLoadingDOF-1]*totalIncrements*userInputs_cp.delT/userInputs_cp.quarterCycleTime;
+          deluConstraint[userInputs_cp.cyclicLoadingFace-1][userInputs_cp.cyclicLoadingDOF-1]=deluConstraint[userInputs_cp.cyclicLoadingFace-1][userInputs_cp.cyclicLoadingDOF-1]*totalIncrements_cp*userInputs_cp.delT/userInputs_cp.quarterCycleTime;
         }
       }
     }
@@ -364,7 +364,7 @@ void MultiPhysicsBVP<dim,degree>::init_cp(){
           std::stringstream ss(line);
           ss>>nodalDisplacement[i][0]>>nodalDisplacement[i][1]>>nodalDisplacement[i][2]>>dofNodalDisplacement[i];
           ss>>totalU;
-          deluNodalDisplacement[i]=totalU/totalIncrements;
+          deluNodalDisplacement[i]=totalU/totalIncrements_cp;
         }
       }
     }

@@ -104,7 +104,7 @@ void MultiPhysicsBVP<dim,degree>::outputResults() {
   //write to results file
   //file name
   std::ostringstream cycleAsString;
-  cycleAsString << std::setw(std::floor(std::log10(userInputs_pf.totalIncrements))+1) << std::setfill('0') << currentIncrement_pf;
+  cycleAsString << std::setw(std::floor(std::log10(userInputs_pf.totalIncrements_pf))+1) << std::setfill('0') << currentIncrement_pf;
   char baseFileName[100], vtuFileName[100];
   snprintf(baseFileName, sizeof(baseFileName),"%s-%s", userInputs_pf.output_file_name.c_str(), cycleAsString.str().c_str());
   snprintf(vtuFileName, sizeof(vtuFileName),"%s.%u.%s", baseFileName,Utilities::MPI::this_mpi_process(MPI_COMM_WORLD),userInputs_pf.output_file_type.c_str());

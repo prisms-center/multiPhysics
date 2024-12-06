@@ -599,7 +599,7 @@ protected:
   //misc variables
   double delT,totalT,cycleTime,timeBeforeS;
   unsigned int currentIteration, currentIncrement_cp;
-  unsigned int totalIncrements,periodicTotalIncrements;
+  unsigned int totalIncrements_cp,periodicTotalIncrements;
   bool resetIncrement;
   double loadFactorSetByModel;
   double totalLoadFactor;

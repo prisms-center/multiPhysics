@@ -56,7 +56,7 @@ MultiPhysicsBVP<dim,degree>:: MultiPhysicsBVP(userInputParameters_pf<dim> _userI
   }
   if(userInputs_cp.enableCyclicLoading)
     cycleTime=4*userInputs_cp.quarterCycleTime;
-  totalIncrements=std::round(totalT/delT);
+  totalIncrements_cp=std::round(totalT/delT);
   if(userInputs_cp.enableTabularPeriodicBCs)
     periodicTotalIncrements=userInputs_cp.periodicTabularTime/delT;
 }

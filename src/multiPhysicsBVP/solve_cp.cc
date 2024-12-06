@@ -63,7 +63,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   //}
   
   //time stepping
-  pcout << "\nTime stepping parameters: timeStep: " << userInputs_pf.dtValue << "  timeFinal: " << userInputs_pf.finalTime << "  timeIncrements: " << userInputs_pf.totalIncrements << "\n";
+  pcout << "\nTime stepping parameters: timeStep: " << userInputs_pf.dtValue << "  timeFinal: " << userInputs_pf.finalTime << "  timeIncrements: " << userInputs_pf.totalIncrements_pf << "\n";
   //Section for first phase field step solution ENDS
 
   pcout << "begin solve... CPFE\n\n";
@@ -95,10 +95,10 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
 
   if (userInputs_cp.enableAdaptiveTimeStepping) {
-    for (; totalLoadFactor < totalIncrements;) {
+    for (; totalLoadFactor < totalIncrements_cp;) {
       ++currentIncrement_cp;
       loadFactorSetByModel =
-          std::min(loadFactorSetByModel, totalIncrements - totalLoadFactor);
+          std::min(loadFactorSetByModel, totalIncrements_cp - totalLoadFactor);
       pcout << "\nincrement: " << currentIncrement_cp << std::endl;
       char buffer[100];
       sprintf(buffer,
@@ -149,7 +149,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
     sprintf(buffer, "\nfinal load factor  : %12.6e\n", totalLoadFactor);
     pcout << buffer;
   } else
-    for (; currentIncrement_cp < totalIncrements; ++currentIncrement_cp) {
+    for (; currentIncrement_cp < totalIncrements_cp; ++currentIncrement_cp) {
       pcout << "\nincrement CPFE: " << currentIncrement_cp << ", Time CPFE: "<< currentIncrement_cp*delT << std::endl;
 
       // Interpolate twin fraction and twinfraction change from PF mesh into
@@ -162,7 +162,10 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       // the given solution vector. . This object can evaluate the finite
       // element solution at given points in the domain.
 
-      if ((currentIncrement_cp*delT >=  timeBeforeS) || (currentIncrement_cp == 0)){
+      //Replace the conditional with the next line if we ant to introduce the twin
+      //seed at t=0
+      //if ((currentIncrement_cp*delT >=  timeBeforeS) || (currentIncrement_cp == 0)){
+      if ((currentIncrement_cp*delT >=  timeBeforeS)){
         pcout << "\n Passing order parameter from phase field as twinfraction_iter1 " << std::endl; 
         Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(
             *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
@@ -374,7 +377,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           //Output Results
           pf_obj.getOutputResults();
           /*
-          if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements){
+          if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements_pf){
               computing_timer_pf.print_summary();
           }
           */

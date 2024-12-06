@@ -8,23 +8,23 @@ std::vector<unsigned int> userInputParameters_pf<dim>::setTimeStepList(const std
 
     if (numberOfOutputs > 0) {
         if (outputSpacingType == "EQUAL_SPACING"){
-            if (numberOfOutputs > totalIncrements)
-            numberOfOutputs = totalIncrements;
+            if (numberOfOutputs > totalIncrements_pf)
+            numberOfOutputs = totalIncrements_pf;
 
-            for (unsigned int iter = 0; iter <= totalIncrements; iter += totalIncrements/numberOfOutputs){
+            for (unsigned int iter = 0; iter <= totalIncrements_pf; iter += totalIncrements_pf/numberOfOutputs){
                 timeStepList.push_back(iter);
             }
         }
         else if (outputSpacingType == "LOG_SPACING"){
             timeStepList.push_back(0);
             for (unsigned int output = 1; output <= numberOfOutputs; output++){
-                timeStepList.push_back(round(std::pow(10,double(output)/double(numberOfOutputs)*std::log10(totalIncrements))));
+                timeStepList.push_back(round(std::pow(10,double(output)/double(numberOfOutputs)*std::log10(totalIncrements_pf))));
             }
         }
         else if (outputSpacingType == "N_PER_DECADE"){
             timeStepList.push_back(0);
             timeStepList.push_back(1);
-            for (unsigned int iter = 2; iter <= totalIncrements; iter++){
+            for (unsigned int iter = 2; iter <= totalIncrements_pf; iter++){
                 int decade = std::ceil(std::log10(iter));
                 int step_size = (std::pow(10,decade))/numberOfOutputs;
                 if (iter%step_size == 0){
@@ -40,7 +40,7 @@ std::vector<unsigned int> userInputParameters_pf<dim>::setTimeStepList(const std
     else {
         // I'm not sure why this is set up this way. It seems like the intuitive thing would be to have an empty list,
         // not a list with one entry that is higher than will be reached during time stepping.
-        timeStepList.push_back(totalIncrements+1);
+        timeStepList.push_back(totalIncrements_pf+1);
     }
 
     return timeStepList;

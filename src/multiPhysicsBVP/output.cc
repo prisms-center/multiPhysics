@@ -211,7 +211,7 @@ void MultiPhysicsBVP<dim,degree>::output(){
   dir+="/";
 
   //
-  unsigned int incrementDigits= (totalIncrements<10000 ? 4 : std::ceil(std::log10(totalIncrements))+1);
+  unsigned int incrementDigits= (totalIncrements_cp<10000 ? 4 : std::ceil(std::log10(totalIncrements_cp))+1);
   unsigned int domainDigits   = (Utilities::MPI::n_mpi_processes(mpi_communicator)<10000 ? 4 : std::ceil(std::log10(Utilities::MPI::n_mpi_processes(mpi_communicator)))+1);
 
   const std::string filename = (dir+"solution-" +

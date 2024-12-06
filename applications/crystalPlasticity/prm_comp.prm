@@ -130,7 +130,7 @@ set Maximum linear solver iterations             = 1000000
 # Relative linear solver tolerance
 set Relative linear solver tolerance             = 1.0e-9
 
-# Maximum no. of non-linear iterations
+# Maximum no. of linear iterations
 set Maximum non linear iterations                = 4
 
 ####################################

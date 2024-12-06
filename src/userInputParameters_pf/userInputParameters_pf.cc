@@ -229,7 +229,7 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
 
     // Field variable definitions
 
-    // If all of the variables are ELLIPTIC, then totalIncrements should be 1 and finalTime should be 0
+    // If all of the variables are ELLIPTIC, then totalIncrements_pf should be 1 and finalTime should be 0
     bool only_time_independent_pdes = true;
     for (unsigned int i=0; i<var_eq_type.size(); i++){
         if (var_eq_type.at(i) == EXPLICIT_TIME_DEPENDENT || var_eq_type.at(i) == IMPLICIT_TIME_DEPENDENT){
@@ -240,25 +240,25 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
 
     // Determine the maximum number of time steps
     if (only_time_independent_pdes){
-        totalIncrements = 1;
+        totalIncrements_pf = 1;
         finalTime = 0.0;
     }
     else{
         if ((totalIncrements_temp >= 0) && (finalTime >= 0.0)) {
             if (std::ceil(finalTime/dtValue) > totalIncrements_temp) {
-                totalIncrements = totalIncrements_temp;
-                finalTime = totalIncrements*dtValue;
+                totalIncrements_pf = totalIncrements_temp;
+                finalTime = totalIncrements_pf*dtValue;
             }
             else {
-                totalIncrements = std::ceil(finalTime/dtValue);
+                totalIncrements_pf = std::ceil(finalTime/dtValue);
             }
         }
         else if ((totalIncrements_temp >= 0) && (finalTime < 0.0)) {
-            totalIncrements = totalIncrements_temp;
-            finalTime = totalIncrements*dtValue;
+            totalIncrements_pf = totalIncrements_temp;
+            finalTime = totalIncrements_pf*dtValue;
         }
         else if ((totalIncrements_temp < 0) && (finalTime >= 0.0)) {
-            totalIncrements = std::ceil(finalTime/dtValue);
+            totalIncrements_pf = std::ceil(finalTime/dtValue);
         }
         else {
             // Should change to an exception

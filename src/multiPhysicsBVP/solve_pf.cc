@@ -82,10 +82,10 @@ void MultiPhysicsBVP<dim,degree>::solve_pf(){
             }
 
             //time stepping
-            pcout << "\nTime stepping parameters: timeStep: " << userInputs_pf.dtValue << "  timeFinal: " << userInputs_pf.finalTime << "  timeIncrements: " << userInputs_pf.totalIncrements << "\n";
+            pcout << "\nTime stepping parameters: timeStep: " << userInputs_pf.dtValue << "  timeFinal: " << userInputs_pf.finalTime << "  timeIncrements: " << userInputs_pf.totalIncrements_pf << "\n";
         }
         // This is the main time-stepping loop
-        //for (; currentIncrement_pf<=userInputs_pf.totalIncrements; ++currentIncrement_pf){
+        //for (; currentIncrement_pf<=userInputs_pf.totalIncrements_pf; ++currentIncrement_pf){
             //increment current time
             currentTime_pf+=userInputs_pf.dtValue;
             if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
@@ -114,7 +114,7 @@ void MultiPhysicsBVP<dim,degree>::solve_pf(){
                     solutionSet[fieldIndex]->update_ghost_values();
                 }
                 outputResults();
-                if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements){
+                if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements_pf){
                     computing_timer_pf.print_summary();
                 }
 
