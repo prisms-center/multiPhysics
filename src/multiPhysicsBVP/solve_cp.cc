@@ -162,7 +162,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       // the given solution vector. . This object can evaluate the finite
       // element solution at given points in the domain.
 
-      if (currentIncrement_cp*delT >=  timeBeforeS){
+      if ((currentIncrement_cp*delT >=  timeBeforeS) || (currentIncrement_cp == 0)){
         pcout << "\n Passing order parameter from phase field as twinfraction_iter1 " << std::endl; 
         Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(
             *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
@@ -360,6 +360,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           //}
 
           //solve time increment
+          //pcout << "\n PF time-stepping temporarily disabled"  << std::endl;
           pf_obj.getSolveIncrement(false);
 
           //if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement_pf()) {

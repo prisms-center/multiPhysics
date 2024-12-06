@@ -35,7 +35,7 @@ void variableAttributeLoader::loadVariableAttributes(){
 	// Variable 2 - Strain driving force
 	set_variable_name				(2,"strain_df");
 	set_variable_type				(2,SCALAR);
-	set_variable_equation_type		(1,AUXILIARY);
+	set_variable_equation_type		(2,AUXILIARY);
 
     set_dependencies_value_term_RHS(2, "strain_df");
     set_dependencies_gradient_term_RHS(2, "");
