@@ -248,6 +248,7 @@ private:
   std::vector< std::vector< FullMatrix<double> > > F_lastIter_Global;
   std::vector< std::vector< FullMatrix<double> > > FirstPiolaStress;
   Vector<double> workDensityTotal1_Tr;
+  Vector<double> energy_check,energy_check2;
   std::vector< std::vector< FullMatrix<double> > > TinterStress;
   std::vector< std::vector< FullMatrix<double> > > TinterStress_diff;
   /**
