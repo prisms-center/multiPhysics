@@ -33,8 +33,13 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       n_twin_systems = 1;
     }
     std::vector<double> ttwinvf(this->userInputs_cp.numTwinSystems1);
+     std::vector<double> ttwinvf1(this->userInputs_cp.numTwinSystems1);
     ttwinvf = twinfraction_conv[cellID][quadPtID]; //cp_twinfraction_change
-    //ttwinvf = this->twinfraction_iter1[cellID][quadPtID];  //cp_try
+    ttwinvf1 = this->twinfraction_iter1[cellID][quadPtID];  //cp_twinfraction_change
+    for (unsigned int i = 0;i < (n_twin_systems / 2);i++) {
+    if(ttwinvf1[i]<0.0) ttwinvf1[i]=0.0;
+    } //cp_twin_change
+     //ttwinvf = this->twinfraction_iter1[cellID][quadPtID];  //cp_try
     unsigned int tTwinMaxFlag= TwinMaxFlag_conv[cellID][quadPtID];
     unsigned int n_twin_systems_Size = this->userInputs_cp.numTwinSystems1;
     unsigned int alpha=0;
@@ -214,7 +219,13 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
           ElasticityTensor[i][j] = Dmat(vec1(i), vec1(j));
         }
       }
-
+          
+      /*if(this->twinfraction_iter1[cellID][quadPtID][0]>0.1) {
+       energy[cellID][quadPtID][0]=10;
+       }
+      else{ 
+       energy[cellID][quadPtID][0]=100;
+    }*/
 
       Vector<double> s_alpha_tau;
       Vector<double> s_beta(n_slip_systems), h_beta(n_slip_systems), delh_beta_dels(n_slip_systems), h0(n_slip_systems), a_pow(n_slip_systems), s_s(n_slip_systems);
@@ -325,7 +336,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     if (Region == 0) {
       for (unsigned int i = 0;i < (n_twin_systems / 2);i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
-        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0)) {
+        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0) || ttwinvf[i]<=0.1) {//cp_twin
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -333,7 +344,8 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       /////////////The modification compared to the original model is applied to the following lines//////////////////
       for (unsigned int i = (n_twin_systems / 2);i < n_twin_systems;i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
-        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i - (n_twin_systems / 2)] <= 0)) {
+        /*if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i - (n_twin_systems / 2)] <= 0.0)) //cp_twin bracket is removed*/
+        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i - (n_twin_systems / 2)] <= 0.1)) {
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -341,14 +353,16 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     }
     else {
 
-      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0) {
+      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0  ||(this->twinfraction_iter1[cellID][quadPtID][0]<=0.1)) { //cp_twin added twinvf condition
         resolved_shear_tau_trial[n_slip_systemsWOtwin] = 0;
       }
-      if ((resolved_shear_tau_trial[1+n_slip_systemsWOtwin] > 0)||(tTwinMaxFlag == 0)) {
+     /* if ((resolved_shear_tau_trial[1+n_slip_systemsWOtwin] > 0)||(tTwinMaxFlag == 0)) //cp_twin bracket is removed*/
+         if ((resolved_shear_tau_trial[1+n_slip_systemsWOtwin] > 0)||(ttwinvf[0] <= 0.1)) {
         resolved_shear_tau_trial[1+n_slip_systemsWOtwin] = 0;
       }
 
     }
+
 
 
     x_beta_old = 0.0;
@@ -482,7 +496,9 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     //cp
     for(unsigned int i=0;i<n_twin_systems/2;i++){
     //x_beta[n_slip_systemsWOtwin+i]=0.129*fabs(this->dtwinfraction_iter1[cellID][quadPtID][i])*this->delT; //cp
+   if(ttwinvf1[i]>0.1) //if(ttwinvf1[i]>twinfraction_iter[cellID][quadPtID][i]) //cp_trial
     x_beta[n_slip_systemsWOtwin+i]=0.129*fabs(this->twinfraction_iter1[cellID][quadPtID][i]-twinfraction_iter[cellID][quadPtID][i]); //cp_twinfraction_change
+    else  x_beta[n_slip_systemsWOtwin+i]=0;                                                                                          //cp_twinfraction_change
     x_beta_old[n_slip_systemsWOtwin+i]=x_beta_old[n_slip_systemsWOtwin+i]+x_beta[n_slip_systemsWOtwin+i];
     }
     //cp
@@ -566,7 +582,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     if (Region == 0) {
       for (unsigned int i = 0;i < (n_twin_systems / 2);i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
-        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0)) {
+        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0) || ttwinvf[i]<=0.1) {
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -574,7 +590,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       /////////////The modification compared to the original model is applied to the following lines//////////////////
       for (unsigned int i = (n_twin_systems / 2);i < n_twin_systems;i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
-        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i - (n_twin_systems / 2)] <= 0)) {
+        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i-(n_twin_systems / 2)] <= 0.1)) {
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -583,20 +599,28 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     }
     else {
 
-      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0) {
+      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0  ||(this->twinfraction_iter1[cellID][quadPtID][0]<=0.1)) { //cp_try added twinvfcondition
         resolved_shear_tau_trial[n_slip_systemsWOtwin] = 0;
       }
-      if ((resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] > 0) || (tTwinMaxFlag == 0)) {
+     // if ((resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] > 0) || (tTwinMaxFlag == 0) ||(ttwinvf[1 + n_slip_systemsWOtwin] <= 0.1)) //bracket removed //cp_twon_check
+            if ((resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] > 0) || (tTwinMaxFlag == 0) ||(ttwinvf[0] <= 0.01)) {
         resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] = 0;
       }
 
     }
+     
 
-  for(unsigned int i=0;i<n_twin_systems_Size;i++){
-    energy[cellID][quadPtID][i]=fabs(resolved_shear_tau[n_slip_systemsWOtwin+i]*0.129);
-  //  std::cout<<energy[cellID][quadPtID][i]<<"\n";
-    //	this->pcout<<energy<<"\n";
+  
+
+ if(Region==0){
+ for(unsigned int i=0;i<n_twin_systems_Size;i++){
+  if(this->twinfraction_iter1[cellID][quadPtID][i]<=0.1) resolved_shear_tau[n_slip_systemsWOtwin+i]=0.0;//cp_try
+   energy[cellID][quadPtID][i]=fabs(resolved_shear_tau[n_slip_systemsWOtwin+i]*0.129);
+
 }
+}
+
+
 //exit(1);
     // % % % % % STEP 9 % % % % %
 
@@ -629,7 +653,9 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       }
 
     }
-
+          
+   
+// std::cout<<this->twinfraction_iter1[cellID][quadPtID][0]<<"\n";
 
     iter1 = iter1 + 1;
 
@@ -1145,7 +1171,10 @@ for (unsigned int i = 0;i < 2;i++) {
 for (unsigned int i = 0;i < n_twin_systems_Size;i++) {
   //ttwinvf[i] = ttwinvf[i] + (1 - Totaltwinvf)*(tslipvfsys[0][n_slip_systemsWOtwin + i] - tslipvfsys[0][n_slip_systemsWOtwin + n_twin_systems_Size + i]) / this->userInputs_cp.twinShear1;
   //ttwinvf[i] = ttwinvf[i] + fabs(this->dtwinfraction_iter1[cellID][quadPtID][i])*this->delT;
-    ttwinvf[i] =  fabs(this->twinfraction_iter1[cellID][quadPtID][i]);//cp_check_twinvf
+    ttwinvf[i] =  (this->twinfraction_iter1[cellID][quadPtID][i]);//cp_check_twinvf //changed abs to actual twinfrac
+    if(ttwinvf[i]<0.0) ttwinvf[i]=0.0;                                    //cp
+   if(ttwinvf[i]>0.1) TwinFlag_conv[cellID][quadPtID][i]=1;             //cp_new_try
+    
 }
 
 unsigned int numberOfTwinnedRegion = NumberOfTwinnedRegionK;

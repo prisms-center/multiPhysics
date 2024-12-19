@@ -294,6 +294,8 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   F_lastIter_Global.resize(num_local_cells,std::vector<FullMatrix<double> >(num_quad_points,IdentityMatrix(dim)));
   FirstPiolaStress.resize(num_local_cells,std::vector<FullMatrix<double> >(num_quad_points,CauchyStress_init));
   workDensityTotal1_Tr.reinit(num_local_cells); workDensityTotal1_Tr = 0.0;
+   energy_check.reinit(num_local_cells); energy_check = 0.0;
+      energy_check2.reinit(num_local_cells); energy_check2 = 0.0;
   s_alpha_conv.resize(num_local_cells, std::vector<Vector<double> >(num_quad_points, s0_init));
   s_alpha_iter.resize(num_local_cells, std::vector<Vector<double> >(num_quad_points, s0_init));
   slipfraction_iter.resize(num_local_cells, std::vector<std::vector<double> >(num_quad_points, slip_init));

@@ -8,7 +8,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   local_F_s = 0.0;
   local_F_e = 0.0;
   unsigned int CheckBufferRegion, dimBuffer;
-  double lowerBuffer, upperBuffer, workDensity_Element1_Tr;
+  double lowerBuffer, upperBuffer, workDensity_Element1_Tr,energy_Element1;
   Point<dim> pnt2;
   Vector<double> userDefinedAverageOutput, local_userDefinedAverageOutput;
   FullMatrix<double> P_LastIter(dim, dim);
@@ -77,6 +77,12 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
       }
       P_LastIter = 0;
       workDensity_Element1_Tr = 0;
+      energy_Element1 = 0;       //cp_twin
+      energy_check[cellID]=0;    //cp_twin
+      energy_check2[cellID]=0;   //cp_twin
+      for (unsigned int q = 0; q < num_quad_points; ++q) {
+      energy_check2[cellID]+=energy[cellID][q][0];          
+      }                         //cp_twin
       for (unsigned int q = 0; q < num_quad_points; ++q) {
         // Get deformation gradient
         F = 0.0;
@@ -150,7 +156,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
                                        deltaF[i][j] * fe_values.JxW(q);
           }
         }
-
+        energy_Element1=energy[cellID][q][0];
         FirstPiolaStress[cellID][q] = P;
 
         if (this->userInputs_cp.enableAdvRateDepModel) {
@@ -204,11 +210,11 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
 
           ////////User Defined Variables for visualization outputs (output_Var1
           /// to output_Var24)////////
-          this->postprocessValues(cellID, q, 3, 0) = energy[cellID][q][0];
+          this->postprocessValues(cellID, q, 3, 0) = energy_check2[cellID]/num_quad_points; //cp_twin
           this->postprocessValues(cellID, q, 4, 0) =
               this->dtwinfraction_iter1[cellID][q][0];
           this->postprocessValues(cellID, q, 5, 0) = this->twinfraction_iter1[cellID][q][0];
-          this->postprocessValues(cellID, q, 6, 0) = energy[cellID][q][3];
+          this->postprocessValues(cellID, q, 6, 0) = energy[cellID][q][0];
           this->postprocessValues(cellID, q, 7, 0) = energy[cellID][q][4];
           this->postprocessValues(cellID, q, 8, 0) = energy[cellID][q][5];
           this->postprocessValues(cellID, q, 9, 0) = 0;
@@ -274,7 +280,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
       if (this->userInputs_cp.writeOutput) {
         // Calculation of work density for the cell
         workDensityTotal1_Tr[cellID] += workDensity_Element1_Tr;
-
+        energy_check[cellID]+=energy_Element1;
         //////////////////////////////////////////////////////////////////////////
         this->postprocessValuesAtCellCenters(cellID, 0) =
             cellOrientationMap[cellID];
@@ -284,7 +290,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
         this->postprocessValuesAtCellCenters(cellID, 1) =
             workDensityTotal1_Tr[cellID]; // This outputs cell average work
                                           // density
-        this->postprocessValuesAtCellCenters(cellID, 2) = 0;
+        this->postprocessValuesAtCellCenters(cellID, 2) = energy_check[cellID];
         this->postprocessValuesAtCellCenters(cellID, 3) = 0;
         this->postprocessValuesAtCellCenters(cellID, 4) = 0;
         this->postprocessValuesAtCellCenters(cellID, 5) = 0;
@@ -397,11 +403,12 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
               temp.push_back(phase[cellID][q]);
             }
 
-            temp.push_back(fe_values.JxW(q));
+            //temp.push_back(fe_values.JxW(q));
+            temp.push_back(this->twinfraction_iter1[cellID][q][0]);
 
             temp.push_back(twin_ouput[cellID][q]);
 
-            temp.push_back(fe_values.get_quadrature_points()[q][0]);
+            /*temp.push_back(fe_values.get_quadrature_points()[q][0]);
             temp.push_back(fe_values.get_quadrature_points()[q][1]);
             temp.push_back(fe_values.get_quadrature_points()[q][2]);
 
@@ -437,9 +444,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
             temp.push_back(CauchyStress[cellID][q][1][0]);
             temp.push_back(CauchyStress[cellID][q][1][2]);
             temp.push_back(CauchyStress[cellID][q][2][0]);
-            temp.push_back(CauchyStress[cellID][q][2][1]);
+            temp.push_back(CauchyStress[cellID][q][2][1]);*/
 
-            if (this->userInputs_cp.enableAdvRateDepModel) {
+           /* if (this->userInputs_cp.enableAdvRateDepModel) {
               temp.push_back(TinterStress[cellID][q][0][0]);
               temp.push_back(TinterStress[cellID][q][1][1]);
               temp.push_back(TinterStress[cellID][q][2][2]);
@@ -459,9 +466,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
               temp.push_back(TinterStress_diff[cellID][q][1][1]);
               temp.push_back(TinterStress_diff[cellID][q][2][0]);
               temp.push_back(TinterStress_diff[cellID][q][2][1]);
-            }
+            }*/
 
-            temp.push_back(slipfraction_conv[cellID][q][0]);
+           /* temp.push_back(slipfraction_conv[cellID][q][0]);
             temp.push_back(slipfraction_conv[cellID][q][1]);
             temp.push_back(slipfraction_conv[cellID][q][2]);
             temp.push_back(slipfraction_conv[cellID][q][3]);
@@ -551,9 +558,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
             temp.push_back(twinfraction_conv[cellID][q][2]);
             temp.push_back(twinfraction_conv[cellID][q][3]);
             temp.push_back(twinfraction_conv[cellID][q][4]);
-            temp.push_back(twinfraction_conv[cellID][q][5]);
+            temp.push_back(twinfraction_conv[cellID][q][5]);*/
 
-            if (this->userInputs_cp.enableAdvancedTwinModel) {
+            /*if (this->userInputs_cp.enableAdvancedTwinModel) {
               temp.push_back(TwinOutputfraction_conv[cellID][q][0]);
               temp.push_back(TwinOutputfraction_conv[cellID][q][1]);
               temp.push_back(TwinOutputfraction_conv[cellID][q][2]);
@@ -578,9 +585,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
               temp.push_back(TwinOutputfraction_conv[cellID][q][21]);
               temp.push_back(TwinOutputfraction_conv[cellID][q][22]);
               temp.push_back(TwinOutputfraction_conv[cellID][q][23]);
-            }
+            }*/
 
-            if (this->userInputs_cp.enableUserMaterialModel) {
+            /*if (this->userInputs_cp.enableUserMaterialModel) {
               temp.push_back(stateVar_conv[cellID][q][0]);
               temp.push_back(stateVar_conv[cellID][q][1]);
               temp.push_back(stateVar_conv[cellID][q][2]);
@@ -632,7 +639,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
               temp.push_back(stateVar_conv[cellID][q][48]);
               temp.push_back(stateVar_conv[cellID][q][49]);
               temp.push_back(stateVar_conv[cellID][q][50]);
-            }
+            }*/
 
             addToQuadratureOutput(temp);
           }

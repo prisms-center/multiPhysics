@@ -290,7 +290,9 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           // Define object fe_function_3 with CPFE vector
           pcout << "\n Passing twin energy from CPFE into Phase Field " << std::endl; 
           Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
-              dofHandler_Scalar, *postFieldsWithGhosts[3]);
+              dofHandler_Scalar, *postFieldsWithGhosts[3]); //cp_output_check_commented
+          //Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
+          //    dofHandler_Scalar, postprocessValuesAtCellCenters(2)); //cp_output_check
           pcout << "\nCreated fe_function_3 object " << std::endl;
           // Interpolate into the PF domain
           VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3,

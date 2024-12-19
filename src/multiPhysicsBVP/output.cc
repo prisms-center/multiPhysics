@@ -116,7 +116,83 @@ void MultiPhysicsBVP<dim,degree>::output(){
   }
 
   data_out.add_data_vector (material, "meshGrain_ID");
+//cp_quad_trial_2
+//cp_trial2
 
+Vector<double> distributed_values_per_cell;//(triangulation.n_active_cells());
+Vector<double> global_values_per_cell;//(triangulation.n_active_cells());
+//vectorType global_values_per_cell;
+ QGauss<dim>  quadrature(userInputs_cp.quadOrder);
+ FEValues<dim> fe_values_2 (FE_Scalar, quadrature, update_values | update_gradients | update_JxW_values);
+  const unsigned int   dofs_per_cell_2   = FE_Scalar.dofs_per_cell;
+ //   const unsigned int   dofs_per_cell   = FE_Scalar.n_dofs();
+//  locally_owned_dofs_Scalar = dofHandler_Scalar.locally_owned_dofs ();
+ // DoFTools::extract_locally_relevant_dofs (dofHandler_Scalar, locally_relevant_dofs_Scalar);
+//FullMatrix<double> qpoint_to_dof_matrix (triangulation.n_active_cells(),
+//                                         quadrature.size());
+ FullMatrix<double> qpoint_to_dof_matrix (dofs_per_cell_2,
+                                         quadrature.size());
+//const unsigned int   num_quad_points = quadrature.size();
+//const unsigned int n_local_cells =triangulation.n_locally_owned_active_cells();
+//std::vector<types::global_dof_index> local_dof_indices (dofs_per_cell);
+FETools::compute_projection_from_quadrature_points_matrix
+          (FE_Scalar,
+           quadrature, quadrature,
+           qpoint_to_dof_matrix);
+        //    locally_owned_dofs = dofHandler_Scalar.locally_owned_dofs ();
+        //    typename DoFHandler<dim>::active_cell_iterator cell = dofHandler.begin_active(), endc = dofHandler.end();
+             Vector<double> local_values_at_qpoints(quadrature.size()); 
+             local_values_at_qpoints.reinit(quadrature.size());
+             //qpoint_to_dof_matrix.reinit(dofs_per_cell,quadrature.size());
+            
+             distributed_values_per_cell.reinit(FE_Scalar.n_dofs_per_cell());
+             global_values_per_cell.reinit(dofHandler_Scalar.n_dofs());
+             //for(unsigned int i=0;i<dofHandler_Scalar.n_dofs();i++){
+             //global_values_per_cell(i)=0;
+            // }
+            // global_values_per_cell.reinit (locally_owned_dofs_Scalar, locally_relevant_dofs_Scalar, mpi_communicator); distributed_values_per_cell=0;
+//PETScWrappers::MPI::Vector global_values_per_cell(mpi_communicator, triangulation.n_active_cells(), n_local_cells);
+typename DoFHandler<dim>::active_cell_iterator cell_t = dofHandler_Scalar.begin_active(), endc_t = dofHandler_Scalar.end(),dg_cell = dofHandler_Scalar.begin_active();
+     cellID=0;
+    for (; cell_t!=endc_t; ++cell_t,++dg_cell) {
+       if (cell_t->is_locally_owned()){
+    fe_values_2.reinit (cell_t);
+     //cell_t->get_dof_indices (local_dof_indices);
+        for (unsigned int q=0; q<quadrature.size(); ++q)
+          local_values_at_qpoints[q] =postprocessValues(cellID, q, 3, 0);// 0.5;//stateVar_conv_try[cellID][q];
+         //  cell->set_user_index(cellID);
+    //      fe_values.reinit (cell_t);
+       // cell_t->get_dof_indices (local_dof_indices);
+        
+        qpoint_to_dof_matrix.vmult (distributed_values_per_cell,
+                                    local_values_at_qpoints);
+       dg_cell->set_dof_values (distributed_values_per_cell,global_values_per_cell);
+    // 	constraintsMassMatrix.distribute_local_to_global(distributed_values_per_cell, local_dof_indices, global_values_per_cell);
+  //  postFieldsWithGhosts[4].push_back(distributed_values_per_cell);
+     cellID++;
+ 
+      }
+      }
+         //      postFieldsWithGhosts[4]->compress(VectorOperation::add);
+   //   qpoint_to_dof_matrix.vmult (distributed_values_per_cell,
+//                                    local_values_at_qpoints);
+     //for (unsigned int i = 0; i < distributed_values_per_cell.size(); ++i){
+      // if (distributed_values_per_cell(i) != 0)          
+     //  global_values_per_cell(i) = distributed_values_per_cell(i);}
+      //global_values_per_cell.compress(VectorOperation::add);
+      // data_out_Scalar.add_data_vector ( distributed_values_per_cell, "SSD");
+     //  data_out_Scalar.add_data_vector ( global_values_per_cell, "SSD");
+  //  data_out_Scalar.add_data_vector (*postFieldsWithGhosts[4],
+//				     "SSD");
+     //   unsigned int n_twin_systems_Size = userInputs.numTwinSystems1;
+	//call base class project() function to project post processed fields
+//	for (unsigned int field=8; field<8+n_twin_systems_Size;field++){
+//	*solution_cp=*postFieldsWithGhosts[field];
+//	  Functions::FEFieldFunction<dim,vectorType> fe_function_1 (*dofHandler, *postFieldsWithGhosts[field]);
+//	}
+//cp_trial2
+
+//cp_quad_trial_2
   Vector<float> FieldsAtCellCenters (triangulation_cp.n_active_cells());
   for (unsigned int field=1; field<numPostProcessedFieldsAtCellCenters; field++){
 
