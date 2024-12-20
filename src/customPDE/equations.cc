@@ -76,10 +76,10 @@ scalargradType_pf kappagradn;
 kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
 kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
 
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV+strain_df));
+scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV-strain_df));
 scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
 
-scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV+strain_df);
+scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV-strain_df);
 scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
 
 // --- Submitting the terms for the governing equations ---
@@ -124,10 +124,10 @@ scalargradType_pf kappagradn;
 kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
 kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
 
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV+strain_df));
+scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV-strain_df));
 scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
 
-scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV+strain_df);
+scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV-strain_df);
 scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
 
 // --- Submitting the terms for the governing equations ---
