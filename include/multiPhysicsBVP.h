@@ -597,7 +597,7 @@ protected:
   FullMatrix<double> F,deltaF;
   FullMatrix<double> targetVelGrad;
   //misc variables
-  double delT,totalT,cycleTime,timeBeforeS;
+  double delT,totalT,cycleTime,seedingT,timeBeforeC;
   unsigned int currentIteration, currentIncrement_cp;
   unsigned int totalIncrements_cp,periodicTotalIncrements;
   bool resetIncrement;

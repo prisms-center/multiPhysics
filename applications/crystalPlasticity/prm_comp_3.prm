@@ -138,7 +138,11 @@ set Maximum non linear iterations                = 8
 # PRISMS-MP parameters
 ####################################
 
-set Time before seeding                          = 0.5
+# Deformation time prior to introducing a twin seed
+set Seeding time                                  = 0.0
+
+# Deformation time prior to coupling of PF and CPFE equations (after initial deformation with or without twin seed)
+set Time before coupling                          = 0.0
 
 ####################################
 # Elasticity parameters

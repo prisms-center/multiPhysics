@@ -164,8 +164,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
 
       //Replace the conditional with the next line if we ant to introduce the twin
       //seed at t=0
-      //if ((currentIncrement_cp*delT >=  timeBeforeS) || (currentIncrement_cp == 0)){
-      if ((currentIncrement_cp*delT >=  timeBeforeS)){
+      if ((currentIncrement_cp*delT >=  seedingT)){
         pcout << "\n Passing order parameter from phase field as twinfraction_iter1 " << std::endl; 
         Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(
             *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
@@ -281,7 +280,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       if ((success) || (userInputs_cp.flagTaylorModel)) {
         updateAfterIncrement();
 
-        if (currentIncrement_cp*delT >=  timeBeforeS){
+        if (currentIncrement_cp*delT >=  timeBeforeC){
           // Interpolate twin fraction and twinfraction change from CPFE mesh into
           // PF mesh.
 
@@ -343,7 +342,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       } else {
         successiveIncs = 0;
       }
-      if (currentIncrement_cp*delT >=  timeBeforeS){
+      if (currentIncrement_cp*delT >=  timeBeforeC){
         for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe; pf_step++){
           //Phase-Field regular step STARTS
           //increment current time

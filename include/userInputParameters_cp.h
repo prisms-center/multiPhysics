@@ -43,7 +43,8 @@ public:
   double delT; // Time increment
   double criticalDeltaFCriteria;  //Critical DeltaF Criteria
   double totalTime; // Total simulation time
-  double timeBeforeSeeding; // Deformation time elapsed before inserting a twin seed
+  double seedingTime; // Deformation time prior to introducing a twin seed
+  double timeBeforeCoupling; // Deformation time prior to coupling of PF and CPFE equations
 
   bool enableSimpleBCs; // Specify whether to use Simple (Basic) BCs
   std::string BCfilename; // Boundary conditions file

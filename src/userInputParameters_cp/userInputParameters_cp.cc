@@ -69,7 +69,8 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
   criticalDeltaFCriteria=parameter_handler.get_double("critical DeltaF Criteria");
   numberTaylorSubsteps=parameter_handler.get_integer("Number of Taylor Substeps");
   totalTime=parameter_handler.get_double("Total time");
-  timeBeforeSeeding=parameter_handler.get_double("Time before seeding");
+  seedingTime=parameter_handler.get_double("Seeding time");
+  timeBeforeCoupling=parameter_handler.get_double("Time before coupling");
 
   enableSimpleBCs=parameter_handler.get_bool("Use Simple BCs");
   BCfilename=parameter_handler.get("Boundary condition filename");
@@ -566,7 +567,8 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Time increments","-1",dealii::Patterns::Double(),"delta T for every increment");
   parameter_handler.declare_entry("critical DeltaF Criteria","10000",dealii::Patterns::Double(),"critical DeltaF Criteria");
   parameter_handler.declare_entry("Total time","-1",dealii::Patterns::Double(),"Total simulation time");
-  parameter_handler.declare_entry("Time before seeding","-1",dealii::Patterns::Double(),"Deformation time prior to introducing a twin seed");
+  parameter_handler.declare_entry("Seeding time","-1",dealii::Patterns::Double(),"Deformation time prior to introducing a twin seed");
+  parameter_handler.declare_entry("Time before coupling","-1",dealii::Patterns::Double(),"Deformation time prior to coupling of PF and CPFE equations");
 
   parameter_handler.declare_entry("Use Simple BCs","true",dealii::Patterns::Bool(),"Flag to indicate whether to use Simple (Basic) BCs");
   parameter_handler.declare_entry("Boundary condition filename","boundaryConditions.txt",dealii::Patterns::Anything(),"File name containing BC information");
