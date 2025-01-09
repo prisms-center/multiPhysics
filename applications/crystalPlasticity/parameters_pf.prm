@@ -1,4 +1,4 @@
-# Application units (Parameters by Hu et al. 2020, except for mobility and interfacial energy, by Liu et al. 2021)
+# Application units (Parameters by Liu et al. 2021)
 # Unit energy density = 1 MPa
 # Unit length = 1 micron
 # Unit time = 1 second 
@@ -111,8 +111,9 @@ set Model constant Kij_tp = ((0.0258,0,0),(0,0.00645,0),(0,0,0.0258)), tensor
 # ISOTROPIC (Hu et al.)
 # set Model constant Kij_tp = ((0.0043213,0,0),(0,0.0043213,0),(0,0,0.0043213)), tensor
 
-# Twin energy barrier (double well height)
-set Model constant delf_tw = 17.7, DOUBLE
+# Twin energy barrier (double well height) 
+# 31.04 * (n^2) * (1-n)^2 has the same height as 4 * 1.94 n * (1-n) at n=1/2
+set Model constant delf_tw = 31.04, DOUBLE
 
 # The rotation angle from the reference plane
 # to the twin plane reference frame
