@@ -27,8 +27,12 @@ public:
       for (unsigned int m=0;m<2;m++){
         for (unsigned int n=0;n<2;n++){
           K[m][n]=0.0;
+          Ltens[m][n]=0.0;
           for(unsigned int i=0;i<2;i++){
             for(unsigned int j=0;j<2;j++){
+              //Mobility tensor (rotated)
+              Ltens[m][n] = Ltens[m][n] + R[m][i]*R[n][j]*Lij_tp[i][j];
+              //Gradient energy coefficient tensor (rotated)
               K[m][n] = K[m][n] + R[m][i]*R[n][j]*Kij_tp[i][j];
             }
           }
@@ -83,15 +87,18 @@ private:
 	// Model constants specific to this subclass
 	// ================================================================
 
-    double L = userInputs_pf.get_model_constant_double("L");
+    //double L = userInputs_pf.get_model_constant_double("L");
+    dealii::Tensor<2,dim> Lij_tp = userInputs_pf.get_model_constant_rank_2_tensor("Lij_tp");
     dealii::Tensor<2,dim> Kij_tp = userInputs_pf.get_model_constant_rank_2_tensor("Kij_tp");
     double delf_tw = userInputs_pf.get_model_constant_double("delf_tw");
     double th = userInputs_pf.get_model_constant_double("th");
     double l0 = userInputs_pf.get_model_constant_double("l0");
     double a0 = userInputs_pf.get_model_constant_double("a0");
     double ecc = userInputs_pf.get_model_constant_double("ecc");
+    double regval = userInputs_pf.get_model_constant_double("regval");
 
     dealii::Tensor<2,2> K;
+    dealii::Tensor<2,2> Ltens;
     double cth;
     double sth;
 		

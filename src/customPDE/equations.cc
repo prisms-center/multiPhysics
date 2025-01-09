@@ -76,17 +76,28 @@ scalargradType_pf kappagradn;
 kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
 kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
 
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV-strain_df));
-scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
+//Outward Normal vector
+scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0]+nx[1]*nx[1])+constV(regval));
 
-scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV-strain_df);
-scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
+//Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
+scalarvalueType_pf L = constV(0.0);
+for(unsigned int i=0;i<2;i++){
+	for(unsigned int j=0;j<2;j++){
+		//Mobility tensor (rotated)
+		L = L + nvec[i]*nvec[j]*Ltens[i][j];
+	}
+}
+
+scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue)*L*(mu_twV-strain_df));
+scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue)*L*kappagradn);
+
+//scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV-strain_df);
+//scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
 
 // --- Submitting the terms for the governing equations ---
 
 variable_list.set_scalar_value_term_RHS(0,eq_n);
 variable_list.set_scalar_gradient_term_RHS(0,eqx_n);
-
 
 }
 
@@ -124,11 +135,23 @@ scalargradType_pf kappagradn;
 kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
 kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
 
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV-strain_df));
-scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
+//Outward Normal vector
+scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0]+nx[1]*nx[1])+constV(regval));
 
-scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV-strain_df);
-scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
+//Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
+scalarvalueType_pf L = constV(0.0);
+for(unsigned int i=0;i<2;i++){
+	for(unsigned int j=0;j<2;j++){
+		//Mobility tensor (rotated)
+		L = L + nvec[i]*nvec[j]*Ltens[i][j];;
+	}
+}
+
+//scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV-strain_df));
+//scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
+
+scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df);
+scalargradType_pf eqx_dndt = -L*kappagradn;
 
 // --- Submitting the terms for the governing equations ---
 

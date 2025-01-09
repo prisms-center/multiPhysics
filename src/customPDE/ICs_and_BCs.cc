@@ -46,7 +46,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     //Distance to the center of the ellipse
     edist = a0*b0/std::sqrt(b0*b0*(1.0-nX*nX) + a0*a0*nX*nX);
                      
-    scalar_IC =  0.5*(1.0-std::tanh((dist-edist)/(1.0*del0*sqrt(edist/a0))));
+    scalar_IC =  0.5*(1.0-std::tanh((dist-edist)/(1.0*del0*std::sqrt(edist/a0))));
 
     if (scalar_IC > 1.0) scalar_IC = 1.0;
                      
