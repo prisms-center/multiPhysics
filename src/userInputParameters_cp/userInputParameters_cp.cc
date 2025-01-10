@@ -317,8 +317,9 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
   twinSaturationFactor1=parameter_handler.get_double("Twin Saturation Factor");
   twinShear1=parameter_handler.get_double("Characteristic Twin Shear");
   criteriaTwinVisual=parameter_handler.get_double("Critical Value for Twin Visualization");
-
-
+  MPtwinLowerThresholdFraction1=parameter_handler.get_double("MP Twin Lower Threshold Fraction");
+  MPtwinUpperThresholdFraction1=parameter_handler.get_double("MP Twin Upper Threshold Fraction");
+  
   modelStressTolerance=parameter_handler.get_double("Stress Tolerance");
   modelMaxSlipSearchIterations=parameter_handler.get_integer("Max Slip Search Iterations");
   modelMaxSolverIterations=parameter_handler.get_integer("Max Solver Iterations");
@@ -405,6 +406,8 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
     twinThresholdFraction2=parameter_handler.get_double("Twin Threshold Fraction 2");
     twinSaturationFactor2=parameter_handler.get_double("Twin Saturation Factor 2");
     twinShear2=parameter_handler.get_double("Characteristic Twin Shear 2");
+    MPtwinLowerThresholdFraction2=parameter_handler.get_double("MP Twin Lower Threshold Fraction 2");
+    MPtwinUpperThresholdFraction2=parameter_handler.get_double("MP Twin Upper Threshold Fraction 2");
 
     if (numberofPhases>=3){
       enableUserMaterialModel3 = parameter_handler.get_bool("Enable User Material Model 3");
@@ -470,6 +473,8 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
       twinThresholdFraction3=parameter_handler.get_double("Twin Threshold Fraction 3");
       twinSaturationFactor3=parameter_handler.get_double("Twin Saturation Factor 3");
       twinShear3=parameter_handler.get_double("Characteristic Twin Shear 3");
+      MPtwinLowerThresholdFraction3=parameter_handler.get_double("MP Twin Lower Threshold Fraction 3");
+      MPtwinUpperThresholdFraction3=parameter_handler.get_double("MP Twin Upper Threshold Fraction 3");
 
       if (numberofPhases>=4){
         enableUserMaterialModel4 = parameter_handler.get_bool("Enable User Material Model 4");
@@ -536,6 +541,8 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
         twinThresholdFraction4=parameter_handler.get_double("Twin Threshold Fraction 4");
         twinSaturationFactor4=parameter_handler.get_double("Twin Saturation Factor 4");
         twinShear4=parameter_handler.get_double("Characteristic Twin Shear 4");
+        MPtwinLowerThresholdFraction4=parameter_handler.get_double("MP Twin Lower Threshold Fraction 4");
+        MPtwinUpperThresholdFraction4=parameter_handler.get_double("MP Twin Upper Threshold Fraction 4");
       }
     }
 
@@ -812,6 +819,8 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Twin Saturation Factor","-1",dealii::Patterns::Double(),"Twin growth saturation factor  (<(1-twinThresholdFraction))");
   parameter_handler.declare_entry("Characteristic Twin Shear","-1",dealii::Patterns::Double(),"characteristic twin shear");
   parameter_handler.declare_entry("Critical Value for Twin Visualization","1",dealii::Patterns::Double(),"The integration point with Twin volumes larger than this Critical Value is considered twined during visualization");
+  parameter_handler.declare_entry("MP Twin Lower Threshold Fraction","-1",dealii::Patterns::Double(),"Lower Threshold fraction for MP Twin");
+  parameter_handler.declare_entry("MP Twin Upper Threshold Fraction","-1",dealii::Patterns::Double(),"Upper Threshold fraction for MP Twin");
 
   parameter_handler.declare_entry("Stress Tolerance","-1",dealii::Patterns::Double(),"Stress tolerance for the yield surface (MPa)");
   parameter_handler.declare_entry("Max Slip Search Iterations","-1",dealii::Patterns::Integer(),"Maximum no. of active slip search iterations");
@@ -875,6 +884,8 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Twin Threshold Fraction 2","-1",dealii::Patterns::Double(),"Threshold fraction of characteristic twin shear (<1) Phase 2");
   parameter_handler.declare_entry("Twin Saturation Factor 2","-1",dealii::Patterns::Double(),"Twin growth saturation factor  (<(1-twinThresholdFraction)) Phase 2");
   parameter_handler.declare_entry("Characteristic Twin Shear 2","-1",dealii::Patterns::Double(),"characteristic twin shear Phase 2");
+  parameter_handler.declare_entry("MP Twin Lower Threshold Fraction 2","-1",dealii::Patterns::Double(),"Lower Threshold fraction for MP Twin 2");
+  parameter_handler.declare_entry("MP Twin Upper Threshold Fraction 2","-1",dealii::Patterns::Double(),"Upper Threshold fraction for MP Twin 2");
 
   //  if (numberofPhases>=3){
   parameter_handler.declare_entry("Enable User Material Model 3","false",dealii::Patterns::Bool(),"Flag to indicate if User Material Model is enabled Phase 3");
@@ -919,7 +930,8 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Twin Threshold Fraction 3","-1",dealii::Patterns::Double(),"Threshold fraction of characteristic twin shear (<1) Phase 3");
   parameter_handler.declare_entry("Twin Saturation Factor 3","-1",dealii::Patterns::Double(),"Twin growth saturation factor  (<(1-twinThresholdFraction)) Phase 3");
   parameter_handler.declare_entry("Characteristic Twin Shear 3","-1",dealii::Patterns::Double(),"characteristic twin shear Phase 3");
-
+  parameter_handler.declare_entry("MP Twin Lower Threshold Fraction 3","-1",dealii::Patterns::Double(),"Lower Threshold fraction for MP Twin 3");
+  parameter_handler.declare_entry("MP Twin Upper Threshold Fraction 3","-1",dealii::Patterns::Double(),"Upper Threshold fraction for MP Twin 3");
   //  if (numberofPhases>=4){
   parameter_handler.declare_entry("Enable User Material Model 4","false",dealii::Patterns::Bool(),"Flag to indicate if User Material Model is enabled Phase 4");
   parameter_handler.declare_entry("Number of User Material Constants 4","0",dealii::Patterns::Integer(),"Number of User Material Constants in a Material model Phase 4");
@@ -963,6 +975,8 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Twin Threshold Fraction 4","-1",dealii::Patterns::Double(),"Threshold fraction of characteristic twin shear (<1) Phase 4");
   parameter_handler.declare_entry("Twin Saturation Factor 4","-1",dealii::Patterns::Double(),"Twin growth saturation factor  (<(1-twinThresholdFraction)) Phase 4");
   parameter_handler.declare_entry("Characteristic Twin Shear 4","-1",dealii::Patterns::Double(),"characteristic twin shear Phase 4");
+  parameter_handler.declare_entry("MP Twin Lower Threshold Fraction 4","-1",dealii::Patterns::Double(),"Lower Threshold fraction for MP Twin 4");
+  parameter_handler.declare_entry("MP Twin Upper Threshold Fraction 4","-1",dealii::Patterns::Double(),"Upper Threshold fraction for MP Twin 4");
 
   //    }
 
