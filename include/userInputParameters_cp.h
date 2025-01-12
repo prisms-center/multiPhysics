@@ -209,6 +209,8 @@ public:
   double twinSaturationFactor1; // twin growth saturation factor  (<(1-twinThresholdFraction))
   double twinShear1; // characteristic twin shear
   double criteriaTwinVisual; //In the case of Advanced twin model, the integration point with Twin volumes larger than this Critical Value is considered twined during visualization
+  double MPtwinLowerThresholdFraction1;//lower threshold for MP twin crss
+  double MPtwinUpperThresholdFraction1;//upper threshold for MP twin crss
 
   // Crystal Plasticity Constitutive model tolerances (for advanced users)
   double modelStressTolerance; // Stress tolerance for the yield surface (MPa)
@@ -260,6 +262,9 @@ public:
   double twinThresholdFraction2; // threshold fraction of characteristic twin shear (<1)
   double twinSaturationFactor2; // twin growth saturation factor  (<(1-twinThresholdFraction))
   double twinShear2; // characteristic twin shear
+  double MPtwinLowerThresholdFraction2;//lower threshold for MP twin crss
+  double MPtwinUpperThresholdFraction2;//upper threshold for MP twin crss
+
 
   bool enableUserMaterialModel3; //Flag to indicate if User material Model is enabled
   unsigned int numberofUserMatConstants3; // Number of User Material Constants
@@ -295,6 +300,9 @@ public:
   double twinThresholdFraction3; // threshold fraction of characteristic twin shear (<1)
   double twinSaturationFactor3; // twin growth saturation factor  (<(1-twinThresholdFraction))
   double twinShear3; // characteristic twin shear
+  double MPtwinLowerThresholdFraction3;//lower threshold for MP twin crss
+  double MPtwinUpperThresholdFraction3;//upper threshold for MP twin crss
+
 
   bool enableUserMaterialModel4; //Flag to indicate if User material Model is enabled
   unsigned int numberofUserMatConstants4; // Number of User Material Constants
@@ -330,6 +338,9 @@ public:
   double twinThresholdFraction4; // threshold fraction of characteristic twin shear (<1)
   double twinSaturationFactor4; // twin growth saturation factor  (<(1-twinThresholdFraction))
   double twinShear4; // characteristic twin shear
+  double MPtwinLowerThresholdFraction4;//lower threshold for MP twin crss
+  double MPtwinUpperThresholdFraction4;//upper threshold for MP twin crss
+
 
 private:
   dealii::ConditionalOStream  pcout;

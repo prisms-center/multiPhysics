@@ -336,7 +336,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     if (Region == 0) {
       for (unsigned int i = 0;i < (n_twin_systems / 2);i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
-        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0) || ttwinvf[i]<=0.1) {//cp_twin
+        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0) || ttwinvf[i]<=this->userInputs_cp.MPtwinLowerThresholdFraction1) {//cp_twin
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -345,7 +345,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       for (unsigned int i = (n_twin_systems / 2);i < n_twin_systems;i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
         /*if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i - (n_twin_systems / 2)] <= 0.0)) //cp_twin bracket is removed*/
-        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i - (n_twin_systems / 2)] <= 0.1)) {
+        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i - (n_twin_systems / 2)] <= this->userInputs_cp.MPtwinLowerThresholdFraction1)) {
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -353,11 +353,11 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     }
     else {
 
-      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0  ||(this->twinfraction_iter1[cellID][quadPtID][0]<=0.1)) { //cp_twin added twinvf condition
+      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0  ||(this->twinfraction_iter1[cellID][quadPtID][0]<=this->userInputs_cp.MPtwinLowerThresholdFraction1)) { //cp_twin added twinvf condition
         resolved_shear_tau_trial[n_slip_systemsWOtwin] = 0;
       }
      /* if ((resolved_shear_tau_trial[1+n_slip_systemsWOtwin] > 0)||(tTwinMaxFlag == 0)) //cp_twin bracket is removed*/
-         if ((resolved_shear_tau_trial[1+n_slip_systemsWOtwin] > 0)||(ttwinvf[0] <= 0.1)) {
+         if ((resolved_shear_tau_trial[1+n_slip_systemsWOtwin] > 0)||(ttwinvf[0] <= this->userInputs_cp.MPtwinLowerThresholdFraction1)) {
         resolved_shear_tau_trial[1+n_slip_systemsWOtwin] = 0;
       }
 
@@ -496,7 +496,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     //cp
     for(unsigned int i=0;i<n_twin_systems/2;i++){
     //x_beta[n_slip_systemsWOtwin+i]=0.129*fabs(this->dtwinfraction_iter1[cellID][quadPtID][i])*this->delT; //cp
-   if(ttwinvf1[i]>0.1) //if(ttwinvf1[i]>twinfraction_iter[cellID][quadPtID][i]) //cp_trial
+   if(ttwinvf1[i]>this->userInputs_cp.MPtwinLowerThresholdFraction1) //if(ttwinvf1[i]>twinfraction_iter[cellID][quadPtID][i]) //cp_trial
     x_beta[n_slip_systemsWOtwin+i]=0.129*fabs(this->twinfraction_iter1[cellID][quadPtID][i]-twinfraction_iter[cellID][quadPtID][i]); //cp_twinfraction_change
     else  x_beta[n_slip_systemsWOtwin+i]=0;                                                                                          //cp_twinfraction_change
     x_beta_old[n_slip_systemsWOtwin+i]=x_beta_old[n_slip_systemsWOtwin+i]+x_beta[n_slip_systemsWOtwin+i];
@@ -582,7 +582,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     if (Region == 0) {
       for (unsigned int i = 0;i < (n_twin_systems / 2);i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
-        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0) || ttwinvf[i]<=0.1) {
+        if ((resolved_shear_tau_trial[j] < 0) || (tTwinMaxFlag == 0) || ttwinvf[i]<=this->userInputs_cp.MPtwinLowerThresholdFraction1) {
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -590,7 +590,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       /////////////The modification compared to the original model is applied to the following lines//////////////////
       for (unsigned int i = (n_twin_systems / 2);i < n_twin_systems;i++) {
         unsigned int j = i + n_slip_systemsWOtwin;
-        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i-(n_twin_systems / 2)] <= 0.1)) {
+        if ((resolved_shear_tau_trial[j] > 0) || (ttwinvf[i-(n_twin_systems / 2)] <= this->userInputs_cp.MPtwinLowerThresholdFraction1)) {
           resolved_shear_tau_trial[j] = 0;
         }
       }
@@ -599,11 +599,11 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     }
     else {
 
-      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0  ||(this->twinfraction_iter1[cellID][quadPtID][0]<=0.1)) { //cp_try added twinvfcondition
+      if (resolved_shear_tau_trial[n_slip_systemsWOtwin] < 0  ||(this->twinfraction_iter1[cellID][quadPtID][0]<=this->userInputs_cp.MPtwinLowerThresholdFraction1)) { //cp_try added twinvfcondition
         resolved_shear_tau_trial[n_slip_systemsWOtwin] = 0;
       }
      // if ((resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] > 0) || (tTwinMaxFlag == 0) ||(ttwinvf[1 + n_slip_systemsWOtwin] <= 0.1)) //bracket removed //cp_twon_check
-            if ((resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] > 0) || (tTwinMaxFlag == 0) ||(ttwinvf[0] <= 0.01)) {
+            if ((resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] > 0) || (tTwinMaxFlag == 0) ||(ttwinvf[0] <= this->userInputs_cp.MPtwinLowerThresholdFraction1)) {
         resolved_shear_tau_trial[1 + n_slip_systemsWOtwin] = 0;
       }
 
@@ -614,9 +614,9 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
  if(Region==0){
  for(unsigned int i=0;i<n_twin_systems_Size;i++){
-  if(this->twinfraction_iter1[cellID][quadPtID][i]<=0.1) resolved_shear_tau[n_slip_systemsWOtwin+i]=0.0;//cp_try
+  if(this->twinfraction_iter1[cellID][quadPtID][i]<=this->userInputs_cp.MPtwinLowerThresholdFraction1 ) resolved_shear_tau[n_slip_systemsWOtwin+i]=0.0;//cp_try
    energy[cellID][quadPtID][i]=fabs(resolved_shear_tau[n_slip_systemsWOtwin+i]*0.129);
-
+if(this->twinfraction_iter1[cellID][quadPtID][i]>this->userInputs_cp.MPtwinUpperThresholdFraction1)energy[cellID][quadPtID][i]=0.0;
 }
 }
 
@@ -1173,7 +1173,7 @@ for (unsigned int i = 0;i < n_twin_systems_Size;i++) {
   //ttwinvf[i] = ttwinvf[i] + fabs(this->dtwinfraction_iter1[cellID][quadPtID][i])*this->delT;
     ttwinvf[i] =  (this->twinfraction_iter1[cellID][quadPtID][i]);//cp_check_twinvf //changed abs to actual twinfrac
     if(ttwinvf[i]<0.0) ttwinvf[i]=0.0;                                    //cp
-   if(ttwinvf[i]>0.1) TwinFlag_conv[cellID][quadPtID][i]=1;             //cp_new_try
+   if(ttwinvf[i]>this->userInputs_cp.MPtwinLowerThresholdFraction1) TwinFlag_conv[cellID][quadPtID][i]=1;             //cp_new_try
     
 }
 

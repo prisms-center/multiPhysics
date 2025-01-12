@@ -30,10 +30,10 @@ set Domain size Z                                = 0.0625
 # Mesh parameters
 ####################################
 # The number of mesh subdivisions in the x direction.
-set Subdivisions X                               = 32
+set Subdivisions X                               = 16
 
 # The number of mesh subdivisions in the y direction.
-set Subdivisions Y                               = 32
+set Subdivisions Y                               = 16
 
 # The number of mesh subdivisions in the z direction.
 set Subdivisions Z                               = 2
@@ -52,16 +52,16 @@ set Write Output                                 = true
 
 # Output Directory
 # Need to create directory before using this. Will be corrected in future versions of the software
-set Output Directory                             = results1
+set Output Directory                             = results4_05
 
 # Skip Output Steps
 set Skip Output Steps                            = 1
 
 # Output Equivalent strain
-set Output Equivalent strain                     = false
+set Output Equivalent strain                     = true
 
 # Output Equivalent stress
-set Output Equivalent stress                     = false
+set Output Equivalent stress                     = true
 
 # Output Grain ID
 set Output Grain ID                              = true
@@ -132,17 +132,17 @@ set Maximum linear solver iterations             = 1000000
 set Relative linear solver tolerance             = 1.0e-9
 
 # Maximum no. of linear iterations
-set Maximum non linear iterations                = 8
+set Maximum non linear iterations                = 15
 
 ####################################
 # PRISMS-MP parameters
 ####################################
 
 # Deformation time prior to introducing a twin seed
-set Seeding time                                  = 0.0
+set Seeding time                                  = 0.5
 
 # Deformation time prior to coupling of PF and CPFE equations (after initial deformation with or without twin seed)
-set Time before coupling                          = 0.0
+set Time before coupling                          = 0.5
 
 ####################################
 # Elasticity parameters
@@ -177,7 +177,7 @@ set Latent Hardening Ratio filename                       = LatentHardeningRatio
 
 # RSS of the slip sytems
 set Initial Slip Resistance                      = 20,20,20,140 , 140, 140,8000, 8000,8000,8000,8000,8000, 240, 240.0, 240.0, 240.0, 240.0, 240.0
-
+#set Initial Slip Resistance                      = 20,20,20,140 , 140, 140,8000, 8000,8000,8000,8000,8000, 200, 200.0, 200.0, 200.0, 200.0, 200.0
 # Heardening moduli of slip systems
 set Initial Hardening Modulus                    = 10, 10, 10,20, 20, 20, 150, 150, 150, 150, 150,150, 1000, 1000, 1000, 1000, 1000, 1000
 
@@ -186,7 +186,7 @@ set Power Law Exponent                           = 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 
 # Saturation stress
 set Saturation Stress                            = 21.0, 21.0,21.0, 155, 155, 155, 12000, 12000, 12000, 12000, 12000.0, 12000.0, 350.0, 350.0, 350.0, 350.0, 350.0, 350.0
-
+#set Saturation Stress                            = 95.0, 95.0,95.0, 135, 135, 135, 12000, 12000, 12000, 12000.0, 12000.0,12000, 420.0, 420.0, 420.0, 420.0, 420.0, 420.0
 # Slip Directions File
 set Slip Directions File                         = slipDirections.txt
 
@@ -235,6 +235,10 @@ set Twin Normals File                            = twinNormals.txt
 
 # characteristic twin shear    (S)
 set Characteristic Twin Shear                    = 0.129
+#Lower Threshold fraction for MP Twin
+set MP Twin Lower Threshold Fraction                  =0.1
+#Upper Threshold fraction for MP Twin
+set MP Twin Upper Threshold Fraction                  =0.8
 
 ####################################
 # Constitutive model parameters
