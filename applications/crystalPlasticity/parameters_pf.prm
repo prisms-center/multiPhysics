@@ -13,8 +13,8 @@ set Number of dimensions = 3
 # (Domain size Z ignored in 2D)
 # =================================================================================
 # Each axes spans from zero to the specified length
-set Domain size X = 2.0
-set Domain size Y = 2.0
+set Domain size X = 1.0
+set Domain size Y = 1.0
 set Domain size Z = 0.0625
 
 # =================================================================================
@@ -23,8 +23,8 @@ set Domain size Z = 0.0625
 # The number of elements in each direction is 2^(refineFactor) * subdivisions
 # Subdivisions Z ignored in 2D
 # For optimal performance, use refineFactor primarily to determine the element size
-set Subdivisions X = 64
-set Subdivisions Y = 64
+set Subdivisions X = 32
+set Subdivisions Y = 32
 set Subdivisions Z = 2
 
 set Refine factor = 0
@@ -43,7 +43,7 @@ set Time step = 0.001
 set Number of time steps = 500
 
 # The number of phase field steps per CPFE step
-set Number of phase field steps per CPFE step = 1
+set Number of phase field steps per CPFE step = 10
 
 # =================================================================================
 # Set the output parameters
@@ -123,7 +123,7 @@ set Model constant th = 0.753213, DOUBLE
 set Model constant l0 = 1.0e-6, DOUBLE
 
 # Radius of initial semimajor axis of the elliptical seed
-set Model constant a0 = 0.3, DOUBLE
+set Model constant a0 = 0.15, DOUBLE
 
 # eccentricity of the elliptical seed
 set Model constant ecc = 0.95, DOUBLE

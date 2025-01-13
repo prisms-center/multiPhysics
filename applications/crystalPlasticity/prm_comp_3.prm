@@ -30,10 +30,10 @@ set Domain size Z                                = 0.0625
 # Mesh parameters
 ####################################
 # The number of mesh subdivisions in the x direction.
-set Subdivisions X                               = 16
+set Subdivisions X                               = 32
 
 # The number of mesh subdivisions in the y direction.
-set Subdivisions Y                               = 16
+set Subdivisions Y                               = 32
 
 # The number of mesh subdivisions in the z direction.
 set Subdivisions Z                               = 2
@@ -52,7 +52,7 @@ set Write Output                                 = true
 
 # Output Directory
 # Need to create directory before using this. Will be corrected in future versions of the software
-set Output Directory                             = results4_05
+set Output Directory                             = results_cp
 
 # Skip Output Steps
 set Skip Output Steps                            = 1
@@ -236,9 +236,9 @@ set Twin Normals File                            = twinNormals.txt
 # characteristic twin shear    (S)
 set Characteristic Twin Shear                    = 0.129
 #Lower Threshold fraction for MP Twin
-set MP Twin Lower Threshold Fraction                  =0.1
+set MP Twin Lower Threshold Fraction             = 0.1
 #Upper Threshold fraction for MP Twin
-set MP Twin Upper Threshold Fraction                  =0.8
+set MP Twin Upper Threshold Fraction             = 0.8
 
 ####################################
 # Constitutive model parameters
