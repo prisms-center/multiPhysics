@@ -22,11 +22,6 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
 
   pcout << "\ncurrentIncrement_pf = " << pf_obj.getCurrentIncrement_pf() << "\n\n";
 
-  // For any nonlinear equation, set the initial guess as the solution to Laplace's equations
-  //generatingInitialGuess = true;
-  //pf_obj.getSetNonlinearEqInitialGuess();
-  //generatingInitialGuess = false;
-
   // Do an initial solve to set the elliptic fields
   pf_obj.getSolveIncrement(true);
   
@@ -42,12 +37,6 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   //currentOutput++;
   pf_obj.getCurrentOutput() += 1;
 
-  //Output initial condition checkpoint (uncomment later)
-  //if (userInputs_pf.checkpointTimeStepList[currentCheckpoint] == currentIncrement_pf) {
-  //    save_checkpoint();
-  //    currentCheckpoint++;
-  //}
-
   // Increase the current increment from 0 to 1 now that the initial conditions have been output
   //currentIncrement_pf++;
   pf_obj.getCurrentIncrement_pf() += 1;
@@ -57,10 +46,6 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
       //currentOutput++;
       pf_obj.getCurrentOutput() += 1;
   }
-// Cycle up to the proper checkpoint counter (uncomment later)
-  //while (userInputs_pf.checkpointTimeStepList.size() > 0 && userInputs_pf.checkpointTimeStepList[currentCheckpoint] < currentIncrement_pf){
-  //    currentCheckpoint++;
-  //}
   
   //time stepping
   pcout << "\nTime stepping parameters: timeStep: " << userInputs_pf.dtValue << "  timeFinal: " << userInputs_pf.finalTime << "  timeIncrements: " << userInputs_pf.totalIncrements_pf << "\n";
@@ -71,8 +56,8 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   bool success;
   // load increments
   unsigned int successiveIncs = 0;
-  // cp_twinfraction_addition
-  // local variables
+
+  //Setting up interpolation from PF to CPFE mesh
   QGauss<dim> quadrature(userInputs_cp.quadOrder);
   FEValues<dim> fe_values(FE_Scalar, quadrature,
                           update_values | update_gradients | update_JxW_values);
@@ -88,11 +73,6 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
                                                  num_quad_points, twin_init));
   dtwinfraction_iter1.resize(num_local_cells, std::vector<std::vector<double>>(
                                                   num_quad_points, twin_init));
-
-  // Needed for interpolation below
-  IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
-  IndexSet locally_relevant_dofs;
-  DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
 
   if (userInputs_cp.enableAdaptiveTimeStepping) {
     for (; totalLoadFactor < totalIncrements_cp;) {
@@ -152,115 +132,13 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
     for (; currentIncrement_cp < totalIncrements_cp; ++currentIncrement_cp) {
       pcout << "\nincrement CPFE: " << currentIncrement_cp << ", Time CPFE: "<< currentIncrement_cp*delT << std::endl;
 
-      // Interpolate twin fraction and twinfraction change from PF mesh into
-      // CPFE mesh.
-
-      // ***** Interpolation of twin seed (Order parameter "n" ******
-      // solutionSet[0]) in phase-field mesh into variable dtwinfraction_iter in
-      // CPFE mesh
-      // Define object fe_function_1 for phase field data given dof handler and
-      // the given solution vector. . This object can evaluate the finite
-      // element solution at given points in the domain.
-
-      //Replace the conditional with the next line if we ant to introduce the twin
-      //seed at t=0
       if ((currentIncrement_cp*delT >=  seedingT)){
-        pcout << "\n Passing order parameter from phase field as twinfraction_iter1 " << std::endl; 
-        Functions::FEFieldFunction<dim, vectorType_pf> fe_function_1(
-            *pf_obj.getDofHandlersSet()[0], *pf_obj.getSolutionSet()[0]);
-        pcout << "\nCreated fe_function_1 object " << std::endl;
-        // Interpolate into the CPFE domain
-        vectorType_cp non_ghosted_solution_cp; // No pointer, just a regular object
-        vectorType_cp solution_cp;
-        //vectorType_cp non_ghosted_solution_cp;
-        //non_ghosted_solution_cp.reinit(solution_cp.locally_owned_elements(), MPI_COMM_WORLD);
-        //non_ghosted_solution_cp = solution_cp; // Copy the contents without ghost elements      
-        solution_cp.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
-        non_ghosted_solution_cp.reinit(own_dofs, mpi_communicator);
-        pcout << "\nreinit of solution_cp successful " << std::endl;
-        //VectorTools::interpolate(dofHandler, fe_function_1,
-        //                        solution_cp); // Works but not in parallel
-        VectorTools::interpolate(dofHandler_Scalar, fe_function_1,
-                                non_ghosted_solution_cp); // Works but not in parallel
-        solution_cp = non_ghosted_solution_cp;
-        solution_cp.compress(VectorOperation::insert);                 
-        pcout << "\nInterpolated into solution_cp " << std::endl;
-        std::vector<double> solution_values_cp(quadrature.size());
-        pcout << "\nDefined solution_values_cp for the cell" << std::endl;
-        typename DoFHandler<dim>::active_cell_iterator
-            cell = dofHandler_Scalar.begin_active(),
-            endc = dofHandler_Scalar.end(), dg_cell = dofHandler_Scalar.begin_active();
-        pcout << "\nDefined cell iterator" << std::endl;
-        unsigned int cellID = 0;
-        for (; cell != endc; ++cell) {
-          //pcout << "\nInside cell loop" << std::endl;
-          fe_values.reinit(cell);
-          //pcout << "\nReinit cell successful" << std::endl;
-          fe_values.get_function_values(solution_cp, solution_values_cp);
-          for (unsigned int q = 0; q < quadrature.size(); ++q) {
-            unsigned int i = Utilities::MPI::this_mpi_process(mpi_communicator);
-            // std::cout << "Processor " << i
-            //           << ", solution_values_cp=" << solution_values_cp[q]
-            //           << std::endl;
-            twinfraction_iter1[cellID][q][0] =
-                solution_values_cp[q]; // Passing the solution for twin of index
-                                      // =0
-          }
-          if (cell->is_locally_owned()) {
-            cellID++;
-          }
-        }
+        // ***** Interpolation of order parameter "n" from PF mesh into
+        // twin volume fraction CPFE mesh ******
+        interpolate_order_parameter(pf_obj, dofHandler_Scalar, quadrature, twinfraction_iter1, fe_values);
         pcout << "\nInterpolation of n complete" << std::endl;
-        // ****** End of Interpolation of "n" ******
-
-        // ++++++ Interpolation of Order parameter time derivative  "dndt" ++++++
-        // solutionSet[1]) in phase-field mesh into variable dtwinfraction_iter in
-        // CPFE mesh
-        // Define object fe_function_1 for phase field data given dof handler and
-        // the given solution vector. . This object can evaluate the finite
-        // element solution at given points in the domain.
-        pcout << "\n Passing dndt from phase field as dtwinfraction_iter1 " << std::endl; 
-        Functions::FEFieldFunction<dim, vectorType_pf> fe_function_2(
-            *pf_obj.getDofHandlersSet()[1], *pf_obj.getSolutionSet()[1]);
-        pcout << "\nCreated fe_function_2 object " << std::endl;
-        // Interpolate into the CPFE domain
-        vectorType_cp solution_cp_2; // No pointer, just a regular object
-        vectorType_cp non_ghosted_solution_cp_2;
-        solution_cp_2.reinit(own_dofs, locally_relevant_dofs, mpi_communicator);
-        non_ghosted_solution_cp_2.reinit(own_dofs, mpi_communicator);
-        pcout << "\nreinit of solution_cp_2 successful " << std::endl;
-        //VectorTools::interpolate(dofHandler, fe_function_1,
-        //                        solution_cp); // Works but not in parallel
-        VectorTools::interpolate(dofHandler_Scalar, fe_function_2,
-                                non_ghosted_solution_cp_2); // Works but not in parallel
-        solution_cp_2 = non_ghosted_solution_cp_2;
-        solution_cp_2.compress(VectorOperation::insert); 
-        pcout << "\nInterpolated into solution_cp_2 " << std::endl;
-        std::vector<double> solution_values_cp_2(quadrature.size());
-        pcout << "\nDefined solution_values_cp_2 for the cell" << std::endl;
-        typename DoFHandler<dim>::active_cell_iterator
-            cell2 = dofHandler_Scalar.begin_active(),
-            endc2 = dofHandler_Scalar.end(), dg_cell2 = dofHandler_Scalar.begin_active();
-        pcout << "\nDefined cell iterator 2" << std::endl;
-        unsigned int cellID2 = 0;
-        for (; cell2 != endc2; ++cell2) {
-          fe_values.reinit(cell2);
-          fe_values.get_function_values(solution_cp_2, solution_values_cp_2);
-          for (unsigned int q = 0; q < quadrature.size(); ++q) {
-            unsigned int i = Utilities::MPI::this_mpi_process(mpi_communicator);
-            // std::cout << "Processor " << i
-            //           << ", solution_values_cp_2=" << solution_values_cp_2[q]
-            //           << std::endl;
-            dtwinfraction_iter1[cellID2][q][0] =
-                solution_values_cp_2[q]; // Passing the solution for twin of index
-                                        // = 0
-          }
-          if (cell2->is_locally_owned()) {
-            cellID2++;
-          }
-        }
-        pcout << "\nInterpolation of dndt complete" << std::endl;
-        // ++++++ End of Interpolation of "dndt" ++++++
+        
+        pcout << "\nInterpolation of dndt disabled" << std::endl;
       }
       
       if (userInputs_cp.enableIndentationBCs) {
@@ -281,23 +159,9 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
         updateAfterIncrement();
 
         if (currentIncrement_cp*delT >=  timeBeforeC){
-          // Interpolate twin fraction and twinfraction change from CPFE mesh into
-          // PF mesh.
-
           // ***** Interpolation of twin energy ******
-          //
-          // Define object fe_function_3 with CPFE vector
-          pcout << "\n Passing twin energy from CPFE into Phase Field " << std::endl; 
-          Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
-              dofHandler_Scalar, *postFieldsWithGhosts[3]); //cp_output_check_commented
-          //Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
-          //    dofHandler_Scalar, postprocessValuesAtCellCenters(2)); //cp_output_check
-          pcout << "\nCreated fe_function_3 object " << std::endl;
-          // Interpolate into the PF domain
-          VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3,
-                                  *pf_obj.getSolutionSet()[2]); // Works but not in parallel
-          pcout << "\n Interpolation of twin driving force complete " << std::endl;
-          // ***** End of interpolation of twin energy ******
+          interpolate_twin_energy(pf_obj, dofHandler_Scalar); 
+          pcout << "\nInterpolation of twin energy complete" << std::endl;
         }
         // update totalLoadFactor
         totalLoadFactor += loadFactorSetByModel;

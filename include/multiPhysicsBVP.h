@@ -154,7 +154,17 @@ public:
   return currentOutput;
   }
 
+  //Field transfer functions
+  void interpolate_order_parameter(
+  customPDE<dim, 1> &pf_obj,
+  const DoFHandler<dim> &dofHandler_Scalar,
+  const Quadrature<dim> &quadrature,
+  std::vector<std::vector<std::vector<double>>> &twinfraction_iter1,
+  FEValues<dim> &fe_values);
 
+  void interpolate_twin_energy(
+  customPDE<dim, 1> &pf_obj,
+  const DoFHandler<dim> &dofHandler_Scalar);
 
 protected:
   //PRISMS-PF functions (This section contains all member functions also declared in customPDE)
