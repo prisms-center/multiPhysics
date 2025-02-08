@@ -616,6 +616,7 @@ void crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
  for(unsigned int i=0;i<n_twin_systems_Size;i++){
   if(this->twinfraction_iter1[cellID][quadPtID][i]<=this->userInputs_cp.MPtwinLowerThresholdFraction1 ) resolved_shear_tau[n_slip_systemsWOtwin+i]=0.0;//cp_try
    energy[cellID][quadPtID][i]=fabs(resolved_shear_tau[n_slip_systemsWOtwin+i]*0.129);
+  // energy[cellID][quadPtID][i]=(resolved_shear_tau[n_slip_systemsWOtwin+i]*0.129);
 if(this->twinfraction_iter1[cellID][quadPtID][i]>this->userInputs_cp.MPtwinUpperThresholdFraction1)energy[cellID][quadPtID][i]=0.0;
 }
 }
