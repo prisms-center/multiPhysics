@@ -41,9 +41,10 @@ void MultiPhysicsBVP<dim, degree>::interpolate_order_parameter(
     vectorType_cp solution_cp;
 
     // Reinitialize vectors for interpolation
-    solution_cp.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
-    non_ghosted_solution_cp.reinit(own_dofs, MPI_COMM_WORLD);
-
+   // solution_cp.reinit(own_dofs, locally_relevant_dofs,  mpi_communicator);
+   solution_cp.reinit(own_dofs, locally_relevant_dofs,  MPI_COMM_WORLD);
+   // non_ghosted_solution_cp.reinit(own_dofs,  mpi_communicator);
+    non_ghosted_solution_cp.reinit(own_dofs,   MPI_COMM_WORLD);
     // Perform the interpolation into non_ghosted_solution_cp
     VectorTools::interpolate(dofHandler_Scalar, fe_function_1, non_ghosted_solution_cp);
 
@@ -102,7 +103,8 @@ void MultiPhysicsBVP<dim, degree>::interpolate_twin_energy(
 
   //Creating temporal vector to store the current solutionSet data
   vectorType_cp temp_vector_cp;
-  temp_vector_cp.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
+  //temp_vector_cp.reinit(own_dofs, locally_relevant_dofs,  mpi_communicator);
+  temp_vector_cp.reinit(own_dofs, locally_relevant_dofs,  MPI_COMM_WORLD);
   temp_vector_cp = *postFieldsWithGhosts[3];
   temp_vector_cp.update_ghost_values(); // Ensure ghost values are updated
 
