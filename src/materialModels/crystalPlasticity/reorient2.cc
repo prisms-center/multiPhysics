@@ -22,7 +22,7 @@ void crystalPlasticity<dim>::reorient2(Vector<double> &rnew, Vector<double> rold
             Fe_new= FE_tau;
 			FE_t.Tmmult(C_old_temp, FE_t);
             C_old=C_old_temp;
-            C_old.compute_eigenvalues_symmetric(0.0,200000.0,1e-15,eigenvalues, eigenvectors);
+            C_old.compute_eigenvalues_symmetric(0.0,200000.0,1e-16,eigenvalues, eigenvectors);
 
             for(unsigned int k=0;k<dim;k++){
                 Lambda(k,k)=sqrt(eigenvalues(k));
@@ -35,7 +35,7 @@ void crystalPlasticity<dim>::reorient2(Vector<double> &rnew, Vector<double> rold
             temp=R_old; FE_t.mmult(R_old,temp);
 			FE_tau.Tmmult(C_new_temp, FE_tau);
             C_new=C_new_temp;
-            C_new.compute_eigenvalues_symmetric(0.0,200000.0,1e-15,eigenvalues, eigenvectors);
+            C_new.compute_eigenvalues_symmetric(0.0,200000.0,1e-16,eigenvalues, eigenvectors);
 
             for(unsigned int k=0;k<dim;k++){
                 Lambda(k,k)=sqrt(eigenvalues(k));
