@@ -239,16 +239,11 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
             pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
           }
 
+          if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement_pf()){
           //Output Results
           pf_obj.getOutputResults();
-          /*
-          if (userInputs_pf.print_timing_with_output && currentIncrement_pf < userInputs_pf.totalIncrements_pf){
-              computing_timer_pf.print_summary();
-          }
-          */
-          //currentOutput++;
           pf_obj.getCurrentOutput() += 1;
-          //}
+          }
           /*
           // Create a checkpoint (on the proper increments)
           if (userInputs_pf.checkpointTimeStepList[currentCheckpoint] == currentIncrement_pf) {
@@ -256,7 +251,6 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
               currentCheckpoint++;
           }
           */
-          //currentIncrement_pf++;
           pf_obj.getCurrentIncrement_pf() += 1;
           //Phase-Field regular step ENDS
         }
