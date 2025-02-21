@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-using namespace std;
+//using namespace std;
 
 #include "../../include/crystalPlasticity.h"
 
