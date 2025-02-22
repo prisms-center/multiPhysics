@@ -40,7 +40,6 @@ void crystalPlasticity<dim>::reorient2(Vector<double> &rnew, Vector<double> rold
                 eigenvecs(j, i) = eigenpairs_old[i].second[j];  // Store eigenvectors column-wise
         }
     }
-    //C_old.compute_eigenvalues_symmetric(0, 200000.0, 1e-18, eigenvalues, eigenvectors);
 
     for(unsigned int k=0;k<dim;k++){
         Lambda(k,k)=sqrt(eigenvals(k));
@@ -71,8 +70,6 @@ void crystalPlasticity<dim>::reorient2(Vector<double> &rnew, Vector<double> rold
                 eigenvecs(j, i) = eigenpairs_new[i].second[j];  // Store eigenvectors column-wise
         }
     }
-
-    //C_new.compute_eigenvalues_symmetric(0, 200000.0, 1e-18, eigenvalues, eigenvectors);
 
     for(unsigned int k=0;k<dim;k++){
         Lambda(k,k)=sqrt(eigenvals(k));
