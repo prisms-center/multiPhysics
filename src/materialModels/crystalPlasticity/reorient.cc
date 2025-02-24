@@ -1,13 +1,15 @@
 #include "../../../include/crystalPlasticity.h"
+#include <deal.II/base/symmetric_tensor.h>
 
 template <int dim>
 void crystalPlasticity<dim>::reorient() {
     //Update the history variables
 
-    LAPACKFullMatrix<double> C_old(dim,dim),C_new(dim,dim);
+    SymmetricTensor<2, dim, double> C_old;
+    SymmetricTensor<2, dim, double> C_new;
 
-    Vector<double> eigenvalues(dim);
-    FullMatrix<double> C_old_temp(dim,dim),C_new_temp(dim,dim),Fe_old(dim,dim), Fe_new(dim,dim), eigenvectors(dim,dim),Lambda(dim,dim),U_old(dim,dim),U_new(dim,dim),R_old(dim,dim),R_new(dim,dim),Omega(dim,dim),temp(dim,dim);
+    Vector<double> eigenvals(dim);
+    FullMatrix<double> C_old_temp(dim,dim),C_new_temp(dim,dim),Fe_old(dim,dim), Fe_new(dim,dim), eigenvecs(dim,dim),Lambda(dim,dim),U_old(dim,dim),U_new(dim,dim),R_old(dim,dim),R_new(dim,dim),Omega(dim,dim),temp(dim,dim);
     Lambda=IdentityMatrix(dim);
     Omega=0.0;
     Vector<double> rot1(dim),Omega_vec(dim),rold(dim),dr(dim),rnew(dim);
@@ -19,7 +21,7 @@ void crystalPlasticity<dim>::reorient() {
         for(unsigned int j=0;j<N_qpts;j++){
 
             C_old_temp=0.0;
-            C_old=0.0;
+            C_old.clear();
 
             Fe_old=Fe_conv[i][j];
             Fe_new=Fe_iter[i][j];
@@ -31,28 +33,63 @@ void crystalPlasticity<dim>::reorient() {
             ///////////////////////////////////////////////////////////////////////////////////
             
             Fe_old.Tmmult(C_old_temp,Fe_old);
-            C_old=C_old_temp;
-            C_old.compute_eigenvalues_symmetric(0.0,200000.0,1e-15,eigenvalues, eigenvectors);
 
-            for(unsigned int k=0;k<dim;k++){
-                Lambda(k,k)=sqrt(eigenvalues(k));
+            // Copy only the symmetric part of C_old_temp into C_old
+            for (unsigned int i = 0; i < dim; ++i) {
+                for (unsigned int j = i; j < dim; ++j) {
+                    C_old[i][j] = C_old_temp(i, j);
+                    if (i != j)
+                        C_old[j][i] = C_old_temp(i, j);  // Ensure symmetry
+                }
+            }         
+
+            //Compute eigenvalues and eigenvectors for C_old
+            auto eigenpairs_old = eigenvectors(C_old);
+
+            // Extract eigenvalues and eigenvectors
+            for (unsigned int i = 0; i < dim; ++i) {
+                eigenvals[i] = eigenpairs_old[i].first;  // Store eigenvalues
+                for (unsigned int j = 0; j < dim; ++j) {
+                        eigenvecs(j, i) = eigenpairs_old[i].second[j];  // Store eigenvectors column-wise
+                }
             }
 
+            for(unsigned int k=0;k<dim;k++){
+                Lambda(k,k)=sqrt(eigenvals(k));
+            }
 
-            eigenvectors.mmult(U_old,Lambda);
-            temp=U_old; temp.mTmult(U_old,eigenvectors);
+            eigenvecs.mmult(U_old,Lambda);
+            temp=U_old; temp.mTmult(U_old,eigenvecs);
             R_old.invert(U_old);
             temp=R_old; Fe_old.mmult(R_old,temp);
             Fe_new.Tmmult(C_new_temp,Fe_new);
-            C_new=C_new_temp;
-            C_new.compute_eigenvalues_symmetric(0.0,200000.0,1e-15,eigenvalues, eigenvectors);
 
-            for(unsigned int k=0;k<dim;k++){
-                Lambda(k,k)=sqrt(eigenvalues(k));
+            C_new.clear();
+            // Copy only the symmetric part of C_new_temp into C_new
+            for (unsigned int i = 0; i < dim; ++i) {
+                for (unsigned int j = i; j < dim; ++j) {
+                    C_new[i][j] = C_new_temp(i, j);
+                    if (i != j)
+                        C_new[j][i] = C_new_temp(i, j);  // Ensure symmetry
+                }
+            }
+            //Compute eigenvalues and eigenvectors for C_new
+            auto eigenpairs_new = eigenvectors(C_new);
+
+            // Extract eigenvalues and eigenvectors
+            for (unsigned int i = 0; i < dim; ++i) {
+                eigenvals[i] = eigenpairs_new[i].first;  // Store eigenvalues
+                for (unsigned int j = 0; j < dim; ++j) {
+                        eigenvecs(j, i) = eigenpairs_new[i].second[j];  // Store eigenvectors column-wise
+                }
             }
 
-            eigenvectors.mmult(U_new,Lambda);
-            temp=U_new; temp.mTmult(U_new,eigenvectors);
+            for(unsigned int k=0;k<dim;k++){
+                Lambda(k,k)=sqrt(eigenvals(k));
+            }
+
+            eigenvecs.mmult(U_new,Lambda);
+            temp=U_new; temp.mTmult(U_new,eigenvecs);
             R_new.invert(U_new);
             temp=R_new; Fe_new.mmult(R_new,temp);
 
