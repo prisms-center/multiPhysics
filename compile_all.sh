@@ -25,7 +25,7 @@ pushd "$APP_DIR"
 echo "Removing old compilation files"
 rm -rf CMakeFiles Makefile results_cp* solution* integratedFields.txt cmake_install.cmake CMakeCache.txt
 cmake .
-make -j 4
+make -j 4 release
 popd
 
 echo "Compilation completed successfully!"
