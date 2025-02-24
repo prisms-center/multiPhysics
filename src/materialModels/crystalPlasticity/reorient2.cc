@@ -23,8 +23,8 @@ void crystalPlasticity<dim>::reorient2(Vector<double> &rnew, Vector<double> rold
     FE_t.Tmmult(C_old_temp, FE_t);
     
     // Copy only the symmetric part of C_old_temp into C_old
-    for (unsigned int i = 0; i < 3; ++i) {
-        for (unsigned int j = i; j < 3; ++j) {
+    for (unsigned int i = 0; i < dim; ++i) {
+        for (unsigned int j = i; j < dim; ++j) {
             C_old[i][j] = C_old_temp(i, j);
             if (i != j)
                 C_old[j][i] = C_old_temp(i, j);  // Ensure symmetry
@@ -53,8 +53,8 @@ void crystalPlasticity<dim>::reorient2(Vector<double> &rnew, Vector<double> rold
 
     C_new.clear();
     // Copy only the symmetric part of C_new_temp into C_new
-    for (unsigned int i = 0; i < 3; ++i) {
-        for (unsigned int j = i; j < 3; ++j) {
+    for (unsigned int i = 0; i < dim; ++i) {
+        for (unsigned int j = i; j < dim; ++j) {
             C_new[i][j] = C_new_temp(i, j);
             if (i != j)
                 C_new[j][i] = C_new_temp(i, j);  // Ensure symmetry
