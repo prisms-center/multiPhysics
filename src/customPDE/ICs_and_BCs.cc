@@ -17,10 +17,10 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     // by a hyperbolic tangent function. The center of each circle/sphere is
     // given by "center" and its radius is given by "radius".
 
-  double center[2] = {0.5,0.5};
+  double center[3] = {0.5,0.5,0.5};
   double dist, edist;
   double b0=a0*std::sqrt((1.0-ecc*ecc));
-  double cth, sth, nX, nY;
+  double nXc, nYc, nZc, nX, nY, nZ;
   double pi=3.141592;
   scalar_IC = 0;
   
@@ -29,22 +29,25 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
   if (index==0){
     //Calculating distance from center of the system
     dist = 0.0;
-    for (unsigned int dir = 0; dir < 2; dir++){
+    for (unsigned int dir = 0; dir < dim; dir++){
       dist += (p[dir]-center[dir]*userInputs_pf.domain_size[dir])*(p[dir]-center[dir]*userInputs_pf.domain_size[dir]);
     }
     dist = std::sqrt(dist);
     
     //Calculating distance from center to perimeter of the ellipse
-    cth=(p[0]-center[0]*userInputs_pf.domain_size[0])/(dist + 1.0e-7);
-    sth=(p[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
-    
-    //Rotated unit vector with respect to the twin plane
-    
-    nX=cth*std::cos(0.5*pi-th)-sth*std::sin(0.5*pi-th);
-    nY=cth*std::sin(0.5*pi-th)+sth*std::cos(0.5*pi-th);
+
+    //Components of the normal vector from the center to point p
+    nXc = (p[0]-center[0]*userInputs_pf.domain_size[0])/(dist + 1.0e-7);
+    nYc = (p[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
+    nZc = (p[2]-center[2]*userInputs_pf.domain_size[2])/(dist + 1.0e-7);
+
+    //Rotated unit vector with respect to the twin plane    
+    nX = nXc*std::cos(0.5*pi-th) - nYc*std::sin(0.5*pi-th);
+    nY = nXc*std::sin(0.5*pi-th) + nYc*std::cos(0.5*pi-th);
+    nZ = nZc;
 
     //Distance to the center of the ellipse
-    edist = a0*b0/std::sqrt(b0*b0*(1.0-nX*nX) + a0*a0*nX*nX);
+    edist = 1.0/std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0) + (nZ/a0)*(nZ/a0));
                      
     scalar_IC =  0.5*(1.0-std::tanh((dist-edist)/(1.0*del0*std::sqrt(edist/a0))));
 

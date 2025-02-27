@@ -20,16 +20,16 @@ public:
       double sth = std::sin(th);
     
       //Rotation Matrix
-      double R[2][2] = {{cth,-sth},{sth,cth}};
+      double R[3][3] = {{cth,-sth,0},{sth,cth,0},{0,0,1}};
       
       //Gradient energy coefficient in the reference frame of the parent phase
       //dealii::Tensor<2,dim> R = ((cth,-sth),(sth,sth));
-      for (unsigned int m=0;m<2;m++){
-        for (unsigned int n=0;n<2;n++){
+      for (unsigned int m=0;m<dim;m++){
+        for (unsigned int n=0;n<dim;n++){
           K[m][n]=0.0;
           Ltens[m][n]=0.0;
-          for(unsigned int i=0;i<2;i++){
-            for(unsigned int j=0;j<2;j++){
+          for(unsigned int i=0;i<dim;i++){
+            for(unsigned int j=0;j<dim;j++){
               //Mobility tensor (rotated)
               Ltens[m][n] = Ltens[m][n] + R[m][i]*R[n][j]*Lij_tp[i][j];
               //Gradient energy coefficient tensor (rotated)
@@ -97,8 +97,8 @@ private:
     double ecc = userInputs_pf.get_model_constant_double("ecc");
     double regval = userInputs_pf.get_model_constant_double("regval");
 
-    dealii::Tensor<2,2> K;
-    dealii::Tensor<2,2> Ltens;
+    dealii::Tensor<2,dim> K;
+    dealii::Tensor<2,dim> Ltens;
     double cth;
     double sth;
 		

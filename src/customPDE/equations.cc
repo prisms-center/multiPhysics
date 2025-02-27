@@ -73,16 +73,17 @@ scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
 
 scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
 scalargradType_pf kappagradn;
-kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
-kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
+kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1]+constV(K[0][2])*nx[2];
+kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1]+constV(K[1][2])*nx[2];
+kappagradn[2] = constV(K[2][0])*nx[0]+constV(K[2][1])*nx[1]+constV(K[2][2])*nx[2];
 
 //Outward Normal vector
-scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0]+nx[1]*nx[1])+constV(regval));
+scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
 
 //Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
 scalarvalueType_pf L = constV(0.0);
-for(unsigned int i=0;i<2;i++){
-	for(unsigned int j=0;j<2;j++){
+for(unsigned int i=0;i<dim;i++){
+	for(unsigned int j=0;j<dim;j++){
 		//Mobility tensor (rotated)
 		L = L + nvec[i]*nvec[j]*Ltens[i][j];
 	}
@@ -132,16 +133,17 @@ scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
 
 scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
 scalargradType_pf kappagradn;
-kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1];
-kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1];
+kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1]+constV(K[0][2])*nx[2];
+kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1]+constV(K[1][2])*nx[2];
+kappagradn[2] = constV(K[2][0])*nx[0]+constV(K[2][1])*nx[1]+constV(K[2][2])*nx[2];
 
 //Outward Normal vector
-scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0]+nx[1]*nx[1])+constV(regval));
+scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
 
 //Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
 scalarvalueType_pf L = constV(0.0);
-for(unsigned int i=0;i<2;i++){
-	for(unsigned int j=0;j<2;j++){
+for(unsigned int i=0;i<dim;i++){
+	for(unsigned int j=0;j<dim;j++){
 		//Mobility tensor (rotated)
 		L = L + nvec[i]*nvec[j]*Ltens[i][j];;
 	}
