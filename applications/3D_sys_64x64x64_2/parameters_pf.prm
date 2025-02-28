@@ -25,7 +25,7 @@ set Domain size Z = 1.0
 # For optimal performance, use refineFactor primarily to determine the element size
 set Subdivisions X = 64
 set Subdivisions Y = 64
-set Subdivisions Z = 644
+set Subdivisions Z = 64
 
 set Refine factor = 0
 
