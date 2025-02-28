@@ -20,7 +20,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
   double center[3] = {0.5,0.5,0.5};
   double dist, edist;
   double b0=a0*std::sqrt((1.0-ecc*ecc));
-  double nXc, nYc, nZc, nX, nY, nZ;
+  double nXc, nYc, nZc, nX, nY, nZ, nZ_reg;
   double pi=3.141592;
   scalar_IC = 0;
   
@@ -46,8 +46,10 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     nY = nXc*std::sin(0.5*pi-th) + nYc*std::cos(0.5*pi-th);
     nZ = nZc;
 
-    //Distance to the center of the ellipse
-    edist = 1.0/std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0) + (nZ/a0)*(nZ/a0));
+    //Distance from center of the ellipse to a point in the ellipse that intersects the line defined by (nX,nY,nZ)
+    //Regularized nZ such that nX^2 + nY^2 + nZ^2 = 1
+    nZ_reg = std::sqrt(1.0-nX*nX-nY-nY);
+    edist = 1.0/std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0) + (nZ_reg/a0)*(nZ_reg/a0));
                      
     scalar_IC =  0.5*(1.0-std::tanh((dist-edist)/(1.0*del0*std::sqrt(edist/a0))));
 
