@@ -20,7 +20,7 @@ public:
       double sth = std::sin(th);
     
       //Rotation Matrix
-      double R[dim][dim] = {{cth,-sth,0},{sth,cth,0},{0,0,1}};
+      double R[3][3] = {{cth,-sth,0},{sth,cth,0},{0,0,1}};
       
       //Gradient energy coefficient in the reference frame of the parent phase
       //dealii::Tensor<2,dim> R = ((cth,-sth),(sth,sth));
