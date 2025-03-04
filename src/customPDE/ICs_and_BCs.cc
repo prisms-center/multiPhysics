@@ -42,8 +42,8 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     nZc = (p[2]-center[2]*userInputs_pf.domain_size[2])/(dist + 1.0e-7);
 
     //Rotated unit vector with respect to the twin plane    
-    nX = nXc*std::cos(0.5*pi-th) - nYc*std::sin(0.5*pi-th);
-    nY = nXc*std::sin(0.5*pi-th) + nYc*std::cos(0.5*pi-th);
+    nX = nXc*std::cos(-th) - nYc*std::sin(-th);
+    nY = nXc*std::sin(-th) + nYc*std::cos(-th);
     nZ = nZc;
 
     //Distance from center of the ellipse to a point in the ellipse that intersects the line defined by (nX,nY,nZ)
