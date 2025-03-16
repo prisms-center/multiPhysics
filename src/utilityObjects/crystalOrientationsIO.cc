@@ -110,87 +110,62 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
       }
     }
 
-//return materialID closest to given (x,y,z)
-template <int dim>
-unsigned int crystalOrientationsIO<dim>::getMaterialID(double _coords[]){
-  if (inputVoxelData.size()==0){
-     pcout << "inputVoxelData not initialized\n";
-     exit(1);
-  }
+  // Return materialID closest to given (x,y,z)
+  template <int dim>
+  unsigned int crystalOrientationsIO<dim>::getMaterialID(double _coords[]) {
+    if (inputVoxelData.empty()) {
+      pcout << "Error: inputVoxelData not initialized\n";
+      exit(1);
+    }
 
-  double dist_to_lower,dist_to_upper;
-  //find nearest point
-  //iterator to nearest x slice
-  std::map<double,std::map<double, std::map<double, unsigned int> > >::iterator itx;
-  std::map<double,std::map<double, std::map<double, unsigned int> > >::iterator itx_upper=inputVoxelData.lower_bound(_coords[0]);
-  std::map<double,std::map<double, std::map<double, unsigned int> > >::iterator itx_lower = itx_upper; itx_lower--;
-  std::map<double,std::map<double, std::map<double, unsigned int> > >::iterator itx_begin=inputVoxelData.begin();
+    double dist_to_lower, dist_to_upper;
 
-  if (itx_upper == inputVoxelData.end()) {
-    itx=itx_lower;
-  }
-  else if (itx_upper==itx_begin) {
-    itx=itx_upper;
-  }
-  else{
-    dist_to_lower = std::abs(itx_lower->first - _coords[0]);
-    dist_to_upper = std::abs(itx_upper->first - _coords[0]);
-    if (dist_to_upper >= dist_to_lower) {
-      itx=itx_lower;
-    }
-    else {
-      itx=itx_upper;
-    }
-  }
-  if(itx == inputVoxelData.end()) --itx;
+    // 🔹 Find nearest X slice safely
+    auto itx_upper = inputVoxelData.lower_bound(_coords[0]);
+    auto itx_lower = (itx_upper != inputVoxelData.begin()) ? std::prev(itx_upper) : inputVoxelData.end();
 
-  //iterator to nearest y slice
-  std::map<double, std::map<double, unsigned int> >::iterator ity;
-  std::map<double, std::map<double, unsigned int> >::iterator ity_upper=itx->second.lower_bound(_coords[1]);
-  std::map<double, std::map<double, unsigned int> >::iterator ity_lower=ity_upper; ity_lower--;
-  std::map<double, std::map<double, unsigned int> >::iterator ity_begin=itx->second.begin();
+    auto itx = (itx_upper == inputVoxelData.end()) 
+                ? itx_lower 
+                : (itx_lower == inputVoxelData.end() || std::abs(itx_upper->first - _coords[0]) < std::abs(itx_lower->first - _coords[0]))
+                    ? itx_upper 
+                    : itx_lower;
 
-  if (ity_upper == itx->second.end()) {
-    ity=ity_lower;
-  }
-  else if (ity_upper==ity_begin) {
-    ity=ity_upper;
-  }
-  else{
-    dist_to_lower = std::abs(ity_lower->first - _coords[1]);
-    dist_to_upper = std::abs(ity_upper->first - _coords[1]);
-    if (dist_to_upper >= dist_to_lower) {
-      ity=ity_lower;
+    if (itx == inputVoxelData.end() || itx->second.empty()) {
+      pcout << "Error: No valid Y slices for the given X coordinate\n";
+      exit(1);
     }
-    else {
-      ity=ity_upper;
-    }
-  }
 
-  if(ity == itx->second.end()) --ity;
-  //iterator to nearest z slice
-  std::map<double, unsigned int>::iterator itz;
-  std::map<double, unsigned int>::iterator itz_upper=ity->second.lower_bound(_coords[2]);
-  std::map<double, unsigned int>::iterator itz_lower=itz_upper; itz_lower--;
-  std::map<double, unsigned int>::iterator itz_begin=ity->second.begin();
-  if (itz_upper == ity->second.end()) {
-    itz=itz_lower;
-  }
-  else if (itz_upper==itz_begin) {
-    itz=itz_upper;
-  }
-  else{
-    dist_to_lower = std::abs(itz_lower->first - _coords[2]);
-    dist_to_upper = std::abs(itz_upper->first - _coords[2]);
-    if (dist_to_upper >= dist_to_lower) {
-      itz=itz_lower;
+    // 🔹 Find nearest Y slice safely
+    auto ity_upper = itx->second.lower_bound(_coords[1]);
+    auto ity_lower = (ity_upper != itx->second.begin()) ? std::prev(ity_upper) : itx->second.end();
+
+    auto ity = (ity_upper == itx->second.end()) 
+                ? ity_lower 
+                : (ity_lower == itx->second.end() || std::abs(ity_upper->first - _coords[1]) < std::abs(ity_lower->first - _coords[1]))
+                    ? ity_upper 
+                    : ity_lower;
+
+    if (ity == itx->second.end() || ity->second.empty()) {
+      pcout << "Error: No valid Z slices for the given (X, Y) coordinate\n";
+      exit(1);
     }
-    else {
-      itz=itz_upper;
+
+    // 🔹 Find nearest Z slice safely
+    auto itz_upper = ity->second.lower_bound(_coords[2]);
+    auto itz_lower = (itz_upper != ity->second.begin()) ? std::prev(itz_upper) : ity->second.end();
+
+    auto itz = (itz_upper == ity->second.end()) 
+                ? itz_lower 
+                : (itz_lower == ity->second.end() || std::abs(itz_upper->first - _coords[2]) < std::abs(itz_lower->first - _coords[2]))
+                    ? itz_upper 
+                    : itz_lower;
+
+    if (itz == ity->second.end()) {
+      pcout << "Error: Could not find a valid material ID for the given (X, Y, Z) coordinates\n";
+      exit(1);
     }
+
+    return itz->second;
   }
-  if(itz == ity->second.end()) --itz;
-  return itz->second;
-}
 
     #include "../../include/crystalOrientationsIO_template_instantiations.h"
