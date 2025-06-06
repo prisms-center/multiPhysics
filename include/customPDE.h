@@ -15,29 +15,69 @@ public:
     customPDE(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp)
         : MultiPhysicsBVP<dim, degree>(_userInputs_pf, _userInputs_cp), userInputs_pf(_userInputs_pf) 
     {
-      // Optional: Additional constructor logic can go here
-      double cth = std::cos(th);
-      double sth = std::sin(th);
-    
-      //Rotation Matrix
-      double R[3][3] = {{cth,-sth,0},{sth,cth,0},{0,0,1}};
-      
-      //Gradient energy coefficient in the reference frame of the parent phase
-      //dealii::Tensor<2,dim> R = ((cth,-sth),(sth,sth));
-      for (unsigned int m=0;m<dim;m++){
-        for (unsigned int n=0;n<dim;n++){
-          K[m][n]=0.0;
-          Ltens[m][n]=0.0;
-          for(unsigned int i=0;i<dim;i++){
-            for(unsigned int j=0;j<dim;j++){
-              //Mobility tensor (rotated)
-              Ltens[m][n] = Ltens[m][n] + R[m][i]*R[n][j]*Lij_tp[i][j];
-              //Gradient energy coefficient tensor (rotated)
-              K[m][n] = K[m][n] + R[m][i]*R[n][j]*Kij_tp[i][j];
-            }
-          }
-        }
+      dealii::Tensor<1, dim> e_X = td;
+      dealii::Tensor<1, dim> e_Y = tn;
+      dealii::Tensor<1, dim> e_Z;
+
+      // Compute e_Z = e_X cross e_Y
+      e_Z[0] = e_X[1]*e_Y[2] - e_X[2]*e_Y[1];
+      e_Z[1] = e_X[2]*e_Y[0] - e_X[0]*e_Y[2];
+      e_Z[2] = e_X[0]*e_Y[1] - e_X[1]*e_Y[0];
+
+      // Normalize e_Z
+      double norm_eZ = std::sqrt(e_Z*e_Z);
+      for (unsigned int i = 0; i < dim; ++i)
+          e_Z[i] /= norm_eZ;
+
+      // Construct rotation matrix Q as 3 column vectors
+      dealii::Tensor<2, dim> Q;
+      for (unsigned int i = 0; i < dim; ++i) {
+          Q[i][0] = e_X[i];
+          Q[i][1] = e_Y[i];
+          Q[i][2] = e_Z[i];
       }
+
+      //Mobility tensor
+      // Compute A = Q * Lij_tp * Q^T
+      dealii::Tensor<2, dim> temp1;
+      temp1.clear();
+      for (unsigned int i = 0; i < dim; ++i)
+          for (unsigned int j = 0; j < dim; ++j)
+              for (unsigned int k = 0; k < dim; ++k)
+                  temp1[i][j] += Q[i][k] * Lij_tp[k][j];
+
+      Ltens.clear();
+      for (unsigned int i = 0; i < dim; ++i)
+          for (unsigned int j = 0; j < dim; ++j)
+              for (unsigned int k = 0; k < dim; ++k)
+                  Ltens[i][j] += temp1[i][k] * Q[j][k];  // Q^T[j][k] = Q[k][j]
+      
+      //Gradient energy coefficient tensor
+      // Compute A = Q * Kij_tp * Q^T
+      dealii::Tensor<2, dim> temp2;
+      temp2.clear();
+      for (unsigned int i = 0; i < dim; ++i)
+          for (unsigned int j = 0; j < dim; ++j)
+              for (unsigned int k = 0; k < dim; ++k)
+                  temp2[i][j] += Q[i][k] * Kij_tp[k][j];
+                  
+      K.clear();
+      for (unsigned int i = 0; i < dim; ++i)
+          for (unsigned int j = 0; j < dim; ++j)
+              for (unsigned int k = 0; k < dim; ++k)
+                  K[i][j] += temp2[i][k] * Q[j][k];  // Q^T[j][k] = Q[k][j]
+
+      //Temporary Transformed Tensors
+      /*
+      Ltens[0][0] = 3.326312;   Ltens[0][1] = -0.850834;  Ltens[0][2] = -1.814887;
+      Ltens[1][0] = -0.850834;  Ltens[1][1] = 4.308771;   Ltens[1][2] = -1.047825;
+      Ltens[2][0] = -1.814887;  Ltens[2][1] = -1.047825;  Ltens[2][2] = 2.564918;
+
+      K[0][0] = 0.019011;  K[0][1] = -0.003920;  K[0][2] = -0.008361;
+      K[1][0] = -0.003920; K[1][1] = 0.023537;  K[1][2] = -0.004827;
+      K[2][0] = -0.008361; K[2][1] = -0.004827; K[2][2] = 0.015503;
+      */
+
       //Average equilibrium interface width
       del0 = std::sqrt(2.0*(K[0][0]+K[1][1])/delf_tw);
     }
@@ -90,17 +130,16 @@ private:
     //double L = userInputs_pf.get_model_constant_double("L");
     dealii::Tensor<2,dim> Lij_tp = userInputs_pf.get_model_constant_rank_2_tensor("Lij_tp");
     dealii::Tensor<2,dim> Kij_tp = userInputs_pf.get_model_constant_rank_2_tensor("Kij_tp");
+    dealii::Tensor<1,dim> td = userInputs_pf.get_model_constant_rank_1_tensor("td");
+    dealii::Tensor<1,dim> tn = userInputs_pf.get_model_constant_rank_1_tensor("tn");
     double delf_tw = userInputs_pf.get_model_constant_double("delf_tw");
-    double th = userInputs_pf.get_model_constant_double("th");
+    //double th = userInputs_pf.get_model_constant_double("th");
     double l0 = userInputs_pf.get_model_constant_double("l0");
     double a0 = userInputs_pf.get_model_constant_double("a0");
-    double ecc = userInputs_pf.get_model_constant_double("ecc");
     double regval = userInputs_pf.get_model_constant_double("regval");
 
     dealii::Tensor<2,dim> K;
     dealii::Tensor<2,dim> Ltens;
-    double cth;
-    double sth;
 		
     //Average equilibrium interface width
     double del0;

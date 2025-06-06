@@ -18,13 +18,10 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     // given by "center" and its radius is given by "radius".
 
   double center[3] = {0.5,0.5,0.5};
-  double dist, edist;
-  double b0=a0*std::sqrt((1.0-ecc*ecc));
-  double nXc, nYc, nZc, nX, nY, nZ, nZ_reg;
-  double pi=3.141592;
+  double dist;
   scalar_IC = 0;
   
-  //Elliptical seed of semimajor axis
+  //Circular seed
  
   if (index==0){
     //Calculating distance from center of the system
@@ -34,24 +31,8 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     }
     dist = std::sqrt(dist);
     
-    //Calculating distance from center to perimeter of the ellipse
-
-    //Components of the normal vector from the center to point p
-    nXc = (p[0]-center[0]*userInputs_pf.domain_size[0])/(dist + 1.0e-7);
-    nYc = (p[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
-    nZc = (p[2]-center[2]*userInputs_pf.domain_size[2])/(dist + 1.0e-7);
-
-    //Rotated unit vector with respect to the twin plane    
-    nX = nXc*std::cos(-th) - nYc*std::sin(-th);
-    nY = nXc*std::sin(-th) + nYc*std::cos(-th);
-    nZ = nZc;
-
-    //Distance from center of the ellipse to a point in the ellipse that intersects the line defined by (nX,nY,nZ)
-    //Regularized nZ such that nX^2 + nY^2 + nZ^2 = 1
-    nZ_reg = std::sqrt(1.0-nX*nX-nY*nY);
-    edist = 1.0/std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0) + (nZ_reg/a0)*(nZ_reg/a0));
-                     
-    scalar_IC =  0.5*(1.0-std::tanh((dist-edist)/(1.0*del0*std::sqrt(edist/a0))));
+    //Isotropic seed 
+    scalar_IC =  0.5*(1.0-std::tanh((dist-a0)/(1.0*del0)));
 
     if (scalar_IC > 1.0) scalar_IC = 1.0;
                      

@@ -89,11 +89,15 @@ for(unsigned int i=0;i<dim;i++){
 	}
 }
 
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue)*L*(mu_twV-strain_df));
-scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue)*L*kappagradn);
+scalarvalueType_pf strain_df_const_filt =  (1.0 - (2.0*n-1.0)*(2.0*n-1.0))*constV(25.0);
 
-//scalarvalueType_pf eq_dndt = -constV(L)*(mu_twV-strain_df);
-//scalargradType_pf eqx_dndt = -constV(L)*kappagradn;
+scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue)*L*(mu_twV-strain_df_const_filt));
+
+//Capping the value of eq_n to the interval [0,1]
+eq_n   = std::min(eq_n, constV(1.0));
+eq_n   = std::max(eq_n, constV(0.0));
+
+scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue)*L*kappagradn);
 
 // --- Submitting the terms for the governing equations ---
 
@@ -149,10 +153,9 @@ for(unsigned int i=0;i<dim;i++){
 	}
 }
 
-//scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue*L)*(mu_twV-strain_df));
-//scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue*L)*kappagradn);
+scalarvalueType_pf strain_df_const_filt =  (1.0 - (2.0*n-1.0)*(2.0*n-1.0))*constV(25.0);
 
-scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df);
+scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df_const_filt);
 scalargradType_pf eqx_dndt = -L*kappagradn;
 
 // --- Submitting the terms for the governing equations ---
@@ -160,7 +163,7 @@ scalargradType_pf eqx_dndt = -L*kappagradn;
 variable_list.set_scalar_value_term_RHS(1,eq_dndt);
 variable_list.set_scalar_gradient_term_RHS(1,eqx_dndt);
 
-variable_list.set_scalar_value_term_RHS(2,strain_df);
+variable_list.set_scalar_value_term_RHS(2,strain_df_const_filt);
 
 }
 
