@@ -72,7 +72,7 @@ public:
         for (unsigned int i = 0; i < dim; ++i)
             for (unsigned int j = 0; j < dim; ++j)
                 for (unsigned int k = 0; k < dim; ++k)
-                    K_ccref[i][j] += temp2[i][k] * Q_T[k][j];  // Q^T[j][k] = Q[k][j]
+                    K_ccref[i][j] += temp2[i][k] * Q_T[k][j]; 
 
         //Tensors in the simulation coordinate system
         // Euler angles in radians (ZXZ convention)
@@ -124,40 +124,7 @@ public:
         dealii::Tensor<2, dim> Q_1_T;
         for (unsigned int i = 0; i < dim; ++i)
             for (unsigned int j = 0; j < dim; ++j)
-                Q_1_T[i][j] = Q_1[j][i];
-
-        std::cout << "Ltens_ccref" << std::endl;
-        std::cout << "(";
-        for (unsigned int i = 0; i < dim; ++i)
-        {
-            std::cout << "(";
-            for (unsigned int j = 0; j < dim; ++j)
-            {
-                std::cout << Ltens_ccref[i][j];
-                if (j < dim - 1)
-                    std::cout << ",";
-            }
-            std::cout << ")";
-            if (i < dim - 1)
-                std::cout << ",";
-        }
-
-        std::cout << "Rotation Matrix Q_1" << std::endl;
-        std::cout << "(";
-        for (unsigned int i = 0; i < dim; ++i)
-        {
-            std::cout << "(";
-            for (unsigned int j = 0; j < dim; ++j)
-            {
-                std::cout << Q_1[i][j];
-                if (j < dim - 1)
-                    std::cout << ",";
-            }
-            std::cout << ")";
-            if (i < dim - 1)
-                std::cout << ",";
-        }
-        std::cout << ")" << std::endl;        
+                Q_1_T[i][j] = Q_1[j][i];   
 
         // Transform Ltens_ccref to Ltens and K_ccref to K using
 
@@ -170,13 +137,12 @@ public:
                 for (unsigned int k = 0; k < dim; ++k)
                     temp3[i][j] += Q_1[i][k] * Ltens_ccref[k][j];  
 
-        // Ltens= temp3 * Q_1
         for (unsigned int i = 0; i < dim; ++i)
             for (unsigned int j = 0; j < dim; ++j)
                 for (unsigned int k = 0; k < dim; ++k)
                     Ltens[i][j] += temp3[i][k] * Q_1_T[k][j];
 
-        //Grad Energy coefficient tensor
+        //Grad Energy coefficient tensor, K
         dealii::Tensor<2, dim> temp4;
         temp4.clear(); K.clear();
         for (unsigned int i = 0; i < dim; ++i)
@@ -184,45 +150,10 @@ public:
                 for (unsigned int k = 0; k < dim; ++k)
                     temp4[i][j] += Q_1[i][k] * K_ccref[k][j];  
 
-        // Ltens= temp3 * Q_1
         for (unsigned int i = 0; i < dim; ++i)
             for (unsigned int j = 0; j < dim; ++j)
                 for (unsigned int k = 0; k < dim; ++k)
                     K[i][j] += temp4[i][k] * Q_1_T[k][j];
-
-        std::cout << "Tensor K (in simulation coordinates): ";
-        std::cout << "(";
-        for (unsigned int i = 0; i < dim; ++i)
-        {
-            std::cout << "(";
-            for (unsigned int j = 0; j < dim; ++j)
-            {
-                std::cout << K[i][j];
-                if (j < dim - 1)
-                    std::cout << ",";
-            }
-            std::cout << ")";
-            if (i < dim - 1)
-                std::cout << ",";
-        }
-        std::cout << ")" << std::endl;
-
-        std::cout << "Tensor Ltens (in simulation coordinates)" << std::endl;
-        std::cout << "(";
-        for (unsigned int i = 0; i < dim; ++i)
-        {
-            std::cout << "(";
-            for (unsigned int j = 0; j < dim; ++j)
-            {
-                std::cout << Ltens[i][j];
-                if (j < dim - 1)
-                    std::cout << ",";
-            }
-            std::cout << ")";
-            if (i < dim - 1)
-                std::cout << ",";
-        }
-        std::cout << ")" << std::endl;
 
         //Average equilibrium interface width
         del0 = std::sqrt(2.0*(K[0][0]+K[1][1])/delf_tw);
