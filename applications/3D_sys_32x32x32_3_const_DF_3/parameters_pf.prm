@@ -101,21 +101,18 @@ set Boundary condition for variable strain_df = NATURAL
 # ISOTROPIC
 # set Model constant L = 4.8, DOUBLE
 # ANISOTROPIC
-#set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
-set Model constant Lij_tp = ((1,0,0),(0,2,0),(0,0,3)), TENSOR
+set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
 
 # The gradient energy coefficients
 # In the twin plane reference plane
 # ANISOTROPIC
-#set Model constant Kij_tp = ((0.0258,0,0),(0,0.00645,0),(0,0,0.0258)), TENSOR
-set Model constant Kij_tp = ((4,0,0),(0,5,0),(0,0,6)), TENSOR
+set Model constant Kij_tp = ((0.0258,0,0),(0,0.00645,0),(0,0,0.0258)), TENSOR
 
 # Twin direction unit vector
-#set Model constant td = (0, 0.729577550569842, 0.683898090145388), TENSOR
-set Model constant td = (1.0, 0.0, 0.0), TENSOR
+set Model constant td = (0, 0.729577550569842, 0.683898090145388), TENSOR
 
 # Twin normal unit vector
-set Model constant tn = (0.0, 1.0, 0.0), TENSOR
+set Model constant tn = (0,	-0.683898090145388,	0.729577550569842), TENSOR
 
 # Euler angles for grain orientation (ZXZ convention)
 set Model constant euler_angs = (90.0, 0.0, 0.0), TENSOR
