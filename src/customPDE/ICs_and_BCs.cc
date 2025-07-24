@@ -20,8 +20,10 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
   double center[3] = {0.5,0.5,0.5};
   dealii::Tensor<1, dim> nc;
   dealii::Tensor<1, dim> n;
-    dealii::Tensor<1, dim> n_int;
-  nc.clear(); n.clear(); n_int.clear();
+  dealii::Tensor<1, dim> n_int;
+  dealii::Tensor<1, dim> td_int;
+  dealii::Tensor<1, dim> tn_int;
+  nc.clear(); n.clear(); n_int.clear(); td_int.clear(); tn_int.clear();
   double dist, edist;
   double b0=a0*std::sqrt((1.0-ecc*ecc));
   double nXc, nYc, nZc, nX, nY, nZ, nZ_reg;
@@ -43,34 +45,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     nc[1] = (p[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
     nc[2] = (p[2]-center[2]*userInputs_pf.domain_size[2])/(dist + 1.0e-7);
 
-    //ROTATING nc into n
-    dealii::Tensor<1, dim> e_X = td;
-    dealii::Tensor<1, dim> e_Y = tn;
-    dealii::Tensor<1, dim> e_Z;
-
-    // Compute e_Z = e_X cross e_Y
-    e_Z[0] = e_X[1]*e_Y[2] - e_X[2]*e_Y[1];
-    e_Z[1] = e_X[2]*e_Y[0] - e_X[0]*e_Y[2];
-    e_Z[2] = e_X[0]*e_Y[1] - e_X[1]*e_Y[0];
-
-    // Normalize e_Z
-    double norm_eZ = std::sqrt(e_Z*e_Z);
-    for (unsigned int i = 0; i < dim; ++i)
-        e_Z[i] /= norm_eZ;
-
-    // Construct rotation matrix Q as 3 column vectors
-    dealii::Tensor<2, dim> Q;
-    for (unsigned int i = 0; i < dim; ++i) {
-        Q[i][0] = e_X[i];
-        Q[i][1] = e_Y[i];
-        Q[i][2] = e_Z[i];
-    }
-    //Intermediate vector, n_int
-    for (unsigned int i = 0; i < 3; ++i)
-        for (unsigned int j = 0; j < 3; ++j)
-            n_int[i] += Q[i][j] * nc[j];
-
-        //Tensors in the simulation coordinate system
+    //Rotating td and tn according to Euler angles
     // Euler angles in radians (ZXZ convention)
     double phi1 = pi*euler_angs[0]/180.0; // e.g., 0.785398 for 45 degrees
     double Phi  = pi*euler_angs[1]/180.0; // e.g., 1.0472   for 60 degrees
@@ -116,10 +91,43 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
                 Q_1[i][j] += Q_temp[i][k] * Rz2[k][j];
     
 
-    //Fully rotated vector, n
+    //Rotated normal vector, tn_int
     for (unsigned int i = 0; i < dim; ++i)
         for (unsigned int j = 0; j < dim; ++j)
-            n[i] += Q_1[i][j] * n_int[j];
+            tn_int[i] += Q_1[i][j] * tn[j];
+
+    //Rotated direction vector, td_int
+    for (unsigned int i = 0; i < dim; ++i)
+        for (unsigned int j = 0; j < dim; ++j)
+            td_int[i] += Q_1[i][j] * td[j];
+
+
+    //Rotated twin direction and twin normal vectors
+    dealii::Tensor<1, dim> e_X = td_int;
+    dealii::Tensor<1, dim> e_Y = tn_int;
+    dealii::Tensor<1, dim> e_Z;
+
+    // Compute e_Z = e_X cross e_Y
+    e_Z[0] = e_X[1]*e_Y[2] - e_X[2]*e_Y[1];
+    e_Z[1] = e_X[2]*e_Y[0] - e_X[0]*e_Y[2];
+    e_Z[2] = e_X[0]*e_Y[1] - e_X[1]*e_Y[0];
+
+    // Normalize e_Z
+    double norm_eZ = std::sqrt(e_Z*e_Z);
+    for (unsigned int i = 0; i < dim; ++i)
+        e_Z[i] /= norm_eZ;
+
+    // Construct rotation matrix Q as 3 column vectors
+    dealii::Tensor<2, dim> Q;
+    for (unsigned int i = 0; i < dim; ++i) {
+        Q[i][0] = e_X[i];
+        Q[i][1] = e_Y[i];
+        Q[i][2] = e_Z[i];
+    }
+    //Intermediate vector, n_int
+    for (unsigned int i = 0; i < 3; ++i)
+        for (unsigned int j = 0; j < 3; ++j)
+            n[i] += Q[j][i] * nc[j];
 
     //Rotated unit vector with respect to the twin plane    
     nX = n[0];
