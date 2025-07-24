@@ -110,12 +110,15 @@ set Model constant Kij_tp = ((0.0258,0,0),(0,0.00645,0),(0,0,0.0258)), TENSOR
 
 # Twin direction unit vector
 set Model constant td = (-0.631832692824310,	0.364788775284921,	0.683898090145388), TENSOR
+# set Model constant td = (1.0,	0.0, 0.0), TENSOR
 
 # Twin normal unit vector
 set Model constant tn = (0.592273119665566,	-0.341949045072694,	0.729577550569842), TENSOR
+# set Model constant tn = (0.0,	0.0 ,	1.0), TENSOR
 
 # Euler angles for grain orientation (ZXZ convention)
 set Model constant euler_angs = (0.0, 90.0, 30.0), TENSOR
+# set Model constant euler_angs = (0.0, 45.0, 90.0), TENSOR
 
 # Twin energy barrier (double well height) 
 # 31.04 * (n^2) * (1-n)^2 has the same height as 4 * 1.94 n * (1-n) at n=1/2

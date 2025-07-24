@@ -139,10 +139,10 @@ set Maximum non linear iterations                = 15
 ####################################
 
 # Deformation time prior to introducing a twin seed
-set Seeding time                                  = 0.5
+set Seeding time                                  = 5.0
 
 # Deformation time prior to coupling of PF and CPFE equations (after initial deformation with or without twin seed)
-set Time before coupling                          = 0.5
+set Time before coupling                          = 5.0
 
 ####################################
 # Elasticity parameters
