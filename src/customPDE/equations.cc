@@ -150,7 +150,10 @@ for(unsigned int i=0;i<dim;i++){
 	}
 }
 
-scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df_const_filt);
+//Applying a filter to localize driving force to the twin boundary 
+scalarvalueType_pf strain_df_filter = (1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
+
+scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df_filter);
 scalargradType_pf eqx_dndt = -L*kappagradn;
 
 // --- Submitting the terms for the governing equations ---
