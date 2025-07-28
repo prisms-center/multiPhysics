@@ -22,6 +22,7 @@ MultiPhysicsBVP<dim,degree>:: MultiPhysicsBVP(userInputParameters_pf<dim> _userI
   dofHandler (triangulation_cp),
   dofHandler_Scalar (triangulation_cp),
   delT(_userInputs_cp.delT),
+  delT_pf_adjust(_userInputs_cp.delT_pf_adjust),
   totalT(_userInputs_cp.totalTime),
   seedingT(_userInputs_cp.seedingTime),
   timeBeforeC(_userInputs_cp.timeBeforeCoupling),
@@ -57,7 +58,7 @@ MultiPhysicsBVP<dim,degree>:: MultiPhysicsBVP(userInputParameters_pf<dim> _userI
   }
   if(userInputs_cp.enableCyclicLoading)
     cycleTime=4*userInputs_cp.quarterCycleTime;
-  totalIncrements_cp=std::round(totalT/delT);
+    totalIncrements_cp=std::round(totalT/delT);
   if(userInputs_cp.enableTabularPeriodicBCs)
     periodicTotalIncrements=userInputs_cp.periodicTabularTime/delT;
 }

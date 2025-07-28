@@ -65,7 +65,8 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
   if(skipQuadratureOutputSteps<=0)
   skipQuadratureOutputSteps=1;
 
-  delT=parameter_handler.get_double("Time increments");
+  delT=parameter_handler.get_double("Time increment");
+  delT_pf_adjust=parameter_handler.get_double("Time increment after phase-field coupling");
   criticalDeltaFCriteria=parameter_handler.get_double("critical DeltaF Criteria");
   numberTaylorSubsteps=parameter_handler.get_integer("Number of Taylor Substeps");
   totalTime=parameter_handler.get_double("Total time");
@@ -571,7 +572,8 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Name of file containing external mesh","",dealii::Patterns::Anything(),"Name of external mesh file");
   parameter_handler.declare_entry("External mesh parameter","0",dealii::Patterns::Double(),"The external mesh parameter: The ratio of defiend region size to the Domain size");
 
-  parameter_handler.declare_entry("Time increments","-1",dealii::Patterns::Double(),"delta T for every increment");
+  parameter_handler.declare_entry("Time increment","-1",dealii::Patterns::Double(),"delta T for every increment");
+  parameter_handler.declare_entry("Time increment after phase-field coupling","-1",dealii::Patterns::Double(),"delta T for every pf increment after phase-field coupling");
   parameter_handler.declare_entry("critical DeltaF Criteria","10000",dealii::Patterns::Double(),"critical DeltaF Criteria");
   parameter_handler.declare_entry("Total time","-1",dealii::Patterns::Double(),"Total simulation time");
   parameter_handler.declare_entry("Seeding time","-1",dealii::Patterns::Double(),"Deformation time prior to introducing a twin seed");

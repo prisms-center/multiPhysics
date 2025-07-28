@@ -73,8 +73,10 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
                                                  num_quad_points, twin_init));
   dtwinfraction_iter1.resize(num_local_cells, std::vector<std::vector<double>>(
                                                   num_quad_points, twin_init));
-
+  
   if (userInputs_cp.enableAdaptiveTimeStepping) {
+    /*
+    //Adaptive Timestep disabled
     for (; totalLoadFactor < totalIncrements_cp;) {
       ++currentIncrement_cp;
       loadFactorSetByModel =
@@ -128,17 +130,27 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
     char buffer[100];
     sprintf(buffer, "\nfinal load factor  : %12.6e\n", totalLoadFactor);
     pcout << buffer;
-  } else
-    for (; currentIncrement_cp < totalIncrements_cp; ++currentIncrement_cp) {
-      pcout << "\nincrement CPFE: " << currentIncrement_cp << ", Time CPFE: "<< currentIncrement_cp*delT << std::endl;
-
+    */
+  } else {
+    currentIncrement_cp=0;
+    int cp_increment_switch_flag=1;
+    while (currentIncrement_cp < totalIncrements_cp) {
+      pcout << "\nCPFE: Current increment number = " << currentIncrement_cp << ", Current time = " << currentIncrement_cp*delT << ", Time increment = " << delT <<  std::endl;
       if ((currentIncrement_cp*delT >=  seedingT)){
         // ***** Interpolation of order parameter "n" from PF mesh into
         // twin volume fraction CPFE mesh ******
         interpolate_order_parameter(pf_obj, dofHandler_Scalar, quadrature, twinfraction_iter1, fe_values);
-        pcout << "\nInterpolation of n complete" << std::endl;
-        
+        pcout << "\nInterpolation of n complete" << std::endl;      
         pcout << "\nInterpolation of dndt disabled" << std::endl;
+        if(cp_increment_switch_flag==1){
+          cp_increment_switch_flag=2;
+          delT=delT_pf_adjust;
+          currentIncrement_cp=std::round(seedingT/delT);
+          totalIncrements_cp=std::round(totalT/delT);
+          pcout << "\nCPFE time increment switched to "<< delT_pf_adjust << std::endl;
+          pcout << "\nFrom this point on, the current increment number is calculated using the new time increment (Delta t)" << std::endl;
+          pcout << "\nCPFE: Current increment number = " << currentIncrement_cp << ", Current time = " << currentIncrement_cp*delT <<  std::endl;
+        }
       }
       
       if (userInputs_cp.enableIndentationBCs) {
@@ -200,7 +212,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
                          tabularTimeInputIncInt.end(),
                          (currentIncrement_cp + 1)) == 1))) {
           if (userInputs_cp.writeOutput)
-            output();
+             output();
         }
         computing_timer_cp.leave_subsection("postprocess");
       } else {
@@ -213,7 +225,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           pf_obj.getCurrentTime_pf() += userInputs_pf.dtValue;
           if (pf_obj.getCurrentIncrement_pf()%userInputs_pf.skip_print_steps==0){
               pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement_pf() << "  time: " << pf_obj.getCurrentTime_pf() << "\n";
-              pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() << "\n";
+              //pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() << "\n";
           }
 
           //check and perform adaptive mesh refinement
@@ -255,6 +267,8 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
           //Phase-Field regular step ENDS
         }
       }
+        currentIncrement_cp +=1;
     }
+  }
 }
 #include "../../include/multiPhysicsBVP_template_instantiations.h"

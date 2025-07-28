@@ -41,6 +41,7 @@ public:
   std::string externalMeshFileName;
   double externalMeshParameter;
   double delT; // Time increment
+  double delT_pf_adjust; // Time increment after phase-field coupling
   double criticalDeltaFCriteria;  //Critical DeltaF Criteria
   double totalTime; // Total simulation time
   double seedingTime; // Deformation time prior to introducing a twin seed
