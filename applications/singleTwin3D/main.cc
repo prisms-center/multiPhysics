@@ -28,16 +28,14 @@ int main (int argc, char **argv)
 
       ParameterHandler parameter_handler;
 
-      std::list<std::string> args;
-      for (int i=1; i<argc; ++i) args.push_back (argv[i]);
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0]
+                  << " <CPFE parameters file> <PF parameters file>" << std::endl;
+        return 1;
+    }
 
-      if (args.size() == 0){
-        std::cerr<<"Provide name of a parameter file."<<std::endl;
-        exit (1);
-      }
-
-      const std::string parameter_file_cp = args.front ();
-      const std::string parameter_file_pf = "parameters_pf.prm";
+    const std::string parameter_file_cp = argv[1];
+    const std::string parameter_file_pf = argv[2];
 
       //Read Crystal Plasticity parameters
       userInputParameters_cp userInputs_cp(parameter_file_cp,parameter_handler);
