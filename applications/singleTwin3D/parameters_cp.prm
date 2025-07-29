@@ -120,13 +120,13 @@ set Quarter cycle time                           = 1.2
 # Solver parameters
 ####################################
 #delta T for every increment
-set Time increment                              = 0.01
+set Time increment                              = 0.0025
 
 #delta T for every pf increment after phase-field coupling
 set Time increment after phase-field coupling   = 0.0025
 
 #Total simulation time
-set Total time                                   = 0.1
+set Total time                                   = 0.6
 
 # Maximum iterations for linear solver
 set Maximum linear solver iterations             = 1000000
@@ -142,10 +142,10 @@ set Maximum non linear iterations                = 15
 ####################################
 
 # Deformation time prior to introducing a twin seed
-set Seeding time                                  = 0.05
+set Seeding time                                  = 0.5
 
 # Deformation time prior to coupling of PF and CPFE equations (after initial deformation with or without twin seed)
-set Time before coupling                          = 0.05
+set Time before coupling                          = 0.5
 
 ####################################
 # Elasticity parameters
