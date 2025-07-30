@@ -70,7 +70,7 @@ void MultiPhysicsBVP<dim,degree>::getIntegralMF(const MatrixFree<dim,double> &da
     for (unsigned int cell=cell_range.first; cell<cell_range.second; ++cell){
 		var.reinit(cell);
 		var.read_dof_values_plain(*src[0]);
-		var.evaluate(true, false, false);
+		var.evaluate(dealii::EvaluationFlags::values);
 
         unsigned int num_q_points = var.n_q_points;
 

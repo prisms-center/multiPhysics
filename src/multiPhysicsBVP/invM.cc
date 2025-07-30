@@ -37,7 +37,7 @@ void MultiPhysicsBVP<dim,degree>::computeInvM(){
 			for (unsigned int q=0; q<n_q_points; ++q){
 				fe_eval.submit_value(one,q);
 			}
-			fe_eval.integrate (true,false);
+			fe_eval.integrate (dealii::EvaluationFlags::values);
 			fe_eval.distribute_local_to_global (invM);
 		}
 	}
@@ -55,7 +55,7 @@ void MultiPhysicsBVP<dim,degree>::computeInvM(){
 			for (unsigned int q=0; q<n_q_points; ++q){
 				fe_eval.submit_value(oneV,q);
 			}
-			fe_eval.integrate (true,false);
+			fe_eval.integrate (dealii::EvaluationFlags::values);
 			fe_eval.distribute_local_to_global (invM);
 		}
 	}

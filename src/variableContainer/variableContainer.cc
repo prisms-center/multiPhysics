@@ -115,16 +115,27 @@ template <int dim, int degree, typename T>
 void variableContainer<dim,degree,T>::reinit_and_eval(const std::vector<vectorType_pf*> &src, unsigned int cell){
 
     for (unsigned int i=0; i<num_var; i++){
-        if (varInfoList[i].var_needed){
+        if (varInfoList[i].var_needed) {
+            // Construct EvaluationFlags
+            dealii::EvaluationFlags::EvaluationFlags eval_flags;
+            if (varInfoList[i].need_value)
+                eval_flags |= dealii::EvaluationFlags::values;
+            if (varInfoList[i].need_gradient)
+                eval_flags |= dealii::EvaluationFlags::gradients;
+            if (varInfoList[i].need_hessian)
+                eval_flags |= dealii::EvaluationFlags::hessians;
+
+            const unsigned int index = varInfoList[i].scalar_or_vector_index;
+
             if (varInfoList[i].is_scalar) {
-                scalar_vars[varInfoList[i].scalar_or_vector_index].reinit(cell);
-                scalar_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*src[i]);
-                scalar_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
+                scalar_vars[index].reinit(cell);
+                scalar_vars[index].read_dof_values(*src[i]);
+                scalar_vars[index].evaluate(eval_flags);
             }
             else {
-                vector_vars[varInfoList[i].scalar_or_vector_index].reinit(cell);
-                vector_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*src[i]);
-                vector_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
+                vector_vars[index].reinit(cell);
+                vector_vars[index].read_dof_values(*src[i]);
+                vector_vars[index].evaluate(eval_flags);
             }
         }
     }
@@ -135,51 +146,69 @@ void variableContainer<dim,degree,T>::reinit_and_eval(const std::vector<vectorTy
 * The RHS method takes the src as a vector of vectorType_pfs.
 */
 template <int dim, int degree, typename T>
-void variableContainer<dim,degree,T>::reinit_and_eval_change_in_solution(const vectorType_pf &src, unsigned int cell, unsigned int var_being_solved){
+void variableContainer<dim,degree,T>::reinit_and_eval_change_in_solution(const vectorType_pf &src, unsigned int cell, unsigned int var_being_solved) {
+    
+    // Build evaluation flags from the requested components
+    dealii::EvaluationFlags::EvaluationFlags eval_flags;
+    if (varChangeInfoList[var_being_solved].need_value)
+        eval_flags |= dealii::EvaluationFlags::values;
+    if (varChangeInfoList[var_being_solved].need_gradient)
+        eval_flags |= dealii::EvaluationFlags::gradients;
+    if (varChangeInfoList[var_being_solved].need_hessian)
+        eval_flags |= dealii::EvaluationFlags::hessians;
 
     if (varChangeInfoList[var_being_solved].is_scalar) {
         scalar_change_in_vars[0].reinit(cell);
         scalar_change_in_vars[0].read_dof_values(src);
-        scalar_change_in_vars[0].evaluate(varChangeInfoList[var_being_solved].need_value, varChangeInfoList[var_being_solved].need_gradient, varChangeInfoList[var_being_solved].need_hessian);
+        scalar_change_in_vars[0].evaluate(eval_flags);
     }
     else {
         vector_change_in_vars[0].reinit(cell);
         vector_change_in_vars[0].read_dof_values(src);
-        vector_change_in_vars[0].evaluate(varChangeInfoList[var_being_solved].need_value, varChangeInfoList[var_being_solved].need_gradient, varChangeInfoList[var_being_solved].need_hessian);
+        vector_change_in_vars[0].evaluate(eval_flags);
     }
-
 }
 
-
 template <int dim, int degree, typename T>
-void variableContainer<dim,degree,T>::reinit_and_eval_LHS(const vectorType_pf &src, const std::vector<vectorType_pf*> solutionSet, unsigned int cell, unsigned int var_being_solved){
+void variableContainer<dim,degree,T>::reinit_and_eval_LHS(const vectorType_pf &src,
+                                                          const std::vector<vectorType_pf*> solutionSet,
+                                                          unsigned int cell,
+                                                          unsigned int var_being_solved)
+{
+    for (unsigned int i = 0; i < num_var; i++) {
+        if (varInfoList[i].var_needed) {
+            // Build EvaluationFlags for this variable
+            dealii::EvaluationFlags::EvaluationFlags eval_flags;
+            if (varInfoList[i].need_value)
+                eval_flags |= dealii::EvaluationFlags::values;
+            if (varInfoList[i].need_gradient)
+                eval_flags |= dealii::EvaluationFlags::gradients;
+            if (varInfoList[i].need_hessian)
+                eval_flags |= dealii::EvaluationFlags::hessians;
 
-    for (unsigned int i=0; i<num_var; i++){
-        if (varInfoList[i].var_needed){
+            const unsigned int index = varInfoList[i].scalar_or_vector_index;
+
             if (varInfoList[i].is_scalar) {
-                scalar_vars[varInfoList[i].scalar_or_vector_index].reinit(cell);
-                if (i == var_being_solved ){
-                    scalar_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(src);
+                scalar_vars[index].reinit(cell);
+                if (i == var_being_solved) {
+                    scalar_vars[index].read_dof_values(src);
+                } else {
+                    scalar_vars[index].read_dof_values(*solutionSet[i]);
                 }
-                else{
-                    scalar_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*solutionSet[i]);
+                scalar_vars[index].evaluate(eval_flags);
+            } else {
+                vector_vars[index].reinit(cell);
+                if (i == var_being_solved) {
+                    vector_vars[index].read_dof_values(src);
+                } else {
+                    vector_vars[index].read_dof_values(*solutionSet[i]);
                 }
-                scalar_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
-            }
-            else {
-                vector_vars[varInfoList[i].scalar_or_vector_index].reinit(cell);
-                if (i == var_being_solved){
-                    vector_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(src);
-                }
-                else {
-                    vector_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*solutionSet[i]);
-                }
-                vector_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
+                vector_vars[index].evaluate(eval_flags);
             }
         }
     }
-
 }
+
 
 template <int dim, int degree, typename T>
 void variableContainer<dim,degree,T>::reinit(unsigned int cell){
@@ -198,33 +227,46 @@ void variableContainer<dim,degree,T>::reinit(unsigned int cell){
 
 
 template <int dim, int degree, typename T>
-void variableContainer<dim,degree,T>::integrate_and_distribute(std::vector<vectorType_pf*> &dst){
+void variableContainer<dim,degree,T>::integrate_and_distribute(std::vector<vectorType_pf*> &dst) {
+    for (unsigned int i = 0; i < num_var; i++) {
+        if (varInfoList[i].value_residual || varInfoList[i].gradient_residual) {
+            // Construct integration flags
+            dealii::EvaluationFlags::EvaluationFlags integration_flags;
+            if (varInfoList[i].value_residual)
+                integration_flags |= dealii::EvaluationFlags::values;
+            if (varInfoList[i].gradient_residual)
+                integration_flags |= dealii::EvaluationFlags::gradients;
 
-    for (unsigned int i=0; i<num_var; i++){
-        if (varInfoList[i].value_residual || varInfoList[i].gradient_residual){
+            const unsigned int index = varInfoList[i].scalar_or_vector_index;
+
             if (varInfoList[i].is_scalar) {
-                scalar_vars[varInfoList[i].scalar_or_vector_index].integrate(varInfoList[i].value_residual, varInfoList[i].gradient_residual);
-                scalar_vars[varInfoList[i].scalar_or_vector_index].distribute_local_to_global(*dst[i]);
-            }
-            else {
-                vector_vars[varInfoList[i].scalar_or_vector_index].integrate(varInfoList[i].value_residual, varInfoList[i].gradient_residual);
-                vector_vars[varInfoList[i].scalar_or_vector_index].distribute_local_to_global(*dst[i]);
+                scalar_vars[index].integrate(integration_flags);
+                scalar_vars[index].distribute_local_to_global(*dst[i]);
+            } else {
+                vector_vars[index].integrate(integration_flags);
+                vector_vars[index].distribute_local_to_global(*dst[i]);
             }
         }
     }
 }
 
-template <int dim, int degree, typename T>
-void variableContainer<dim,degree,T>::integrate_and_distribute_change_in_solution_LHS(vectorType_pf &dst, const unsigned int var_being_solved){
 
-    //integrate
+template <int dim, int degree, typename T>
+void variableContainer<dim,degree,T>::integrate_and_distribute_change_in_solution_LHS(vectorType_pf &dst,
+                                                                                       const unsigned int var_being_solved) {
+    // Construct integration flags
+    dealii::EvaluationFlags::EvaluationFlags integration_flags;
+    if (varChangeInfoList[var_being_solved].value_residual)
+        integration_flags |= dealii::EvaluationFlags::values;
+    if (varChangeInfoList[var_being_solved].gradient_residual)
+        integration_flags |= dealii::EvaluationFlags::gradients;
+
     if (varChangeInfoList[var_being_solved].is_scalar) {
-    	scalar_change_in_vars[0].integrate(varChangeInfoList[var_being_solved].value_residual, varChangeInfoList[var_being_solved].gradient_residual);
-    	scalar_change_in_vars[0].distribute_local_to_global(dst);
-    }
-    else {
-        vector_change_in_vars[0].integrate(varChangeInfoList[var_being_solved].value_residual, varChangeInfoList[var_being_solved].gradient_residual);
-    	vector_change_in_vars[0].distribute_local_to_global(dst);
+        scalar_change_in_vars[0].integrate(integration_flags);
+        scalar_change_in_vars[0].distribute_local_to_global(dst);
+    } else {
+        vector_change_in_vars[0].integrate(integration_flags);
+        vector_change_in_vars[0].distribute_local_to_global(dst);
     }
 }
 

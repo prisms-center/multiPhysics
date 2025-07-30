@@ -113,11 +113,11 @@ void  MultiPhysicsBVP<dim,degree>::getLaplaceRHS(const MatrixFree<dim,double> &d
      {
          mat.reinit (cell);
          mat.read_dof_values(src);
-         mat.evaluate (false,true,false);
+         mat.evaluate (dealii::EvaluationFlags::gradients);
          for (unsigned int q=0; q<mat.n_q_points; ++q){
              mat.submit_gradient(mat.get_gradient(q),q);
          }
-         mat.integrate (false,true);
+         mat.integrate(dealii::EvaluationFlags::gradients);
          mat.distribute_local_to_global (dst);
      }
 }
@@ -135,11 +135,11 @@ void  MultiPhysicsBVP<dim,degree>::getLaplaceLHS(const MatrixFree<dim,double> &d
      {
          mat.reinit (cell);
          mat.read_dof_values(src);
-         mat.evaluate (false,true,false);
+         mat.evaluate(dealii::EvaluationFlags::gradients);
          for (unsigned int q=0; q<mat.n_q_points; ++q){
              mat.submit_gradient(-mat.get_gradient(q),q);
          }
-         mat.integrate (false,true);
+         mat.integrate(dealii::EvaluationFlags::gradients);
          mat.distribute_local_to_global (dst);
      }
 }
