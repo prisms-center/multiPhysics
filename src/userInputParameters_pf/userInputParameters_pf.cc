@@ -216,6 +216,7 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
     skip_print_steps = parameter_handler.get_integer("Skip print steps");
     output_file_type = parameter_handler.get("Output file type");
     output_file_name = parameter_handler.get("Output file name (base)");
+    output_directory_pf = parameter_handler.get("Output directory");
 
     output_vtu_per_process = parameter_handler.get_bool("Output separate files per process");
     if ((output_file_type == "vtk") && (!output_vtu_per_process)){
