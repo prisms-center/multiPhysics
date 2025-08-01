@@ -1,0 +1,11 @@
+#ifndef INCLUDE_CUSTOMPDE_TEMPLATE_INSTANTIATIONS_H_
+#define INCLUDE_CUSTOMPDE_TEMPLATE_INSTANTIATIONS_H_
+
+#ifndef CUSTOMPDE_TEMPLATE_INSTANTIATION
+#define CUSTOMPDE_TEMPLATE_INSTANTIATION
+// Explicit instantiations
+template class customPDE<2, 1>;
+template class customPDE<3, 1>;
+#endif
+
+#endif 
