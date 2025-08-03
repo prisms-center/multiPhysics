@@ -24,7 +24,7 @@ void continuumPlasticity<dim>::updateAfterIncrement()
 	FEValues<dim> fe_values(this->FE, quadrature, update_quadrature_points | update_gradients | update_JxW_values);
 	const unsigned int num_quad_points = quadrature.size();
 	const unsigned int   dofs_per_cell = this->FE.dofs_per_cell;
-	std::vector<unsigned int> local_dof_indices(dofs_per_cell);
+	std::vector<dealii::types::global_dof_index> local_dof_indices(dofs_per_cell);
 	//loop over elements
 	unsigned int cellID = 0;
 	typename DoFHandler<dim>::active_cell_iterator cell = this->dofHandler.begin_active(), endc = this->dofHandler.end();
