@@ -26,7 +26,7 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
 
   you need to compile deal.ii with the petsc and p4est dependencies and without trilinos package. To do that, if you're using candi, you can turn trilinos off in candi.cfg by commenting that as #PACKAGES="${PACKAGES} once:trilinos". With deal.ii installed and $DEAL_II_DIR setup, the following steps can be followed to download and compile the framework:
 
-  Clone the PRISMS-MultiPhysics GitHub repo 
+  Clone the PRISMS-MultiPhysics GitHub repo
   ```
   $ git clone https://github.com/prisms-center/multiPhysics.git
   ```
@@ -40,38 +40,37 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
   ```
   followed by
   ```
-  $ make -j \<nprocs\>
+  $ make -j <nprocs>
   ```
-  where \<nprocs\> refers to number the number of processors used for compilation. Using with more than one processor alloys for parallel (and faster) compilation.
+  where \<nprocs> refers to number the number of processors used for compilation. Using with more than one processor alloys for parallel (and faster) compilation.
 
-  Compile an application (e.g. singleTwin3D) applications
-  + $ cd applications/crystalPlasticity <br>
-  + $ cmake . <br>
-  + $ make release <br>
-
-<B>Running an example simulation</B>
-  + $ cd fcc/simpleTension <br>
-  Making results directory  <br>  
-  + $ mkdir results  <br>
-  Execution (parallel runs): <br>
-  + $ mpirun -np nprocs $PLAS_DIR/applications/crystalPlasticity/main prm.prm<br>
-  [here nprocs denotes the number of processors]
-
-  Updates: Since plasticity code is still under active development,
-  regular code and documentation updates are pushed to the upstream
-  repo (https://github.com/prisms-center/plasticity) and we strongly
-  recommend users to synchronize their respective clones/forks at regular
-  intervals or when requested by the developers through the
-  announcements on the mailing list.
+  Compile an application (e.g. singleTwin3D)
+  ```
+  $ cd applications/singleTwin3D
+  ```
+  ```
+  $ cmake . <br>
+  ```
+  ```
+  $ make -j <nprocs> release 
+  ```
+  Run the executable (main) with the CP and PF parameters files as arguments:
+  ```
+  $ mpirun -n <nprocs> parameters_cp.prm parameters_pf.prm
+  ```
+ 
+  Updates: Since PRISMS-MP code is still under active development, regular code and documentation updates are pushed to the upstream repo (https://github.com/prisms-center/multiPhysics) and we strongly
+  recommend users to synchronize their respective clones forks regularly.
 
 <B>Visualization</B>
 
   Output of the primal fields and postprocessed fields is in standard vtk
-  format (parallel:*.pvtu, serial:*.vtu files) which can be visualized with the
+  format (*.vtu files) which can be visualized with the
   following open source applications:
-  1. VisIt (https://wci.llnl.gov/simulation/computer-codes/visit/downloads)
-  2. Paraview (http://www.paraview.org/download/)
+  + VisIt (https://wci.llnl.gov/simulation/computer-codes/visit/downloads)
+  + Paraview (http://www.paraview.org/download/)
 
+<!--
 <B>Getting started:</B>
 
   Examples of various boundary value problems are located under the
@@ -108,12 +107,12 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
 
   M. Yaghoobi, S. Ganesan, S. Sundar, A. Lakshmanan, S. Rudraraju, J.E. Allison, V. Sundararaghavan, “PRISMS-Plasticity: An open-source crystal plasticity finite element software” Computational Materials Science 169 (2019) 109078.
 
-
+-->
 <B>License:</B>
 
   GNU Lesser General Public License (LGPL). Please see the file
   LICENSE for details.
-
+<!--
 <B>Forum:</B>
 
    + https://groups.google.com/forum/#!forum/prisms-cpfe-users
@@ -122,12 +121,17 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
 <B>Mailing List:</B>
 
  + prisms-cpfe-users@googlegroups.com
+  -->
  
- <B>Current Developers:</B>
+ <B>Developers:</B>
 
++ David Montiel dmontiel@umich.edu
 + Abhishek Kumar abhiks@umich.edu
-+ Mohammadreza Yaghoobi yaghoobi@umich.edu 
++ Chaitli Patil chaitalp@umich.edu
++ Philip Staublin staublin@umich.edu
 
+<!--
 <B>Further information, questions, issues and bugs:</B>
 
   Contact the developers at prismsplasticity.dev@umich.edu  
+-->
