@@ -1,2 +1,133 @@
+
 # PRISMS-MP
 PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
+
+<B>Code repository:</B> https://github.com/prisms-center/multiPhysics <br>
+ <!-- <B>Code documentation:</B> https://github.com/prisms-center/multiphysics/tree/master/docs 
+<B>User registration link:</B> https://goo.gl/forms/dkAdtoHzd1qsKJ673 <br>
+<B>Tutorial Videos:</B> https://www.youtube.com/playlist?list=PL4yBCojM4Swqy4FRteqxHWSiM1uiOOesj <br> <br> -->
+
+<B>What is PRISMS-MultiPhysics?</B>
+
+  PRISMS-MultiPhysics (PRISMS-MP) is an open-source, high-performance framework that concurrently couples the phase-field (PF) and crystal plasticity (CP) models to simulate microstructure evolution. In this framework, which combines classes and methods from PRISMS-PF and PRISMS-Plasticity, PF and CP fields are defined on separate finite element meshes with different refinement levels, and relevant fields are transferred throughout the time evolution.
+
+  This code is developed by the PRedictive Integrated Structural
+  Materials Science (PRISMS) Center [http://www.prisms-center.org/]
+  at University of Michigan which is supported by the U.S. Department
+  of Energy (DOE), Office of Basic Energy Sciences, Division of Materials Sciences
+  and Engineering under Award #DE-SC0008637. 
+
+  PRISMS-MP is build on top of the [deal.II](http://www.dealii.org) open source finite element library. The latest supported version is [9.5.2](https://dealii.org/9.5.0/index.html).
+
+  deal.ii needs to be built with the petsc and p4est dependencies and without the trilinos package. To do that, if you're using candi, you can turn it off in candi.cfg by commenting that as #PACKAGES="${PACKAGES} once:trilinos". With deal.ii installed and $DEAL_II_DIR setup, the following steps can be followed to download and compile the code
+
+<!--<B>Installation:</B>
+  Refer to the installation manual in docs/installation/ manual.pdf (under development) for detailed instructions on getting started with using the plasticity code.-->
+
+  you need to compile deal.ii with the petsc and p4est dependencies and without trilinos package. To do that, if you're using candi, you can turn trilinos off in candi.cfg by commenting that as #PACKAGES="${PACKAGES} once:trilinos". With deal.ii installed and $DEAL_II_DIR setup, the following steps can be followed to download and compile the framework:
+
+  Clone the PRISMS-MultiPhysics GitHub repo 
+  ```
+  $ git clone https://github.com/prisms-center/multiPhysics.git
+  ```
+  Go to the directory ```multiPhysics``` 
+  ```
+  $ cd multiPhysics
+  ```
+  Compile the core library by typing
+  ```
+  $ cmake .
+  ```
+  followed by
+  ```
+  $ make -j \<nprocs\>
+  ```
+  where \<nprocs\> refers to number the number of processors used for compilation. Using with more than one processor alloys for parallel (and faster) compilation.
+
+  Compile an application (e.g. singleTwin3D) applications
+  + $ cd applications/crystalPlasticity <br>
+  + $ cmake . <br>
+  + $ make release <br>
+
+<B>Running an example simulation</B>
+  + $ cd fcc/simpleTension <br>
+  Making results directory  <br>  
+  + $ mkdir results  <br>
+  Execution (parallel runs): <br>
+  + $ mpirun -np nprocs $PLAS_DIR/applications/crystalPlasticity/main prm.prm<br>
+  [here nprocs denotes the number of processors]
+
+  Updates: Since plasticity code is still under active development,
+  regular code and documentation updates are pushed to the upstream
+  repo (https://github.com/prisms-center/plasticity) and we strongly
+  recommend users to synchronize their respective clones/forks at regular
+  intervals or when requested by the developers through the
+  announcements on the mailing list.
+
+<B>Visualization</B>
+
+  Output of the primal fields and postprocessed fields is in standard vtk
+  format (parallel:*.pvtu, serial:*.vtu files) which can be visualized with the
+  following open source applications:
+  1. VisIt (https://wci.llnl.gov/simulation/computer-codes/visit/downloads)
+  2. Paraview (http://www.paraview.org/download/)
+
+<B>Getting started:</B>
+
+  Examples of various boundary value problems are located under the
+  applications/ folder. Easiest way to get started on the code is to
+  run the applications.
+
+  Applications are intended to serve as (1) Demonstration of the
+  capabilities of this library, (2) Provide a framework for
+  further development of specialized/advanced applications by
+  users.
+
+  Application or code under development/testing is preceded by an
+  underscore.
+
+  List of folders:
+  + src/: material models (continuum plasticity and crystal plasticity),
+  ellipticBVP (base class for parallel implementation of elliptic
+  boundary value problems), enrichment models (enhanced strain),
+  utility (static condensation class, crystal orientations and grain
+  information IO)
+  + applications/: continuum plasticity and crystal plasticity
+  + utils/: IntegrationTools (developed by the PRISMS center and available at
+  https://github.com/prisms-center/IntegrationTools) and json headers
+  + docs/: Installation Manual, User manual, and User defined material model manual
+  + Training_Materials/: Instructions for using preprocessing tools, such as generating input files, and postprocessing tools, such as visualizing the outputs
+  + html/: HTML documentation generated by doxygen
+
+<B>Documentation:</B>
+
+  Detailed Installation Manual, User manual, and User defined material model manual are provided in /doc/ folder.
+
+  
+<B>Reference:</B>
+
+  M. Yaghoobi, S. Ganesan, S. Sundar, A. Lakshmanan, S. Rudraraju, J.E. Allison, V. Sundararaghavan, “PRISMS-Plasticity: An open-source crystal plasticity finite element software” Computational Materials Science 169 (2019) 109078.
+
+
+<B>License:</B>
+
+  GNU Lesser General Public License (LGPL). Please see the file
+  LICENSE for details.
+
+<B>Forum:</B>
+
+   + https://groups.google.com/forum/#!forum/prisms-cpfe-users
+
+
+<B>Mailing List:</B>
+
+ + prisms-cpfe-users@googlegroups.com
+ 
+ <B>Current Developers:</B>
+
++ Abhishek Kumar abhiks@umich.edu
++ Mohammadreza Yaghoobi yaghoobi@umich.edu 
+
+<B>Further information, questions, issues and bugs:</B>
+
+  Contact the developers at prismsplasticity.dev@umich.edu  
