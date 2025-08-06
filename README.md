@@ -54,7 +54,7 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
   ```
   Run the executable (main) with the CP and PF parameters files as arguments:
   ```
-  $ mpirun -n <nprocs> parameters_cp.prm parameters_pf.prm
+  $ mpirun -n <nprocs> ./main parameters_cp.prm parameters_pf.prm
   ```
  
   Updates: Since PRISMS-MP code is still under active development, regular code and documentation updates are pushed to the upstream repo (https://github.com/prisms-center/multiPhysics) and we strongly
