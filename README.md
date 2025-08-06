@@ -19,7 +19,7 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
 
   PRISMS-MP is build on top of the [deal.II](http://www.dealii.org) open source finite element library. The latest supported version is [9.5.2](https://dealii.org/9.5.0/index.html).
 
-  deal.ii needs to be built with the petsc and p4est dependencies and without the trilinos package. To do that, if you're using candi, you can turn it off in candi.cfg by commenting that as #PACKAGES="${PACKAGES} once:trilinos". With deal.ii installed and $DEAL_II_DIR setup, the following steps can be followed to download and compile the code
+  deal.ii needs to be built with the petsc and p4est dependencies and without the trilinos package. To do that, if you're using candi, you can turn it off in candi.cfg by commenting that as #PACKAGES="${PACKAGES} once:trilinos". With deal.ii installed and $DEAL_II_DIR setup, the following steps can be followed to download and compile the code.
 
 <!--<B>Installation:</B>
   Refer to the installation manual in docs/installation/ manual.pdf (under development) for detailed instructions on getting started with using the plasticity code.-->
@@ -47,7 +47,7 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
   $ cd applications/singleTwin3D
   ```
   ```
-  $ cmake . <br>
+  $ cmake .
   ```
   ```
   $ make -j <nprocs> release 
