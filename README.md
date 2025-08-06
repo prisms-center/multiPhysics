@@ -24,8 +24,6 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
 <!--<B>Installation:</B>
   Refer to the installation manual in docs/installation/ manual.pdf (under development) for detailed instructions on getting started with using the plasticity code.-->
 
-  you need to compile deal.ii with the petsc and p4est dependencies and without trilinos package. To do that, if you're using candi, you can turn trilinos off in candi.cfg by commenting that as #PACKAGES="${PACKAGES} once:trilinos". With deal.ii installed and $DEAL_II_DIR setup, the following steps can be followed to download and compile the framework:
-
   Clone the PRISMS-MultiPhysics GitHub repo
   ```
   $ git clone https://github.com/prisms-center/multiPhysics.git
@@ -108,10 +106,6 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
   M. Yaghoobi, S. Ganesan, S. Sundar, A. Lakshmanan, S. Rudraraju, J.E. Allison, V. Sundararaghavan, “PRISMS-Plasticity: An open-source crystal plasticity finite element software” Computational Materials Science 169 (2019) 109078.
 
 -->
-<B>License:</B>
-
-  GNU Lesser General Public License (LGPL). Please see the file
-  LICENSE for details.
 <!--
 <B>Forum:</B>
 
@@ -130,8 +124,12 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
 + Chaitli Patil chaitalp@umich.edu
 + Philip Staublin staublin@umich.edu
 
+<B>License:</B>
+
+  GNU Lesser General Public License (LGPL). Please see the file
+  LICENSE for details.
+
 <!--
 <B>Further information, questions, issues and bugs:</B>
-
-  Contact the developers at prismsplasticity.dev@umich.edu  
+ Contact the developers at prismsplasticity.dev@umich.edu  
 -->
