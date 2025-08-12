@@ -121,7 +121,7 @@ PRISMS MultiPhysics: An Integrated Phase Field-CPFE Framework
 
 + David Montiel dmontiel@umich.edu
 + Abhishek Kumar abhiks@umich.edu
-+ Chaitli Patil chaitalp@umich.edu
++ Chaitali Patil chaitalp@umich.edu
 + Philip Staublin staublin@umich.edu
 
 <B>License:</B>
