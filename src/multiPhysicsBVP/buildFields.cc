@@ -10,15 +10,15 @@
 // FUNCTION TO BUILD THE VECTOR OF FIELDS
 // =====================================================================
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::buildFields(){
+void MatrixFreePDE<dim,degree>::buildFields(){
 	// Build each of the fields in the system
-	for (unsigned int i=0; i<userInputs_pf.number_of_variables; i++){
-        fields.push_back(Field<dim>(userInputs_pf.var_type[i], userInputs_pf.var_eq_type[i], userInputs_pf.var_name[i]));
+	for (unsigned int i=0; i<userInputs.number_of_variables; i++){
+        fields.push_back(Field<dim>(userInputs.var_type[i], userInputs.var_eq_type[i], userInputs.var_name[i]));
 	}
 
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

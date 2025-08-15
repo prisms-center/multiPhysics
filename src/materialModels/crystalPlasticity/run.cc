@@ -31,7 +31,7 @@ template <int dim> void crystalPlasticity<dim>::run() {
 #endif
   // READING AND INITIALIZATION (PRISMS-PF)
   pf_object.buildFields();
-  pf_object.init_pf();
+  pf_object.init();
   //pf_object.solve_pf();
 
   this->solve_cp();

@@ -1,10 +1,10 @@
-//utility functions for the MultiPhysicsBVP class
+//utility functions for the MatrixFreePDE class
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 
 //return index of given field name if exists, else throw error
 template <int dim, int degree>
-unsigned int MultiPhysicsBVP<dim,degree>::getFieldIndex(std::string _name) {
+unsigned int MatrixFreePDE<dim,degree>::getFieldIndex(std::string _name) {
    for(typename std::vector<Field<dim> >::iterator it = fields.begin(); it != fields.end(); ++it){
      if (it->name.compare(_name)==0) return it->index;
    }
@@ -12,5 +12,5 @@ unsigned int MultiPhysicsBVP<dim,degree>::getFieldIndex(std::string _name) {
    exit(-1);
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"
 

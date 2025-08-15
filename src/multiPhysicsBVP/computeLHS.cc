@@ -1,12 +1,12 @@
-//vmult() and getLHS() method for MultiPhysicsBVP class
+//vmult() and getLHS() method for MatrixFreePDE class
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 
 //vmult operation for LHS
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::vmult (vectorType_pf &dst, const vectorType_pf &src) const{
+void MatrixFreePDE<dim,degree>::vmult (vectorType_pf &dst, const vectorType_pf &src) const{
   //log time
-  computing_timer_pf.enter_subsection("multiPhysicsBVP: computeLHS");
+  computing_timer.enter_subsection("matrixFreePDE: computeLHS");
 
   //create temporary copy of src vector as src2, as vector src is marked const and cannot be changed
   dealii::LinearAlgebra::distributed::Vector<double> src2;
@@ -15,10 +15,10 @@ void MultiPhysicsBVP<dim,degree>::vmult (vectorType_pf &dst, const vectorType_pf
 
   //call cell_loop
   if (!generatingInitialGuess){
-      matrixFreeObject.cell_loop (&MultiPhysicsBVP<dim,degree>::getLHS, this, dst, src2, true);
+      matrixFreeObject.cell_loop (&MatrixFreePDE<dim,degree>::getLHS, this, dst, src2, true);
   }
   else {
-      matrixFreeObject.cell_loop (&MultiPhysicsBVP<dim,degree>::getLaplaceLHS, this, dst, src2, true);
+      matrixFreeObject.cell_loop (&MatrixFreePDE<dim,degree>::getLaplaceLHS, this, dst, src2, true);
   }
 
   //Account for Dirichlet BC's (essentially copy dirichlet DOF values present in src to dst, although it is unclear why the constraints can't just be distributed here)
@@ -29,16 +29,16 @@ void MultiPhysicsBVP<dim,degree>::vmult (vectorType_pf &dst, const vectorType_pf
   }
 
   //end log
-  computing_timer_pf.leave_subsection("multiPhysicsBVP: computeLHS");
+  computing_timer.leave_subsection("matrixFreePDE: computeLHS");
 }
 
 template <int dim, int degree>
-void  MultiPhysicsBVP<dim,degree>::getLHS(const MatrixFree<dim,double> &data,
+void  MatrixFreePDE<dim,degree>::getLHS(const MatrixFree<dim,double> &data,
 				 vectorType_pf &dst,
 				 const vectorType_pf &src,
 				 const std::pair<unsigned int,unsigned int> &cell_range) const{
 
-    variableContainer<dim,degree,dealii::VectorizedArray<double> > variable_list(data,userInputs_pf.varInfoListLHS,userInputs_pf.varChangeInfoListLHS);
+    variableContainer<dim,degree,dealii::VectorizedArray<double> > variable_list(data,userInputs.varInfoListLHS,userInputs.varChangeInfoListLHS);
 
 	//loop over cells
 	for (unsigned int cell=cell_range.first; cell<cell_range.second; ++cell){
@@ -66,5 +66,4 @@ void  MultiPhysicsBVP<dim,degree>::getLHS(const MatrixFree<dim,double> &data,
 
 	}
 }
-
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

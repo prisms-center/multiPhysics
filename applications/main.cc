@@ -7,16 +7,14 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-//using namespace std;
 
 #include "../../include/crystalPlasticity.h"
 
-// Header file for postprocessing that may or may not exist
-//#ifdef POSTPROCESS_FILE_EXISTS
-#include "../../src/customPDE/postprocess.cc"
-//#else
-//void variableAttributeLoader::loadPostProcessorVariableAttributes(){}
-//#endif
+// Header files for user-defined PF application functions
+#include "customPDE.h"
+#include "ICs_and_BCs.cc"
+#include "equations.cc"
+#include "postprocess.cc"
 
 //main
 int main (int argc, char **argv)
@@ -45,7 +43,8 @@ int main (int argc, char **argv)
       inputFileReader input_file_reader(parameter_file_pf,variable_attributes);
       userInputParameters_pf<3> userInputs_pf(input_file_reader,input_file_reader.parameter_handler,variable_attributes);
 
-      crystalPlasticity<3> problem(userInputs_pf, userInputs_cp);
+      customPDE<3,1> pf_problem(userInputs_pf, userInputs_cp);
+      crystalPlasticity<3> problem(userInputs_pf, userInputs_cp, pf_problem);
 
       //reading materials atlas files
       
@@ -60,7 +59,7 @@ int main (int argc, char **argv)
       
       problem.orientations.loadOrientationVector(userInputs_cp.grainOrientationsFile, userInputs_cp.enableMultiphase, userInputs_cp.additionalVoxelInfo);
 
-      problem.run ();
+      problem.run();
     }
   catch (std::exception &exc)
     {

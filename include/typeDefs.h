@@ -31,7 +31,7 @@
 //#include <deal.II/distributed/solution_transfer.h>
 //#include <deal.II/grid/manifold_lib.h>
 
-//define data types
+//define PF data types
 #ifndef scalarType_pf
 typedef dealii::VectorizedArray<double> scalarType_pf;
 #endif
@@ -40,7 +40,7 @@ typedef dealii::LinearAlgebra::distributed::Vector<double> vectorType_pf;
 #endif
 //define FE system types
 #ifndef typeScalar
-typedef dealii::FEEvaluation<dim,degree,degree+1,1,double>           typeScalar;
+typedef dealii::FEEvaluation<dim,degree,degree+1,1,double>  typeScalar;
 #endif
 #ifndef typeVector
 typedef dealii::FEEvaluation<dim,degree,degree+1,dim,double>  typeVector;

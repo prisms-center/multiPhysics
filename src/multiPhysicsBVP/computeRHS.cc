@@ -1,28 +1,28 @@
-//computeRHS() method for MultiPhysicsBVP class
+//computeRHS() method for MatrixFreePDE class
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include "../../include/variableContainer.h"
 
 //update RHS of each field
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::computeExplicitRHS(){
+void MatrixFreePDE<dim,degree>::computeExplicitRHS(){
   //log time
-  computing_timer_pf.enter_subsection("multiPhysicsBVP: computeRHS");
+  computing_timer.enter_subsection("matrixFreePDE: computeRHS");
 
   //call to integrate and assemble while clearing residual vecotrs
-  matrixFreeObject.cell_loop (&MultiPhysicsBVP<dim,degree>::getExplicitRHS, this, residualSet, solutionSet, true);
+  matrixFreeObject.cell_loop (&MatrixFreePDE<dim,degree>::getExplicitRHS, this, residualSet, solutionSet, true);
 
   //end log
-  computing_timer_pf.leave_subsection("multiPhysicsBVP: computeRHS");
+  computing_timer.leave_subsection("matrixFreePDE: computeRHS");
 }
 
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::getExplicitRHS(const MatrixFree<dim,double> &data,
+void MatrixFreePDE<dim,degree>::getExplicitRHS(const MatrixFree<dim,double> &data,
                                         std::vector<vectorType_pf*> &dst,
                                         const std::vector<vectorType_pf*> &src,
                                         const std::pair<unsigned int,unsigned int> &cell_range) const{
 
-    variableContainer<dim,degree,dealii::VectorizedArray<double> > variable_list(data,userInputs_pf.varInfoListExplicitRHS);
+    variableContainer<dim,degree,dealii::VectorizedArray<double> > variable_list(data,userInputs.varInfoListExplicitRHS);
 
     //loop over cells
     for (unsigned int cell=cell_range.first; cell<cell_range.second; ++cell){
@@ -48,24 +48,24 @@ void MultiPhysicsBVP<dim,degree>::getExplicitRHS(const MatrixFree<dim,double> &d
 
 //update RHS of each field
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::computeNonexplicitRHS(){
+void MatrixFreePDE<dim,degree>::computeNonexplicitRHS(){
   //log time
-  computing_timer_pf.enter_subsection("multiPhysicsBVP: computeRHS");
+  computing_timer.enter_subsection("MatrixFreePDE: computeRHS");
 
   //call to integrate and assemble while clearing residual vecotrs
-  matrixFreeObject.cell_loop (&MultiPhysicsBVP<dim,degree>::getNonexplicitRHS, this, residualSet, solutionSet, true);
+  matrixFreeObject.cell_loop (&MatrixFreePDE<dim,degree>::getNonexplicitRHS, this, residualSet, solutionSet, true);
 
   //end log
-  computing_timer_pf.leave_subsection("multiPhysicsBVP: computeRHS");
+  computing_timer.leave_subsection("MatrixFreePDE: computeRHS");
 }
 
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::getNonexplicitRHS(const MatrixFree<dim,double> &data,
+void MatrixFreePDE<dim,degree>::getNonexplicitRHS(const MatrixFree<dim,double> &data,
                                         std::vector<vectorType_pf*> &dst,
                                         const std::vector<vectorType_pf*> &src,
                                         const std::pair<unsigned int,unsigned int> &cell_range) const{
 
-    variableContainer<dim,degree,dealii::VectorizedArray<double> > variable_list(data,userInputs_pf.varInfoListNonexplicitRHS);
+    variableContainer<dim,degree,dealii::VectorizedArray<double> > variable_list(data,userInputs.varInfoListNonexplicitRHS);
 
     //loop over cells
     for (unsigned int cell=cell_range.first; cell<cell_range.second; ++cell){
@@ -89,4 +89,4 @@ void MultiPhysicsBVP<dim,degree>::getNonexplicitRHS(const MatrixFree<dim,double>
     }
 }
 
-    #include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

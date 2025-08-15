@@ -1,4 +1,4 @@
-#include "../../include/customPDE.h"
+#include "customPDE.h"
 // =================================================================================
 // Set the attributes of the postprocessing variables
 // =================================================================================
@@ -49,5 +49,3 @@ scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
 pp_variable_list.set_scalar_value_term_RHS(0, mu_twV);
 
 }
-
-#include "../../include/customPDE_template_instantiations.h"

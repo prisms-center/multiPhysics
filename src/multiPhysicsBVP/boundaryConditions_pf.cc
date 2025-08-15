@@ -1,6 +1,6 @@
 //methods to apply boundary conditons
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include "../../include/vectorBCFunction.h"
 #include "../../include/varBCs.h"
 #include "../../include/nonUniformDirichletBC.h"
@@ -9,7 +9,7 @@
 // Methods to apply non-zero Neumann BCs
 // =================================================================================
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::applyNeumannBCs(){
+void MatrixFreePDE<dim,degree>::applyNeumannBCs(){
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// NOTE: Currently this function doesn't work and it's call is commented out in solveIncrement.
 	// The result is off by almost exactly a factor of 100,000. I don't know what the issue is.
@@ -18,7 +18,7 @@ void MultiPhysicsBVP<dim,degree>::applyNeumannBCs(){
 	// Check to the BC for the current field
 	unsigned int starting_BC_list_index = 0;
 	for (unsigned int i=0; i<currentFieldIndex; i++){
-		if (userInputs_pf.var_type[i] == SCALAR){
+		if (userInputs.var_type[i] == SCALAR){
 			starting_BC_list_index++;
 		}
 		else {
@@ -26,9 +26,9 @@ void MultiPhysicsBVP<dim,degree>::applyNeumannBCs(){
 		}
 	}
 
-	if (userInputs_pf.var_type[currentFieldIndex] == SCALAR){
+	if (userInputs.var_type[currentFieldIndex] == SCALAR){
 		for (unsigned int direction = 0; direction < 2*dim; direction++){
-			if (userInputs_pf.BC_list[starting_BC_list_index].var_BC_type[direction] == NEUMANN){
+			if (userInputs.BC_list[starting_BC_list_index].var_BC_type[direction] == NEUMANN){
 
 				typename DoFHandler<dim>::active_cell_iterator cell = dofHandlersSet[0]->begin_active(), endc = dofHandlersSet[0]->end();
 				FESystem<dim>* fe= FESet[currentFieldIndex];
@@ -46,7 +46,7 @@ void MultiPhysicsBVP<dim,degree>::applyNeumannBCs(){
 								fe_face_values.reinit (cell, f);
 								cell_rhs=0.0;
 								for (unsigned int q_point=0; q_point<n_face_q_points; ++q_point){
-									double neumann_value = userInputs_pf.BC_list[starting_BC_list_index].var_BC_val[direction];
+									double neumann_value = userInputs.BC_list[starting_BC_list_index].var_BC_val[direction];
 									for (unsigned int i=0; i<dofs_per_cell; ++i){
 										cell_rhs(i) += (neumann_value * fe_face_values.shape_value(i,q_point) * fe_face_values.JxW(q_point));
 									}
@@ -72,13 +72,13 @@ void MultiPhysicsBVP<dim,degree>::applyNeumannBCs(){
 // Methods to apply non-zero Dirichlet BCs
 // =================================================================================
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::applyDirichletBCs_pf(){
+void MatrixFreePDE<dim,degree>::applyDirichletBCs(){
 	// First, get the variable index of the current field
 	  unsigned int starting_BC_list_index = 0;
 
 	  for (unsigned int i=0; i<currentFieldIndex; i++){
 
-		  if (userInputs_pf.var_type[i] == SCALAR){
+		  if (userInputs.var_type[i] == SCALAR){
 			  starting_BC_list_index++;
 		  }
 		  else {
@@ -86,17 +86,17 @@ void MultiPhysicsBVP<dim,degree>::applyDirichletBCs_pf(){
 		  }
 	  }
 
-	  if (userInputs_pf.var_type[currentFieldIndex] == SCALAR){
+	  if (userInputs.var_type[currentFieldIndex] == SCALAR){
 		  for (unsigned int direction = 0; direction < 2*dim; direction++){
-			  if (userInputs_pf.BC_list[starting_BC_list_index].var_BC_type[direction] == DIRICHLET){
+			  if (userInputs.BC_list[starting_BC_list_index].var_BC_type[direction] == DIRICHLET){
 				  VectorTools::interpolate_boundary_values (*dofHandlersSet[currentFieldIndex],\
-						  direction, Functions::ConstantFunction<dim>(userInputs_pf.BC_list[starting_BC_list_index].var_BC_val[direction],1), *(AffineConstraints<double>*) \
+						  direction, Functions::ConstantFunction<dim>(userInputs.BC_list[starting_BC_list_index].var_BC_val[direction],1), *(AffineConstraints<double>*) \
 						  constraintsDirichletSet[currentFieldIndex]);
 
 			  }
-			  else if (userInputs_pf.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+			  else if (userInputs.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
 				  VectorTools::interpolate_boundary_values (*dofHandlersSet[currentFieldIndex],\
-  						direction, NonUniformDirichletBC<dim,degree>(currentFieldIndex,direction,currentTime_pf,this), *(AffineConstraints<double>*) \
+  						direction, NonUniformDirichletBC<dim,degree>(currentFieldIndex,direction,currentTime,this), *(AffineConstraints<double>*) \
   						constraintsDirichletSet[currentFieldIndex]);
 			  }
 		  }
@@ -106,12 +106,12 @@ void MultiPhysicsBVP<dim,degree>::applyDirichletBCs_pf(){
 
 			  std::vector<double> BC_values;
 			  for (unsigned int component=0; component < dim; component++){
-				  BC_values.push_back(userInputs_pf.BC_list[starting_BC_list_index+component].var_BC_val[direction]);
+				  BC_values.push_back(userInputs.BC_list[starting_BC_list_index+component].var_BC_val[direction]);
 			  }
 
 			  std::vector<bool> mask;
 			  for (unsigned int component=0; component < dim; component++){
-				  if (userInputs_pf.BC_list[starting_BC_list_index+component].var_BC_type[direction] == DIRICHLET){
+				  if (userInputs.BC_list[starting_BC_list_index+component].var_BC_type[direction] == DIRICHLET){
 					  mask.push_back(true);
 				  }
 				  else {
@@ -126,7 +126,7 @@ void MultiPhysicsBVP<dim,degree>::applyDirichletBCs_pf(){
 				// Mask again, this time for non-uniform Dirichlet BCs
 			  mask.clear();
 			  for (unsigned int component=0; component < dim; component++){
-				  if (userInputs_pf.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+				  if (userInputs.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
 					  mask.push_back(true);
 				  }
 				  else {
@@ -135,10 +135,10 @@ void MultiPhysicsBVP<dim,degree>::applyDirichletBCs_pf(){
 			  }
 
 			  // VectorTools::interpolate_boundary_values (*dofHandlersSet[currentFieldIndex],\
-				//   direction, NonUniformDirichletBC<dim,degree>(currentFieldIndex,direction,currentTime_pf,this), *(AffineConstraints<double>*) \
+				//   direction, NonUniformDirichletBC<dim,degree>(currentFieldIndex,direction,currentTime,this), *(AffineConstraints<double>*) \
 				//   constraintsDirichletSet[currentFieldIndex],mask);
                 VectorTools::interpolate_boundary_values (*dofHandlersSet[currentFieldIndex],\
-                 direction, NonUniformDirichletBCVector<dim,degree>(currentFieldIndex,direction,currentTime_pf,this), *(AffineConstraints<double>*) \
+                 direction, NonUniformDirichletBCVector<dim,degree>(currentFieldIndex,direction,currentTime,this), *(AffineConstraints<double>*) \
                  constraintsDirichletSet[currentFieldIndex],mask);
 
 
@@ -146,34 +146,34 @@ void MultiPhysicsBVP<dim,degree>::applyDirichletBCs_pf(){
 	  }
 }
 
-// Based on the contents of BC_list, mark faces on the triangulation_pf as periodic
+// Based on the contents of BC_list, mark faces on the triangulation as periodic
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::setPeriodicity_pf(){
-	std::vector<GridTools::PeriodicFacePair<typename parallel::distributed::Triangulation<dim>::cell_iterator> > periodicity_vector;
+void MatrixFreePDE<dim,degree>::setPeriodicity() {
+	  std::vector<GridTools::PeriodicFacePair<typename parallel::distributed::Triangulation<dim>::cell_iterator> > periodicity_vector;
 		for (int i=0; i<dim; ++i){
 			bool periodic_pair = false;
-			for (unsigned int field_num=0; field_num < userInputs_pf.BC_list.size(); field_num++){
-				if (userInputs_pf.BC_list[field_num].var_BC_type[2*i] == PERIODIC){
+			for (unsigned int field_num=0; field_num < userInputs.BC_list.size(); field_num++){
+				if (userInputs.BC_list[field_num].var_BC_type[2*i] == PERIODIC){
 					periodic_pair = true;
 				}
 			}
 			if (periodic_pair == true){
-				GridTools::collect_periodic_faces(triangulation_pf, /*b_id1*/ 2*i, /*b_id2*/ 2*i+1,
+				GridTools::collect_periodic_faces(triangulation, /*b_id1*/ 2*i, /*b_id2*/ 2*i+1,
 								/*direction*/ i, periodicity_vector);
 			}
 		}
 
-		triangulation_pf.add_periodicity(periodicity_vector);
+		triangulation.add_periodicity(periodicity_vector);
 		pcout << "periodic facepairs: " << periodicity_vector.size() << std::endl;
 }
 
 // Set constraints to enforce periodic boundary conditions
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::setPeriodicityConstraints_pf(AffineConstraints<double>* constraints, const DoFHandler<dim>* dof_handler) const {
+void MatrixFreePDE<dim,degree>::setPeriodicityConstraints(AffineConstraints<double>* constraints, const DoFHandler<dim>* dof_handler) const {
 	// First, get the variable index of the current field
 		unsigned int starting_BC_list_index = 0;
 		for (unsigned int i=0; i<currentFieldIndex; i++){
-			if (userInputs_pf.var_type[i] == SCALAR){
+			if (userInputs.var_type[i] == SCALAR){
 				starting_BC_list_index++;
 			}
 			else {
@@ -183,7 +183,7 @@ void MultiPhysicsBVP<dim,degree>::setPeriodicityConstraints_pf(AffineConstraints
 
 		std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> > periodicity_vector;
 	    for (int i=0; i<dim; ++i){
-	    	if (userInputs_pf.BC_list[starting_BC_list_index].var_BC_type[2*i] == PERIODIC){
+	    	if (userInputs.BC_list[starting_BC_list_index].var_BC_type[2*i] == PERIODIC){
 	    		GridTools::collect_periodic_faces(*dof_handler, /*b_id1*/ 2*i, /*b_id2*/ 2*i+1,
 	    				/*direction*/ i, periodicity_vector);
 	    	}
@@ -198,14 +198,14 @@ void MultiPhysicsBVP<dim,degree>::setPeriodicityConstraints_pf(AffineConstraints
 // Determine which (if any) components of the current field have rigid body modes (i.e no Dirichlet BCs) if the
 // equation is elliptic
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::getComponentsWithRigidBodyModes( std::vector<int> & rigidBodyModeComponents) const {
+void MatrixFreePDE<dim,degree>::getComponentsWithRigidBodyModes( std::vector<int> & rigidBodyModeComponents) const {
 	// Rigid body modes only matter for elliptic equations
-		if (userInputs_pf.var_eq_type[currentFieldIndex] == IMPLICIT_TIME_DEPENDENT || userInputs_pf.var_eq_type[currentFieldIndex] == TIME_INDEPENDENT){
+		if (userInputs.var_eq_type[currentFieldIndex] == IMPLICIT_TIME_DEPENDENT || userInputs.var_eq_type[currentFieldIndex] == TIME_INDEPENDENT){
 
 			// First, get the variable index of the current field
 			unsigned int starting_BC_list_index = 0;
 			for (unsigned int i=0; i<currentFieldIndex; i++){
-				if (userInputs_pf.var_type[i] == SCALAR){
+				if (userInputs.var_type[i] == SCALAR){
 					starting_BC_list_index++;
 				}
 				else {
@@ -215,7 +215,7 @@ void MultiPhysicsBVP<dim,degree>::getComponentsWithRigidBodyModes( std::vector<i
 
 			// Get number of components of the field
 			unsigned int num_components = 1;
-			if (userInputs_pf.var_type[currentFieldIndex] == VECTOR){
+			if (userInputs.var_type[currentFieldIndex] == VECTOR){
 				num_components = dim;
 			}
 
@@ -224,7 +224,7 @@ void MultiPhysicsBVP<dim,degree>::getComponentsWithRigidBodyModes( std::vector<i
 				bool rigidBodyMode = true;
 				for (unsigned int direction = 0; direction < 2*dim; direction++){
 
-					if (userInputs_pf.BC_list[starting_BC_list_index+component].var_BC_type[direction] == DIRICHLET){
+					if (userInputs.BC_list[starting_BC_list_index+component].var_BC_type[direction] == DIRICHLET){
 						rigidBodyMode = false;
 					}
 
@@ -239,7 +239,7 @@ void MultiPhysicsBVP<dim,degree>::getComponentsWithRigidBodyModes( std::vector<i
 
 // Set constraints to pin the solution if there are no Dirichlet BCs for a component of a variable in an elliptic equation
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::setRigidBodyModeConstraints(const std::vector<int> rigidBodyModeComponents, AffineConstraints<double>* constraints, const DoFHandler<dim>* dof_handler) const {
+void MatrixFreePDE<dim,degree>::setRigidBodyModeConstraints(const std::vector<int> rigidBodyModeComponents, AffineConstraints<double>* constraints, const DoFHandler<dim>* dof_handler) const {
 
 	if ( rigidBodyModeComponents.size() > 0 ){
 
@@ -272,4 +272,5 @@ void MultiPhysicsBVP<dim,degree>::setRigidBodyModeConstraints(const std::vector<
    }
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+
+#include "../../include/matrixFreePDE_template_instantiations.h"

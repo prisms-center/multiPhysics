@@ -1,19 +1,21 @@
 #ifndef CUSTOMPDE_H
 #define CUSTOMPDE_H
 
-#include "multiPhysicsBVP.h"
+#include "matrixFreePDE.h"
+
+// PRISMS-Plasticity headers
+#include "userInputParameters_cp.h"
 
 template <int dim, int degree>
-class customPDE: public MultiPhysicsBVP<dim,degree>
+class customPDE : public MatrixFreePDE<dim,degree>
 {
 public:
-    // Original Constructor
-        //customPDE(userInputParameters<dim> _userInputs): MatrixFreePDE<dim,degree>(_userInputs) , userInputs(_userInputs) {};
-        //New Constructor
-        //customPDE(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp);
-    // Constructor definition inside the class
-    customPDE(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp)
-        : MultiPhysicsBVP<dim, degree>(_userInputs_pf, _userInputs_cp), userInputs_pf(_userInputs_pf) 
+    // Constructor
+    customPDE(userInputParameters_pf<dim> _userInputs_pf,
+              userInputParameters_cp & _userInputs_cp)
+        : MatrixFreePDE<dim, degree>(_userInputs_pf, _userInputs_cp)
+        , userInputs_pf(_userInputs_pf)
+        , userInputs_cp(_userInputs_cp)
     {
         dealii::Tensor<1, dim> e_X = td;
         dealii::Tensor<1, dim> e_Y = tn;
@@ -158,47 +160,47 @@ public:
         //Average equilibrium interface width
         del0 = std::sqrt(2.0*(K[0][0]+K[1][1])/delf_tw);
     }
+
     // Function to set the initial conditions (in ICs_and_BCs.h)
-    void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC);
+    void setInitialCondition(const dealii::Point<dim> &p,
+                             const unsigned int index,
+                             double & scalar_IC,
+                             dealii::Vector<double> & vector_IC) override;
 
     // Function to set the non-uniform Dirichlet boundary conditions (in ICs_and_BCs.h)
-    void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC);
-
-    // Override run function
-    void run() override {}
-
-    void getElementalValues(FEValues<dim>& fe_values, unsigned int dofs_per_cell, unsigned int num_quad_points, FullMatrix<double>& elementalJacobian, Vector<double>&elementalResidual) override {}
-
-    // ================================================================
-    // Methods specific to this subclass
-    // ================================================================
-
-    // Function to set postprocessing expressions (in postprocess.h)
-    //#ifdef POSTPROCESS_FILE_EXISTS
-    void
-    postProcessedFields(
-        const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
-        variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
-        const dealii::Point<dim, dealii::VectorizedArray<double>>        q_point_loc) const;
-    //#endif
+    void setNonUniformDirichletBCs(const dealii::Point<dim> &p,
+                                   const unsigned int index,
+                                   const unsigned int direction,
+                                   const double time,
+                                   double & scalar_BC,
+                                   dealii::Vector<double> & vector_BC) override;
 
 private:
 	#include "typeDefs.h"
 
 	const userInputParameters_pf<dim> userInputs_pf;
+    const userInputParameters_cp& userInputs_cp;
 
 	// Function to set the RHS of the governing equations for explicit time dependent equations (in equations.cc)
-    void explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
+    void explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double>> & variable_list,
+		dealii::Point<dim, dealii::VectorizedArray<double>> q_point_loc) const override;
 
     // Function to set the RHS of the governing equations for all other equations (in equations.cc)
     void nonExplicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
+		dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override;
 
 	// Function to set the LHS of the governing equations (in equations.cc)
-		void equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const;
+	void equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
+		dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override;
 
+    // Function to set postprocessing expressions (in postprocess.h)
+    void postProcessedFields(const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
+        variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
+        const dealii::Point<dim, dealii::VectorizedArray<double>>        q_point_loc) const override;
+
+    // ================================================================
+    // Methods specific to this subclass
+    // ================================================================
 
 	// ================================================================
 	// Model constants specific to this subclass
@@ -214,14 +216,15 @@ private:
     double a0 = userInputs_pf.get_model_constant_double("a0");
     double ecc = userInputs_pf.get_model_constant_double("ecc");
     double regval = userInputs_pf.get_model_constant_double("regval");
-    
+
     //Declaring constants
     //Grad. energy coefficient and mobility tensors
     dealii::Tensor<2,dim> K;
     dealii::Tensor<2,dim> Ltens;
-		
+
     //Average equilibrium interface width
     double del0;
+
 	// ================================================================
 };
 

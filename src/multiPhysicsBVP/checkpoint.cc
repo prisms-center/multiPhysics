@@ -1,4 +1,4 @@
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 
@@ -8,8 +8,8 @@
 
 // Save a checkpoint
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::save_checkpoint(){
-    computing_timer_pf.enter_subsection("multiPhysicsBVP: save_checkpoint");
+void MatrixFreePDE<dim,degree>::save_checkpoint(){
+    computing_timer.enter_subsection("matrixFreePDE: save_checkpoint");
     unsigned int my_id = Utilities::MPI::this_mpi_process (MPI_COMM_WORLD);
 
     if (my_id == 0)
@@ -17,7 +17,7 @@ void MultiPhysicsBVP<dim,degree>::save_checkpoint(){
         // if we have previously written a snapshot, then keep the last
         // snapshot in case this one fails to save. Note: static variables
         // will only be initialized once per model run.
-        static bool previous_snapshot_exists = (userInputs_pf.resume_from_checkpoint == true);
+        static bool previous_snapshot_exists = (userInputs.resume_from_checkpoint == true);
 
         if (previous_snapshot_exists == true)
         {
@@ -37,8 +37,8 @@ void MultiPhysicsBVP<dim,degree>::save_checkpoint(){
 
         // First, get lists of scalar and vector fields
         std::vector<unsigned int> scalar_var_indices, vector_var_indices;
-        for (unsigned int var=0; var < userInputs_pf.number_of_variables; var++){
-            if (userInputs_pf.var_type[var] == SCALAR){
+        for (unsigned int var=0; var < userInputs.number_of_variables; var++){
+            if (userInputs.var_type[var] == SCALAR){
                 scalar_var_indices.push_back(var);
             }
             else {
@@ -49,8 +49,8 @@ void MultiPhysicsBVP<dim,degree>::save_checkpoint(){
         // Second, build one solution set list for scalars and one for vectors
         std::vector<const vectorType_pf *> solSet_transfer_scalars;
         std::vector<const vectorType_pf *> solSet_transfer_vectors;
-        for(unsigned int var = 0; var < userInputs_pf.number_of_variables; ++var){
-            if (userInputs_pf.var_type[var] == SCALAR){
+        for(unsigned int var = 0; var < userInputs.number_of_variables; ++var){
+            if (userInputs.var_type[var] == SCALAR){
                 solSet_transfer_scalars.push_back(solutionSet[var]);
             }
             else {
@@ -63,13 +63,13 @@ void MultiPhysicsBVP<dim,degree>::save_checkpoint(){
             parallel::distributed::SolutionTransfer<dim, vectorType_pf> system_trans_scalars (*dofHandlersSet[scalar_var_indices[0]]);
             system_trans_scalars.prepare_for_serialization(solSet_transfer_scalars);
 
-            triangulation_pf.save ("restart.mesh");
+            triangulation.save ("restart.mesh");
         }
         else if (scalar_var_indices.size() == 0 && vector_var_indices.size() > 0){
             parallel::distributed::SolutionTransfer<dim, vectorType_pf> system_trans_vectors (*dofHandlersSet[vector_var_indices[0]]);
             system_trans_vectors.prepare_for_serialization(solSet_transfer_vectors);
 
-            triangulation_pf.save ("restart.mesh");
+            triangulation.save ("restart.mesh");
         }
         else {
             parallel::distributed::SolutionTransfer<dim, vectorType_pf> system_trans_scalars (*dofHandlersSet[scalar_var_indices[0]]);
@@ -78,7 +78,7 @@ void MultiPhysicsBVP<dim,degree>::save_checkpoint(){
             parallel::distributed::SolutionTransfer<dim, vectorType_pf> system_trans_vectors (*dofHandlersSet[vector_var_indices[0]]);
             system_trans_vectors.prepare_for_serialization(solSet_transfer_vectors);
 
-            triangulation_pf.save ("restart.mesh");
+            triangulation.save ("restart.mesh");
         }
 
     }
@@ -87,20 +87,20 @@ void MultiPhysicsBVP<dim,degree>::save_checkpoint(){
     if (my_id == 0){
         std::ofstream time_info_file;
         time_info_file.open("restart.time.info");
-        time_info_file << currentIncrement_pf << " (currentIncrement_pf)\n";
-        time_info_file << currentTime_pf << " (currentTime_pf)\n";
+        time_info_file << currentIncrement << " (currentIncrement_pf)\n";
+        time_info_file << currentTime << " (currentTime_pf)\n";
         time_info_file.close();
     }
 
     pcout << "*** Checkpoint created! ***" << std::endl << std::endl;
-    computing_timer_pf.leave_subsection("multiPhysicsBVP: save_checkpoint");
+    computing_timer.leave_subsection("matrixFreePDE: save_checkpoint");
 
 }
 
 
 // Load from a previously created checkpoint
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::load_checkpoint_triangulation(){
+void MatrixFreePDE<dim,degree>::load_checkpoint_triangulation(){
 
     // First check existence of the two restart files for the mesh and field variables
     verify_checkpoint_file_exists("restart.mesh");
@@ -110,7 +110,7 @@ void MultiPhysicsBVP<dim,degree>::load_checkpoint_triangulation(){
 
     try
     {
-        triangulation_pf.load ("restart.mesh");
+        triangulation.load ("restart.mesh");
     }
     catch (...)
     {
@@ -121,14 +121,14 @@ void MultiPhysicsBVP<dim,degree>::load_checkpoint_triangulation(){
 
 // Load from a previously saved checkpoint
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::load_checkpoint_fields(){
+void MatrixFreePDE<dim,degree>::load_checkpoint_fields(){
 
     // Serializing all of the scalars together and all of the vectors together
 
     // First, get lists of scalar and vector fields
     std::vector<unsigned int> scalar_var_indices, vector_var_indices;
-    for (unsigned int var=0; var < userInputs_pf.number_of_variables; var++){
-        if (userInputs_pf.var_type[var] == SCALAR){
+    for (unsigned int var=0; var < userInputs.number_of_variables; var++){
+        if (userInputs.var_type[var] == SCALAR){
             scalar_var_indices.push_back(var);
         }
         else {
@@ -139,8 +139,8 @@ void MultiPhysicsBVP<dim,degree>::load_checkpoint_fields(){
     // Second, build one solution set list for scalars and one for vectors
     std::vector<vectorType_pf *> solSet_transfer_scalars;
     std::vector<vectorType_pf *> solSet_transfer_vectors;
-    for(unsigned int var = 0; var < userInputs_pf.number_of_variables; ++var){
-        if (userInputs_pf.var_type[var] == SCALAR){
+    for(unsigned int var = 0; var < userInputs.number_of_variables; ++var){
+        if (userInputs.var_type[var] == SCALAR){
             solSet_transfer_scalars.push_back(solutionSet[var]);
         }
         else {
@@ -162,7 +162,7 @@ void MultiPhysicsBVP<dim,degree>::load_checkpoint_fields(){
 
 // Load from a previously saved checkpoint
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::load_checkpoint_time_info(){
+void MatrixFreePDE<dim,degree>::load_checkpoint_time_info(){
 
     // Make sure that restart.time.info exists
     verify_checkpoint_file_exists("restart.time.info");
@@ -172,11 +172,11 @@ void MultiPhysicsBVP<dim,degree>::load_checkpoint_time_info(){
     std::string line;
     std::getline(time_info_file, line);
     line.erase(line.end()-19,line.end());
-    currentIncrement_pf = dealii::Utilities::string_to_int(line);
+    currentIncrement = dealii::Utilities::string_to_int(line);
 
     std::getline(time_info_file, line);
     line.erase(line.end()-14,line.end());
-    currentTime_pf = dealii::Utilities::string_to_double(line);
+    currentTime = dealii::Utilities::string_to_double(line);
     time_info_file.close();
 
 }
@@ -184,7 +184,7 @@ void MultiPhysicsBVP<dim,degree>::load_checkpoint_time_info(){
 
 // Move/rename a checkpoint file
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::move_file (const std::string &old_name, const std::string &new_name){
+void MatrixFreePDE<dim,degree>::move_file (const std::string &old_name, const std::string &new_name){
 
     int error = system (("mv " + old_name + " " + new_name).c_str());
 
@@ -213,7 +213,7 @@ void MultiPhysicsBVP<dim,degree>::move_file (const std::string &old_name, const 
 }
 
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::verify_checkpoint_file_exists(const std::string filename){
+void MatrixFreePDE<dim,degree>::verify_checkpoint_file_exists(const std::string &filename){
     std::ifstream in (filename);
     if (!in){
         AssertThrow (false,
@@ -226,4 +226,4 @@ void MultiPhysicsBVP<dim,degree>::verify_checkpoint_file_exists(const std::strin
         }
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

@@ -1,19 +1,19 @@
-//setNonlinearEqInitialGuess() method for MultiPhysicsBVP class
+//setNonlinearEqInitialGuess() method for MatrixFreePDE class
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include <deal.II/lac/solver_cg.h>
 
 //solve each time increment
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::setNonlinearEqInitialGuess(){
+void MatrixFreePDE<dim,degree>::setNonlinearEqInitialGuess(){
 
     //log time
-    computing_timer_pf.enter_subsection("multiPhysicsBVP: setNonlinearEqInitialGuess");
+    computing_timer.enter_subsection("matrixFreePDE: setNonlinearEqInitialGuess");
     Timer time;
     char buffer[200];
 
     for(unsigned int fieldIndex=0; fieldIndex<fields.size(); fieldIndex++){
-        if ( (userInputs_pf.var_eq_type[fieldIndex] == TIME_INDEPENDENT) && userInputs_pf.var_nonlinear[fieldIndex] && userInputs_pf.nonlinear_solver_parameters.getLaplaceInitializationFlag(fieldIndex)){
+        if ( (userInputs.var_eq_type[fieldIndex] == TIME_INDEPENDENT) && userInputs.var_nonlinear[fieldIndex] && userInputs.nonlinear_solver_parameters.getLaplaceInitializationFlag(fieldIndex)){
             currentFieldIndex = fieldIndex; // Used in computeLaplaceLHS()
 
             computeLaplaceRHS(fieldIndex);
@@ -26,14 +26,14 @@ void MultiPhysicsBVP<dim,degree>::setNonlinearEqInitialGuess(){
 
             //solver controls
             double tol_value;
-            if (userInputs_pf.linear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_RESIDUAL){
-                tol_value = userInputs_pf.linear_solver_parameters.getToleranceValue(fieldIndex);
+            if (userInputs.linear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_RESIDUAL){
+                tol_value = userInputs.linear_solver_parameters.getToleranceValue(fieldIndex);
             }
             else {
-                tol_value = userInputs_pf.linear_solver_parameters.getToleranceValue(fieldIndex)*residualSet[fieldIndex]->l2_norm();
+                tol_value = userInputs.linear_solver_parameters.getToleranceValue(fieldIndex)*residualSet[fieldIndex]->l2_norm();
             }
 
-            SolverControl solver_control(userInputs_pf.linear_solver_parameters.getMaxIterations(fieldIndex), tol_value);
+            SolverControl solver_control(userInputs.linear_solver_parameters.getMaxIterations(fieldIndex), tol_value);
 
             // Currently the only allowed solver is SolverCG, the SolverType input variable is a dummy
             SolverCG<vectorType_pf> solver(solver_control);
@@ -60,7 +60,7 @@ void MultiPhysicsBVP<dim,degree>::setNonlinearEqInitialGuess(){
                 *solutionSet[fieldIndex] += dU_vector;
             }
 
-            if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+            if (currentIncrement % userInputs.skip_print_steps==0){
                 double dU_norm;
                 if (fields[fieldIndex].type == SCALAR){
                     dU_norm = dU_scalar.l2_norm();
@@ -81,28 +81,28 @@ void MultiPhysicsBVP<dim,degree>::setNonlinearEqInitialGuess(){
 
     }
 
-    if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+    if (currentIncrement % userInputs.skip_print_steps==0){
         pcout << "wall time: " << time.wall_time() << "s\n";
     }
     //log time
-    computing_timer_pf.leave_subsection("multiPhysicsBVP: setNonlinearEqInitialGuess");
+    computing_timer.leave_subsection("matrixFreePDE: setNonlinearEqInitialGuess");
 
 }
 
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::computeLaplaceRHS(unsigned int fieldIndex){
+void MatrixFreePDE<dim,degree>::computeLaplaceRHS(unsigned int fieldIndex){
   //log time
-  computing_timer_pf.enter_subsection("multiPhysicsBVP: computeLaplaceRHS");
+  computing_timer.enter_subsection("matrixFreePDE: computeLaplaceRHS");
 
   //call to integrate and assemble while clearing residual vecotrs
-  matrixFreeObject.cell_loop (&MultiPhysicsBVP<dim,degree>::getLaplaceRHS, this, *residualSet[fieldIndex], *solutionSet[fieldIndex], true);
+  matrixFreeObject.cell_loop (&MatrixFreePDE<dim,degree>::getLaplaceRHS, this, *residualSet[fieldIndex], *solutionSet[fieldIndex], true);
 
   //end log
-  computing_timer_pf.leave_subsection("multiPhysicsBVP: computeLaplaceRHS");
+  computing_timer.leave_subsection("matrixFreePDE: computeLaplaceRHS");
 }
 
 template <int dim, int degree>
-void  MultiPhysicsBVP<dim,degree>::getLaplaceRHS(const MatrixFree<dim,double> &data,
+void  MatrixFreePDE<dim,degree>::getLaplaceRHS(const MatrixFree<dim,double> &data,
 				 vectorType_pf &dst,
 				 const vectorType_pf &src,
 				 const std::pair<unsigned int,unsigned int> &cell_range) const{
@@ -124,7 +124,7 @@ void  MultiPhysicsBVP<dim,degree>::getLaplaceRHS(const MatrixFree<dim,double> &d
 
 
 template <int dim, int degree>
-void  MultiPhysicsBVP<dim,degree>::getLaplaceLHS(const MatrixFree<dim,double> &data,
+void  MatrixFreePDE<dim,degree>::getLaplaceLHS(const MatrixFree<dim,double> &data,
 				 vectorType_pf &dst,
 				 const vectorType_pf &src,
 				 const std::pair<unsigned int,unsigned int> &cell_range) const{
@@ -144,4 +144,4 @@ void  MultiPhysicsBVP<dim,degree>::getLaplaceLHS(const MatrixFree<dim,double> &d
      }
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

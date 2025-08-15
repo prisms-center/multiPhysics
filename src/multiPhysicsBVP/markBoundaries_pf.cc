@@ -1,12 +1,12 @@
 //methods to mark boundaries
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include "../../include/initialConditions.h"
 
 //methods to mark boundaries
 //methods to mark boundaries
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::markBoundaries_pf(parallel::distributed::Triangulation<dim> & tria) const{
+void MatrixFreePDE<dim,degree>::markBoundaries(parallel::distributed::Triangulation<dim> & tria) const{
 
 	typename Triangulation<dim>::cell_iterator
 	cell = tria.begin (),
@@ -20,7 +20,7 @@ void MultiPhysicsBVP<dim,degree>::markBoundaries_pf(parallel::distributed::Trian
 				if ( std::fabs(cell->face(face_number)->center()(i) - (0)) < 1e-12 ){
 					cell->face(face_number)->set_boundary_id (2*i);
 				}
-				else if (std::fabs(cell->face(face_number)->center()(i) - (userInputs_pf.domain_size[i])) < 1e-12){
+				else if (std::fabs(cell->face(face_number)->center()(i) - (userInputs.domain_size[i])) < 1e-12){
 					cell->face(face_number)->set_boundary_id (2*i+1);
 				}
 
@@ -29,4 +29,4 @@ void MultiPhysicsBVP<dim,degree>::markBoundaries_pf(parallel::distributed::Trian
 	}
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"
