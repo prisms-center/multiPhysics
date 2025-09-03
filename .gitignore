@@ -79,6 +79,7 @@ DoxygenWarningLog.txt
 *.project
 *.cproject
 *.DS_Store
+*.vscode
 
 #Checkpoint and results files
 restart*

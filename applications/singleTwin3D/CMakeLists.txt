@@ -5,7 +5,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
 # Find deal.II installation
-FIND_PACKAGE(deal.II 8.3.0 REQUIRED
+FIND_PACKAGE(deal.II 9.4.0 REQUIRED
 	HINTS ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR})
 
 # Check to make sure deal.II is configured with p4est
@@ -49,7 +49,14 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-unused-parameter -Wno-extra")
 endif()
 
-ADD_EXECUTABLE(main main.cc )
+# Set location of files
+include_directories(${CMAKE_SOURCE_DIR}/../../include)
+include_directories(${CMAKE_SOURCE_DIR}/../../src)
+include_directories(${CMAKE_SOURCE_DIR})
+
+set(MAIN "${CMAKE_SOURCE_DIR}/../main.cc")
+
+ADD_EXECUTABLE(main ${MAIN})
 
 DEAL_II_SETUP_TARGET(main)
 

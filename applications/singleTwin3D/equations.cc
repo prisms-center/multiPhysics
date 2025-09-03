@@ -1,4 +1,4 @@
-#include "../../include/customPDE.h"
+#include "customPDE.h"
 
 // =================================================================================
 // Set the attributes of the primary field variables
@@ -54,39 +54,39 @@ void variableAttributeLoader::loadVariableAttributes(){
 // each variable in this list corresponds to the index given at the top of this file.
 
 template <int dim, int degree>
-void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-				 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
+void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double>> & variable_list,
+				 dealii::Point<dim, dealii::VectorizedArray<double>> q_point_loc) const {
 
-// --- Getting the values and derivatives of the model variables ---
+	// --- Getting the values and derivatives of the model variables ---
 
-// The order parameter and its derivatives
-scalarvalueType_pf n = variable_list.get_scalar_value(0);
-scalargradType_pf nx = variable_list.get_scalar_gradient(0);
+	// The order parameter and its derivatives
+	scalarvalueType_pf n = variable_list.get_scalar_value(0);
+	scalargradType_pf nx = variable_list.get_scalar_gradient(0);
 
-// The time derivative of the order parameter
-scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
+	// The time derivative of the order parameter
+	scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
 
-// The strain contribiution to the driving force
-scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
+	// The strain contribiution to the driving force
+	scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
 
-// --- Setting the expressions for the terms in the governing equations ---
+	// --- Setting the expressions for the terms in the governing equations ---
 
-scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
-scalargradType_pf kappagradn;
-kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1]+constV(K[0][2])*nx[2];
-kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1]+constV(K[1][2])*nx[2];
-kappagradn[2] = constV(K[2][0])*nx[0]+constV(K[2][1])*nx[1]+constV(K[2][2])*nx[2];
+	scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
+	scalargradType_pf kappagradn;
+	kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1]+constV(K[0][2])*nx[2];
+	kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1]+constV(K[1][2])*nx[2];
+	kappagradn[2] = constV(K[2][0])*nx[0]+constV(K[2][1])*nx[1]+constV(K[2][2])*nx[2];
 
-//Outward Normal vector
-scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
+	//Outward Normal vector
+	scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
 
-//Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
-scalarvalueType_pf L = constV(0.0);
-for(unsigned int i=0;i<dim;i++){
-	for(unsigned int j=0;j<dim;j++){
-		//Mobility tensor (rotated)
-		L = L + nvec[i]*nvec[j]*Ltens[i][j];
-	}
+	//Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
+	scalarvalueType_pf L = constV(0.0);
+	for(unsigned int i=0;i<dim;i++){
+		for(unsigned int j=0;j<dim;j++){
+			//Mobility tensor (rotated)
+			L = L + nvec[i]*nvec[j]*Ltens[i][j];
+		}
 }
 
 //Applying a filter to localize driving force to the twin boundary 
@@ -183,5 +183,3 @@ template <int dim, int degree>
 void customPDE<dim,degree>::equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 		dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
 }
-
-#include "../../include/customPDE_template_instantiations.h"

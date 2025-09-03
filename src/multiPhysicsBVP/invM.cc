@@ -1,11 +1,11 @@
-//computeInvM() method for MultiPhysicsBVP class
+//computeInvM() method for MatrixFreePDE class
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include <numeric>
 
 //compute inverse of the diagonal mass matrix and store in vector invM
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::computeInvM(){
+void MatrixFreePDE<dim,degree>::computeInvM(){
 	//initialize  invM
 	bool invMInitialized=false;
 	unsigned int parabolicFieldIndex=0;
@@ -19,7 +19,7 @@ void MultiPhysicsBVP<dim,degree>::computeInvM(){
 	}
 	//check if invM initialized
 	if (!invMInitialized){
-		pcout << "multiPhysicsBVP.h: no PARABOLIC field... hence setting parabolicFieldIndex to 0 and marching ahead withn invM computation\n";
+		pcout << "MatrixFreePDE.h: no PARABOLIC field... hence setting parabolicFieldIndex to 0 and marching ahead withn invM computation\n";
 		//exit(-1);
 	}
 
@@ -67,8 +67,8 @@ void MultiPhysicsBVP<dim,degree>::computeInvM(){
     // confused for a near zero value (which can happen if the domain size is 1e-6 or below)
     std::vector<double> min_element_length;
     for (unsigned int d=0; d<dim; d++){
-        int num_elements = userInputs_pf.subdivisions.at(d)*dealii::Utilities::fixed_power<2>(userInputs_pf.max_refinement_level);
-        min_element_length.push_back(userInputs_pf.domain_size[d]/double(num_elements));
+        int num_elements = userInputs.subdivisions.at(d)*dealii::Utilities::fixed_power<2>(userInputs.max_refinement_level);
+        min_element_length.push_back(userInputs.domain_size[d]/double(num_elements));
     }
     double min_cell_volume = std::accumulate(begin(min_element_length), end(min_element_length), 1, std::multiplies<double>());
 
@@ -88,4 +88,4 @@ void MultiPhysicsBVP<dim,degree>::computeInvM(){
 	pcout << "computed mass matrix (using FE space for field: " << parabolicFieldIndex << ")\n";
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

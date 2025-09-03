@@ -2,9 +2,8 @@
 #ifndef CRYSTALPLASTICITY_H
 #define CRYSTALPLASTICITY_H
 
-//dealii headers
 #include "multiPhysicsBVP.h"
-#include "customPDE.h"
+#include "matrixFreePDE.h"
 
 typedef struct {
   FullMatrix<double> m_alpha,n_alpha, eulerAngles2;
@@ -18,7 +17,9 @@ public:
   /**
   *crystalPlasticity class constructor.
   */
-  crystalPlasticity(userInputParameters_pf<dim> _userInputs_pf, userInputParameters_cp & _userInputs_cp);
+  crystalPlasticity(userInputParameters_pf<dim> _userInputs_pf,
+                    userInputParameters_cp & _userInputs_cp,
+                    MatrixFreePDE<dim,1> & _pf_object);
   /**
   *calculates the texture of the deformed polycrystal
   */
@@ -64,28 +65,9 @@ public:
   materialProperties properties;
   //orientation maps
   crystalOrientationsIO<dim> orientations;
-
-  //PRISMS-PF functions
-  void setInitialCondition(const dealii::Point<dim> &p, const unsigned int index, double & scalar_IC, dealii::Vector<double> & vector_IC) override {};
-  void setNonUniformDirichletBCs(const dealii::Point<dim> &p, const unsigned int index, const unsigned int direction, const double time, double & scalar_BC, dealii::Vector<double> & vector_BC) override {};
-  void explicitEquationRHS(variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
-  void nonExplicitEquationRHS(variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
-  void equationLHS(variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
-					 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
-  void postProcessedFields(const variableContainer<dim,1,dealii::VectorizedArray<double> > & variable_list,
-                                                              variableContainer<dim,1,dealii::VectorizedArray<double> > & pp_variable_list,
-                                                              const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const override {};
-  /**
-  Creating an instance of the main PRISMS-PF derived class - customPDE
-  */
-  //userInputParameters_pf<dim> userInputs_pf;
-  //customPDE<dim, 1> pf_object(userInputParameters_pf<dim> userInputs_pf);
-  customPDE<dim, 1> pf_object;
-
+  
   //Override the getter to return pf_object
-  virtual customPDE<dim, 1>& get_pf_object() override {
+  MatrixFreePDE<dim, 1>& get_pf_object() override {
       return pf_object;
   }
 
@@ -93,6 +75,31 @@ public:
   void run() override;
   
 private:
+  /**
+  Storing an instance of the main PRISMS-PF derived class - MatrixFreePDE
+  This object is intented to be an instance of customPDE, with relevant
+  member functions overwritten to specify the model equations.
+  */
+  MatrixFreePDE<dim, 1> &pf_object;
+
+  // Interface functions for PRISMS-PF
+  std::vector<const DoFHandler<dim>*>& getDofHandlersSet() override;
+
+  std::vector<vectorType_pf*>& getSolutionSet() override;
+
+  std::vector<const AffineConstraints<double>*>& getConstraintsDirichletSet() override;
+
+  std::vector<const AffineConstraints<double>*>& getConstraintsOtherSet() override;
+
+  void getOutputResults() override;
+
+  double& getCurrentTime_pf() override;
+
+  unsigned int& getCurrentIncrement_pf() override;
+
+  unsigned int& getCurrentOutput() override;
+
+  // Plasticity functions
 
   void init(unsigned int num_quad_points);
   void init2(unsigned int num_quad_points);

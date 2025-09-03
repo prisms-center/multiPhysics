@@ -1,4 +1,4 @@
-#include "../../include/customPDE.h"
+#include "customPDE.h"
 
 // ===========================================================================
 // FUNCTION FOR INITIAL CONDITIONS
@@ -172,5 +172,3 @@ void customPDE<dim,degree>::setNonUniformDirichletBCs(const dealii::Point<dim> &
     // -------------------------------------------------------------------------
 
 }
-
-#include "../../include/customPDE_template_instantiations.h"

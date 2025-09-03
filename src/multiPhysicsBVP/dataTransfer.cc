@@ -1,7 +1,7 @@
 // Data transfer and interpolation methods for multiPhysicsBVP class
 
 #include "../../include/multiPhysicsBVP.h"
-#include "customPDE.h"
+#include "../../include/matrixFreePDE.h"
 
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/fe_field_function.h>
@@ -10,7 +10,7 @@
 
 template <int dim, int degree>
 void MultiPhysicsBVP<dim, degree>::interpolate_order_parameter(
-    customPDE<dim, 1> &pf_obj,
+    MatrixFreePDE<dim, 1> &pf_obj,
     const DoFHandler<dim> &dofHandler_Scalar,
     const Quadrature<dim> &quadrature,
     std::vector<std::vector<std::vector<double>>> &twinfraction_iter1,
@@ -93,7 +93,7 @@ void MultiPhysicsBVP<dim, degree>::interpolate_order_parameter(
 
 template <int dim, int degree>
 void MultiPhysicsBVP<dim, degree>::interpolate_twin_energy(
-    customPDE<dim, 1> &pf_obj,
+    MatrixFreePDE<dim, 1> &pf_obj,
     const DoFHandler<dim> &dofHandler_Scalar) 
 {
   // Obtaining own and locally_relevant dofs from CPFE solution
@@ -111,7 +111,7 @@ void MultiPhysicsBVP<dim, degree>::interpolate_twin_energy(
   // Define object fe_function_3 with CPFE vector
   Functions::FEFieldFunction<dim,vectorType_cp> fe_function_3(
       dofHandler_Scalar, temp_vector_cp);
-  pcout << "\nCreated fe_function_3 object " << std::endl;
+  pf_obj.pcout << "\nCreated fe_function_3 object " << std::endl;
 
   //Obtaining owned dofs of pf_obj.getDofHandlersSet()[2]
   const auto &owned_dofs = pf_obj.getDofHandlersSet()[2]->locally_owned_dofs();
@@ -124,7 +124,7 @@ void MultiPhysicsBVP<dim, degree>::interpolate_twin_energy(
 
   //Reinit solution_pf
   solution_pf.reinit(owned_dofs, relevant_dofs, MPI_COMM_WORLD);
-  pcout << "\nReinit of solution_pf successful " << std::endl;
+  pf_obj.pcout << "\nReinit of solution_pf successful " << std::endl;
 
   // Interpolate values from CPFE into solution_pf using fe_function_3
   VectorTools::interpolate(*pf_obj.getDofHandlersSet()[2], fe_function_3, 
@@ -132,10 +132,9 @@ void MultiPhysicsBVP<dim, degree>::interpolate_twin_energy(
 
   //Copy values solution_pf into *pf_obj.getSolutionSet()[2]
   *pf_obj.getSolutionSet()[2] = solution_pf;
-  pcout << "\nInterpolation of twin energy complete" << std::endl;
+  pf_obj.pcout << "\nInterpolation of twin energy complete" << std::endl;
   // ***** End of of twin energy complete! ******
 }
 
-
-
 #include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

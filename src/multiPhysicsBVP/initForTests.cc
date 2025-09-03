@@ -1,10 +1,10 @@
-//initForTests() method for MultiPhysicsBVP class
+//initForTests() method for MatrixFreePDE class
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include <deal.II/grid/grid_generator.h>
 
 template <int dim, int degree>
- void MultiPhysicsBVP<dim,degree>::initForTests(){
+ void MatrixFreePDE<dim,degree>::initForTests(std::vector<Field<dim>> _fields){
 
    //creating mesh
    std::vector<unsigned int> subdivisions;
@@ -17,13 +17,13 @@ template <int dim, int degree>
    }
 
    if (dim == 3){
-   GridGenerator::subdivided_hyper_rectangle (triangulation_pf, subdivisions, Point<dim>(), Point<dim>(1,1,1));
+   GridGenerator::subdivided_hyper_rectangle (triangulation, subdivisions, Point<dim>(), Point<dim>(1,1,1));
    }
    else if (dim == 2){
-   GridGenerator::subdivided_hyper_rectangle (triangulation_pf, subdivisions, Point<dim>(), Point<dim>(1,1));
+   GridGenerator::subdivided_hyper_rectangle (triangulation, subdivisions, Point<dim>(), Point<dim>(1,1));
    }
    else {
-   GridGenerator::subdivided_hyper_rectangle (triangulation_pf, subdivisions, Point<dim>(), Point<dim>(1));
+   GridGenerator::subdivided_hyper_rectangle (triangulation, subdivisions, Point<dim>(), Point<dim>(1));
    }
 
    //setup system
@@ -34,7 +34,7 @@ template <int dim, int degree>
 
    //distribute DOFs
    DoFHandler<dim>* dof_handler;
-   dof_handler=new DoFHandler<dim>(triangulation_pf);
+   dof_handler=new DoFHandler<dim>(triangulation);
    dofHandlersSet.push_back(dof_handler);
    dofHandlersSet_nonconst.push_back(dof_handler);
    dof_handler->distribute_dofs (*fe);
@@ -77,4 +77,4 @@ template <int dim, int degree>
 
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"

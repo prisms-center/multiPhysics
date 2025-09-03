@@ -1,6 +1,6 @@
 // solve method for multiPhysicsBVP class
 #include "../../include/multiPhysicsBVP.h"
-#include "customPDE.h"
+#include "../../include/matrixFreePDE.h"
 
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/fe_field_function.h>
@@ -9,7 +9,8 @@
 
 // Loop over increments and solve each increment in PF and CPFE
 
-template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
+template <int dim, int degree>
+void MultiPhysicsBVP<dim, degree>::solve_cp() {
 
   //Section for first phase field step solution BEGINS
   //  Accessing pf_object through the virtual function
@@ -17,13 +18,13 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
   pcout << "\npf_obj access successful " << std::endl;
 
   //log time
-  computing_timer_pf.enter_subsection("multiPhysicsBVP: solve");
+  computing_timer_cp.enter_subsection("multiPhysicsBVP: solve");
   pcout << "\nsolving PF (first step)";
 
-  pcout << "\ncurrentIncrement_pf = " << pf_obj.getCurrentIncrement_pf() << "\n\n";
+  pcout << "\ncurrentIncrement_pf = " << pf_obj.getCurrentIncrement() << "\n\n";
 
   // Do an initial solve to set the elliptic fields
-  pf_obj.getSolveIncrement(true);
+  pf_obj.solveIncrement(true);
   
   //Apply constraints and update ghost values
   for(unsigned int fieldIndex=0; fieldIndex<pf_obj.fields.size(); fieldIndex++){     
@@ -39,10 +40,10 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
 
   // Increase the current increment from 0 to 1 now that the initial conditions have been output
   //currentIncrement_pf++;
-  pf_obj.getCurrentIncrement_pf() += 1;
+  pf_obj.getCurrentIncrement() += 1;
 
   // Cycle up to the proper output counter
-  while (userInputs_pf.outputTimeStepList.size() > 0 && userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] < pf_obj.getCurrentIncrement_pf()){
+  while (userInputs_pf.outputTimeStepList.size() > 0 && userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] < pf_obj.getCurrentIncrement()){
       //currentOutput++;
       pf_obj.getCurrentOutput() += 1;
   }
@@ -222,9 +223,9 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
         for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe; pf_step++){
           //Phase-Field regular step STARTS
           //increment current time
-          pf_obj.getCurrentTime_pf() += userInputs_pf.dtValue;
-          if (pf_obj.getCurrentIncrement_pf()%userInputs_pf.skip_print_steps==0){
-              pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement_pf() << "  time: " << pf_obj.getCurrentTime_pf() << "\n";
+          pf_obj.getCurrentTime() += userInputs_pf.dtValue;
+          if (pf_obj.getCurrentIncrement()%userInputs_pf.skip_print_steps==0){
+              pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement() << "  time: " << pf_obj.getCurrentTime() << "\n";
               //pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() << "\n";
           }
 
@@ -241,7 +242,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
 
           //solve time increment
           //pcout << "\n PF time-stepping temporarily disabled"  << std::endl;
-          pf_obj.getSolveIncrement(false);
+          pf_obj.solveIncrement(false);
 
           //if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement_pf()) {
           //Apply constraints and update ghost values
@@ -251,7 +252,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
             pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
           }
 
-          if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement_pf()){
+          if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] == pf_obj.getCurrentIncrement()){
           //Output Results
           pf_obj.getOutputResults();
           pf_obj.getCurrentOutput() += 1;
@@ -263,7 +264,7 @@ template <int dim, int degree> void MultiPhysicsBVP<dim, degree>::solve_cp() {
               currentCheckpoint++;
           }
           */
-          pf_obj.getCurrentIncrement_pf() += 1;
+          pf_obj.getCurrentIncrement() += 1;
           //Phase-Field regular step ENDS
         }
       }

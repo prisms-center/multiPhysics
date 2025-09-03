@@ -1,17 +1,17 @@
-//solveIncrement() method for MultiPhysicsBVP class
+//solveIncrement() method for MatrixFreePDE class
 
-#include "../../include/multiPhysicsBVP.h"
+#include "../../include/matrixFreePDE.h"
 #include <deal.II/lac/solver_cg.h>
 
 //solve each time increment
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
+void MatrixFreePDE<dim,degree>::solveIncrement(bool skip_time_dependent){
   
     bool field_has_nonuniform_Dirichlet_BCs;
     unsigned int starting_BC_list_index;
 
     //log time
-    computing_timer_pf.enter_subsection("multiPhysicsBVP: solveIncrements");
+    computing_timer.enter_subsection("matrixFreePDE: solveIncrements");
     Timer time;
     char buffer[200];
 
@@ -56,7 +56,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                 starting_BC_list_index = 0;
                 for (unsigned int i=0; i<currentFieldIndex; i++){
                   
-                  if (userInputs_pf.var_type[i] == SCALAR){
+                  if (userInputs.var_type[i] == SCALAR){
                     starting_BC_list_index++;
                   }
                   else {
@@ -64,9 +64,9 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                   }
                 }
                 //Checking for non-uniform Dirichlet BCs if the field is scalar
-                if (userInputs_pf.var_type[currentFieldIndex] == SCALAR){
+                if (userInputs.var_type[currentFieldIndex] == SCALAR){
                     for (unsigned int direction = 0; direction < 2*dim; direction++){
-                        if (userInputs_pf.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+                        if (userInputs.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
                           field_has_nonuniform_Dirichlet_BCs = true;
                           break;
                         }
@@ -75,7 +75,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                 //Checking for non-uniform Dirichlet BCs if the field is nonscalar
                     for (unsigned int direction = 0; direction < 2*dim; direction++){
                        for (unsigned int component=0; component < dim; component++){
-                          if (userInputs_pf.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+                          if (userInputs.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
                             field_has_nonuniform_Dirichlet_BCs = true;
                             break;
                           }
@@ -93,20 +93,20 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                     AffineConstraints<double> *constraintsDirichlet;
                     constraintsDirichlet=constraintsDirichletSet_nonconst.at(currentFieldIndex);
                     constraintsDirichlet->clear(); constraintsDirichlet->reinit(*locally_relevant_dofs);
-                    applyDirichletBCs_pf();
+                    applyDirichletBCs();
                     constraintsDirichlet->close();
                 }
                 //Distribute for Uniform or Non-Uniform Dirichlet BCs
                 constraintsDirichletSet[fieldIndex]->distribute(*solutionSet[fieldIndex]);
             }
 
-            //computing_timer_pf.enter_subsection("multiPhysicsBVP: updateExplicitGhosts");
+            //computing_timer.enter_subsection("matrixFreePDE: updateExplicitGhosts");
 
             solutionSet[fieldIndex]->update_ghost_values();
-            //computing_timer_pf.leave_subsection("multiPhysicsBVP: updateExplicitGhosts");
+            //computing_timer.leave_subsection("matrixFreePDE: updateExplicitGhosts");
 
             // Print update to screen and confirm that solution isn't nan
-            if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+            if (currentIncrement % userInputs.skip_print_steps==0){
                 double solution_L2_norm = solutionSet[fieldIndex]->l2_norm();
 
                 snprintf(buffer, sizeof(buffer), "field '%2s' [explicit solve]: current solution: %12.6e, current residual:%12.6e\n", \
@@ -148,7 +148,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
 
                 if ( (fields[fieldIndex].pdetype == IMPLICIT_TIME_DEPENDENT && !skip_time_dependent) || fields[fieldIndex].pdetype == TIME_INDEPENDENT){
 
-                    if (currentIncrement_pf%userInputs_pf.skip_print_steps==0 && userInputs_pf.var_nonlinear[fieldIndex]){
+                    if (currentIncrement % userInputs.skip_print_steps==0 && userInputs.var_nonlinear[fieldIndex]){
                         snprintf(buffer, sizeof(buffer), "field '%2s' [nonlinear solve]: current solution: %12.6e, current residual:%12.6e\n", \
                         fields[fieldIndex].name.c_str(),				\
                         solutionSet[fieldIndex]->l2_norm(),			\
@@ -169,14 +169,14 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
 
                     //solver controls
                     double tol_value;
-                    if (userInputs_pf.linear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_RESIDUAL){
-                        tol_value = userInputs_pf.linear_solver_parameters.getToleranceValue(fieldIndex);
+                    if (userInputs.linear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_RESIDUAL){
+                        tol_value = userInputs.linear_solver_parameters.getToleranceValue(fieldIndex);
                     }
                     else {
-                        tol_value = userInputs_pf.linear_solver_parameters.getToleranceValue(fieldIndex)*residualSet[fieldIndex]->l2_norm();
+                        tol_value = userInputs.linear_solver_parameters.getToleranceValue(fieldIndex)*residualSet[fieldIndex]->l2_norm();
                     }
 
-                    SolverControl solver_control(userInputs_pf.linear_solver_parameters.getMaxIterations(fieldIndex), tol_value);
+                    SolverControl solver_control(userInputs.linear_solver_parameters.getMaxIterations(fieldIndex), tol_value);
 
                     // Currently the only allowed solver is SolverCG, the SolverType input variable is a dummy
                     SolverCG<vectorType_pf> solver(solver_control);
@@ -196,12 +196,12 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                         pcout << "\nWarning: linear solver did not converge as per set tolerances. consider increasing the maximum number of iterations or decreasing the solver tolerance.\n";
                     }
 
-                    if (userInputs_pf.var_nonlinear[fieldIndex]){
+                    if (userInputs.var_nonlinear[fieldIndex]){
 
                         // Now that we have the calculated change in the solution, we need to select a damping coefficient
                         double damping_coefficient;
 
-                        if (userInputs_pf.nonlinear_solver_parameters.getBacktrackDampingFlag(fieldIndex)){
+                        if (userInputs.nonlinear_solver_parameters.getBacktrackDampingFlag(fieldIndex)){
                             vectorType_pf solutionSet_old = *solutionSet[fieldIndex];
                             double residual_old = residualSet[fieldIndex]->l2_norm();
 
@@ -225,22 +225,22 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
 
                                 double residual_new = residualSet[fieldIndex]->l2_norm();
 
-                                if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+                                if (currentIncrement%userInputs.skip_print_steps==0){
                                     pcout << "    Old residual: " << residual_old << " Damping Coeff: " << damping_coefficient << " New Residual: " << residual_new << std::endl;
                                 }
 
                                 // An improved approach would use the Armijo–Goldstein condition to ensure a sufficent decrease in the residual. This way is just scales the residual.
-                                if ( (residual_new < (residual_old*userInputs_pf.nonlinear_solver_parameters.getBacktrackResidualDecreaseCoeff(fieldIndex))) || damping_coefficient < 1.0e-4){
+                                if ( (residual_new < (residual_old*userInputs.nonlinear_solver_parameters.getBacktrackResidualDecreaseCoeff(fieldIndex))) || damping_coefficient < 1.0e-4){
                                     damping_coefficient_found = true;
                                 }
                                 else{
-                                    damping_coefficient *= userInputs_pf.nonlinear_solver_parameters.getBacktrackStepModifier(fieldIndex);
+                                    damping_coefficient *= userInputs.nonlinear_solver_parameters.getBacktrackStepModifier(fieldIndex);
                                     *solutionSet[fieldIndex] = solutionSet_old;
                                 }
                             }
                         }
                         else{
-                            damping_coefficient = userInputs_pf.nonlinear_solver_parameters.getDefaultDampingCoefficient(fieldIndex);
+                            damping_coefficient = userInputs.nonlinear_solver_parameters.getDefaultDampingCoefficient(fieldIndex);
 
                             if (fields[fieldIndex].type == SCALAR){
                                 solutionSet[fieldIndex]->sadd(1.0,damping_coefficient,dU_scalar);
@@ -250,7 +250,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                             }
                         }
 
-                        if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+                        if (currentIncrement%userInputs.skip_print_steps==0){
                             double dU_norm;
                             if (fields[fieldIndex].type == SCALAR){
                                 dU_norm = dU_scalar.l2_norm();
@@ -267,7 +267,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                         }
 
                         // Check to see if this individual variable has converged
-                        if (userInputs_pf.nonlinear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_SOLUTION_CHANGE){
+                        if (userInputs.nonlinear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_SOLUTION_CHANGE){
                             double diff;
 
                             if (fields[fieldIndex].type == SCALAR){
@@ -276,11 +276,11 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                             else {
                                 diff = dU_vector.l2_norm();
                             }
-                            if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
-                                pcout << "Relative difference between nonlinear iterations: " << diff << " " << nonlinear_it_index << " " << currentIncrement_pf << std::endl;
+                            if (currentIncrement%userInputs.skip_print_steps==0){
+                                pcout << "Relative difference between nonlinear iterations: " << diff << " " << nonlinear_it_index << " " << currentIncrement << std::endl;
                             }
 
-                            if (diff > userInputs_pf.nonlinear_solver_parameters.getToleranceValue(fieldIndex) && nonlinear_it_index < userInputs_pf.nonlinear_solver_parameters.getMaxIterations()){
+                            if (diff > userInputs.nonlinear_solver_parameters.getToleranceValue(fieldIndex) && nonlinear_it_index < userInputs.nonlinear_solver_parameters.getMaxIterations()){
                                 nonlinear_it_converged = false;
                             }
                         }
@@ -298,7 +298,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                                 *solutionSet[fieldIndex] += dU_vector;
                             }
 
-                            if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+                            if (currentIncrement%userInputs.skip_print_steps==0){
                                 double dU_norm;
                                 if (fields[fieldIndex].type == SCALAR){
                                     dU_norm = dU_scalar.l2_norm();
@@ -326,7 +326,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                         starting_BC_list_index = 0;
                         for (unsigned int i=0; i<currentFieldIndex; i++){
                         
-                        if (userInputs_pf.var_type[i] == SCALAR){
+                        if (userInputs.var_type[i] == SCALAR){
                             starting_BC_list_index++;
                         }
                         else {
@@ -334,9 +334,9 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                         }
                         }
                         //Checking for non-uniform Dirichlet BCs if the field is scalar
-                        if (userInputs_pf.var_type[currentFieldIndex] == SCALAR){
+                        if (userInputs.var_type[currentFieldIndex] == SCALAR){
                             for (unsigned int direction = 0; direction < 2*dim; direction++){
-                                if (userInputs_pf.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+                                if (userInputs.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
                                 field_has_nonuniform_Dirichlet_BCs = true;
                                 break;
                                 }
@@ -345,7 +345,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                         //Checking for non-uniform Dirichlet BCs if the field is nonscalar
                             for (unsigned int direction = 0; direction < 2*dim; direction++){
                             for (unsigned int component=0; component < dim; component++){
-                                if (userInputs_pf.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+                                if (userInputs.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
                                     field_has_nonuniform_Dirichlet_BCs = true;
                                     break;
                                 }
@@ -363,7 +363,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                             AffineConstraints<double> *constraintsDirichlet;
                             constraintsDirichlet=constraintsDirichletSet_nonconst.at(currentFieldIndex);
                             constraintsDirichlet->clear(); constraintsDirichlet->reinit(*locally_relevant_dofs);
-                            applyDirichletBCs_pf();
+                            applyDirichletBCs();
                             constraintsDirichlet->close();
                         }
                         //Distribute for Uniform or Non-Uniform Dirichlet BCs
@@ -373,10 +373,10 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                 }
                 else if (fields[fieldIndex].pdetype == AUXILIARY){
 
-                    if (userInputs_pf.var_nonlinear[fieldIndex] || nonlinear_it_index == 0){
+                    if (userInputs.var_nonlinear[fieldIndex] || nonlinear_it_index == 0){
 
                         // If the equation for this field is nonlinear, save the old solution
-                        if (userInputs_pf.var_nonlinear[fieldIndex]){
+                        if (userInputs.var_nonlinear[fieldIndex]){
                             if (fields[fieldIndex].type == SCALAR){
                                 dU_scalar = *solutionSet[fieldIndex];
                             }
@@ -409,7 +409,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                             starting_BC_list_index = 0;
                             for (unsigned int i=0; i<currentFieldIndex; i++){
                             
-                            if (userInputs_pf.var_type[i] == SCALAR){
+                            if (userInputs.var_type[i] == SCALAR){
                                 starting_BC_list_index++;
                             }
                             else {
@@ -417,9 +417,9 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                             }
                             }
                             //Checking for non-uniform Dirichlet BCs if the field is scalar
-                            if (userInputs_pf.var_type[currentFieldIndex] == SCALAR){
+                            if (userInputs.var_type[currentFieldIndex] == SCALAR){
                                 for (unsigned int direction = 0; direction < 2*dim; direction++){
-                                    if (userInputs_pf.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+                                    if (userInputs.BC_list[starting_BC_list_index].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
                                     field_has_nonuniform_Dirichlet_BCs = true;
                                     break;
                                     }
@@ -428,7 +428,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                             //Checking for non-uniform Dirichlet BCs if the field is nonscalar
                                 for (unsigned int direction = 0; direction < 2*dim; direction++){
                                 for (unsigned int component=0; component < dim; component++){
-                                    if (userInputs_pf.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
+                                    if (userInputs.BC_list[starting_BC_list_index+component].var_BC_type[direction] == NON_UNIFORM_DIRICHLET){
                                         field_has_nonuniform_Dirichlet_BCs = true;
                                         break;
                                     }
@@ -446,7 +446,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                                 AffineConstraints<double> *constraintsDirichlet;
                                 constraintsDirichlet=constraintsDirichletSet_nonconst.at(currentFieldIndex);
                                 constraintsDirichlet->clear(); constraintsDirichlet->reinit(*locally_relevant_dofs);
-                                applyDirichletBCs_pf();
+                                applyDirichletBCs();
                                 constraintsDirichlet->close();
                             }
                             //Distribute for Uniform or Non-Uniform Dirichlet BCs
@@ -455,7 +455,7 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                         solutionSet[fieldIndex]->update_ghost_values();
 
                         // Print update to screen
-                        if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+                        if (currentIncrement%userInputs.skip_print_steps==0){
                             snprintf(buffer, sizeof(buffer), "field '%2s' [auxiliary solve]: current solution: %12.6e, current residual:%12.6e\n", \
                             fields[fieldIndex].name.c_str(),				\
                             solutionSet[fieldIndex]->l2_norm(),			\
@@ -464,8 +464,8 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                         }
 
                         // Check to see if this individual variable has converged
-                        if (userInputs_pf.var_nonlinear[fieldIndex]){
-                            if (userInputs_pf.nonlinear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_SOLUTION_CHANGE){
+                        if (userInputs.var_nonlinear[fieldIndex]){
+                            if (userInputs.nonlinear_solver_parameters.getToleranceType(fieldIndex) == ABSOLUTE_SOLUTION_CHANGE){
 
                                 double diff;
 
@@ -477,11 +477,11 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
                                     dU_vector -= *solutionSet[fieldIndex];
                                     diff = dU_vector.l2_norm();
                                 }
-                                if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
-                                    pcout << "Relative difference between nonlinear iterations: " << diff << " " << nonlinear_it_index << " " << currentIncrement_pf << std::endl;
+                                if (currentIncrement % userInputs.skip_print_steps==0){
+                                    pcout << "Relative difference between nonlinear iterations: " << diff << " " << nonlinear_it_index << " " << currentIncrement << std::endl;
                                 }
 
-                                if (diff > userInputs_pf.nonlinear_solver_parameters.getToleranceValue(fieldIndex) && nonlinear_it_index < userInputs_pf.nonlinear_solver_parameters.getMaxIterations()){
+                                if (diff > userInputs.nonlinear_solver_parameters.getToleranceValue(fieldIndex) && nonlinear_it_index < userInputs.nonlinear_solver_parameters.getMaxIterations()){
                                     nonlinear_it_converged = false;
                                 }
 
@@ -507,12 +507,12 @@ void MultiPhysicsBVP<dim,degree>::solveIncrement(bool skip_time_dependent){
         }
     }
 
-    if (currentIncrement_pf%userInputs_pf.skip_print_steps==0){
+    if (currentIncrement % userInputs.skip_print_steps==0){
         pcout << "wall time: " << time.wall_time() << "s\n";
     }
     //log time
-    computing_timer_pf.leave_subsection("multiPhysicsBVP: solveIncrements");
+    computing_timer.leave_subsection("matrixFreePDE: solveIncrements");
 
 }
 
-#include "../../include/multiPhysicsBVP_template_instantiations.h"
+#include "../../include/matrixFreePDE_template_instantiations.h"
