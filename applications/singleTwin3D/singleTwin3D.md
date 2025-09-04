@@ -6,7 +6,7 @@ Consider a free energy expression of the form:
 
 $$
 \begin{align}
-\Pi(\eta, \nabla \eta) = \int_{\Omega} f(\eta) + \frac{\kappa}{2} \nabla \eta \cdot \nabla \eta ~dV 
+\mathcal{F}(\eta, \nabla \eta) = \int_{\Omega} f(\eta) + \frac{\kappa}{2} \nabla \eta \cdot \nabla \eta ~dV 
 \end{align}
 $$
 
@@ -17,7 +17,7 @@ Considering variations on the primal field $\eta$ of the from $\eta+\epsilon w$,
 
 $$
 \begin{align}
-\delta \Pi &=  \left. \frac{d}{d\epsilon} \int_{\Omega}  f(\eta+\epsilon w) +  \frac{\kappa}{2} \nabla  (\eta+\epsilon w)  \cdot  ~\nabla  (\eta+\epsilon w)   ~dV \right\vert_{\epsilon=0} \\
+\delta \mathcal{F} &=  \left. \frac{d}{d\epsilon} \int_{\Omega}  f(\eta+\epsilon w) +  \frac{\kappa}{2} \nabla  (\eta+\epsilon w)  \cdot  ~\nabla  (\eta+\epsilon w)   ~dV \right\vert_{\epsilon=0} \\
 &=  \int_{\Omega}   w f_{,\eta} +   \kappa \nabla w \nabla  \eta    ~dV \\
 &=  \int_{\Omega}   w \left( f_{,\eta} -  \kappa \Delta \eta \right)  ~dV  +   \int_{\partial \Omega}   w \kappa \nabla \eta \cdot n   ~dS
 \end{align}
