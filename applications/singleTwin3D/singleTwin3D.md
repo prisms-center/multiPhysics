@@ -1,4 +1,7 @@
-## PRISMS-PF: Allen-Cahn Dynamics
+## singleTwin3D: Evolution of a single $\{10\bar{1}2\}$ twin within a single crystal in 3D
+
+## Phase Field Model
+
 Consider a free energy expression of the form:
 
 $$
@@ -28,7 +31,7 @@ $$
 \end{align}
 $$
 
-## Kinetics
+### Kinetics
 Now the parabolic PDE for Allen-Cahn dynamics is given by:
 
 $$
@@ -39,7 +42,7 @@ $$
 
 where $M$ is the constant mobility.
 
-## Time discretization
+### Time discretization
 
 Considering forward Euler explicit time stepping, we have the time discretized kinetics equation:
 
@@ -49,7 +52,7 @@ $$
 \end{align}
 $$
 
-## Weak formulation
+### Weak formulation
 
 In the weak formulation, considering an arbitrary variation $w$, the above equation can be expressed as a residual equation:
 
@@ -72,4 +75,6 @@ r_{\eta x} = -\Delta t M \kappa\nabla \eta^{n}
 \end{align}
 $$
 
-The above values of $r_{\eta}$ and $r_{\eta x}$ are used to define the residuals in `applications/allen_cahn/equations.cc`.
+The above values of $r_{\eta}$ and $r_{\eta x}$ are used to define the residuals in `applications/singleTwin3D/equations.cc`.
+
+### CPFE model 
