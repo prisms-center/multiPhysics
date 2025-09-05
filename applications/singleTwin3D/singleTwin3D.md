@@ -1,80 +1,53 @@
-## singleTwin3D: Evolution of a single $\{10\bar{1}2\}$ twin within a single crystal in 3D
+## singleTwin3D: Evolution of a single $\{10\bar{1}2\}$ twin within a single crystal
+
+We employ a Phase-Field / Crystal Plasticity models coupling strategy similar to the one introduced by by Li et al. in Ref. [1]. 
 
 ## Phase Field Model
 
-Consider a free energy expression of the form:
-
+The total free energy of the system can be expressed as
 $$
-\begin{align}
-\mathcal{F}(\eta, \nabla \eta) = \int_{\Omega} f(\eta) + \frac{\kappa}{2} \nabla \eta \cdot \nabla \eta ~dV 
-\end{align}
+\mathcal{F} = \int_{\Omega} \left( f_{tw} + f_{grad}+ f_{el} \right)~dV, 
 $$
-
-where $\eta$ is the structural order parameter, and $\kappa$ is the gradient length scale parameter.
-
-### Variational treatment
-Considering variations on the primal field $\eta$ of the from $\eta+\epsilon w$, we have
-
+where $f_{tw}$ is a bulk energy density contribution defined as a double-well function with minima at values of the order parameter corresponding to the parent grain ($\eta=0$) and twin ($\eta=1$) phases,
 $$
-\begin{align}
-\delta \mathcal{F} &=  \left. \frac{d}{d\epsilon} \int_{\Omega}  f(\eta+\epsilon w) +  \frac{\kappa}{2} \nabla  (\eta+\epsilon w)  \cdot  ~\nabla  (\eta+\epsilon w)   ~dV \right\vert_{\epsilon=0} \\
-&=  \int_{\Omega}   w f_{,\eta} +   \kappa \nabla w \nabla  \eta    ~dV \\
-&=  \int_{\Omega}   w \left( f_{,\eta} -  \kappa \Delta \eta \right)  ~dV  +   \int_{\partial \Omega}   w \kappa \nabla \eta \cdot n   ~dS
-\end{align}
+f_{tw}=\Delta f_{tw}~\phi^2(1-\phi)^2.
 $$
-
-Assuming $\kappa \nabla \eta \cdot n = 0$, and using standard variational arguments on the equation $\delta \Pi =0$, we have the expression for chemical potential as
-
+The constant is $\Delta f_{tw}$ the energy barrier height between the parent crystal phase and the twin. The term $f_{grad}$ is an anisotropic contribution from the gradient of $\eta=1$ at twin boundaries, defined as
 $$
-\begin{align}
-\mu  = f_{,\eta} -  \kappa \Delta \eta
-\end{align}
+f_{grad}=\frac{1}{2} \nabla\phi\cdot\boldsymbol{\kappa}\cdot\nabla\phi,
+$$
+where $\boldsymbol{\kappa}$ is a second-order anisotropic tensor proportional to the direction and magnitude of the twin boundary energy. Finally, $f_{el}$ is an elastic energy density contribution expressed as
+$$
+f_{el}=\frac{1}{2}\mathbf{E}:\mathbb{C}:\mathbf{E}.
 $$
 
 ### Kinetics
-Now the parabolic PDE for Allen-Cahn dynamics is given by:
+The evolution of the twin boundary is described by Allen-Cahn dynamics:
 
 $$
 \begin{align}
-\frac{\partial \eta}{\partial t} = -M(f_{,\eta} - \kappa \Delta \eta)
+\frac{\partial \phi}{\partial t} = -\mathbf{M}\frac{\partial \mathcal{F}}{\partial \phi}
 \end{align}
 $$
 
-where $M$ is the constant mobility.
+where $\mathbf{M}$ is an anisotropic mobility tensor mobility.
+
+==Insert derivation of $\partial \mathcal{F} / \partial \phi$==
 
 ### Time discretization
 
 Considering forward Euler explicit time stepping, we have the time discretized kinetics equation:
 
-$$
-\begin{align}
-\eta^{n+1} = \eta^{n} - \Delta t M(f_{,\eta}^{n} - \kappa \Delta \eta^{n})
-\end{align}
-$$
+==Insert derivation==
 
 ### Weak formulation
 
 In the weak formulation, considering an arbitrary variation $w$, the above equation can be expressed as a residual equation:
 
-$$
-\begin{align}
-\int_{\Omega} w \eta^{n+1} ~dV &= \int_{\Omega} w \eta^{n} - w \Delta t M(f_{,\eta}^{n} - \kappa \Delta \eta^{n}) ~dV \\
-&= \int_{\Omega} w \left( \eta^{n} - \Delta t M f_{,\eta}^{n} \right) + \nabla w (-\Delta t M \kappa) \cdot (\nabla \eta^{n}) ~dV \quad [\kappa \nabla \eta \cdot n = 0 \quad \text{on} \quad \partial \Omega]
-\end{align}
-$$
+==Insert derivation==
 
-$$
-\begin{align}
-r_{\eta}= \eta^{n} - \Delta t M f_{,\eta}^{n} 
-\end{align}
-$$
-
-$$
-\begin{align}
-r_{\eta x} = -\Delta t M \kappa\nabla \eta^{n}
-\end{align}
-$$
-
-The above values of $r_{\eta}$ and $r_{\eta x}$ are used to define the residuals in `applications/singleTwin3D/equations.cc`.
+The above values of $r_{\phi}$ and $r_{\phi x}$ are used to define the residuals in `applications/singleTwin3D/equations.cc`.
 
 ### CPFE model 
+
+[1] G. Liu, H. Mo, J. Wang, and Y. Shen, Coupled crystal plasticity finite element-phase field model with kinetics-controlled twinning mechanism for hexagonal metals, Acta Mater. **202**, 399-416 (2021).
