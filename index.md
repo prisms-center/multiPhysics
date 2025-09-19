@@ -35,7 +35,7 @@ PRISMS-MP is released under the GNU Lesser General Public License (LGPL).
 
 ## General Links
 - [PRISMS Center homepage](http://www.prisms-center.org/#/home) <br>
-- [PRISMS-MP code repository](https://github.com/prisms-center/phaseField) <br>
+- [PRISMS-MP code repository](https://github.com/prisms-center/multiPhysics) <br>
 - [YouTube channel](https://www.youtube.com/channel/UCZXc3007JuBCGKDcneD_umA/playlists)
 - [Virtual Machine](http://www.prisms-center.org/#/ctools/software) (contains most of the PRISMS Center tools, including PRISMS-MP)
 
