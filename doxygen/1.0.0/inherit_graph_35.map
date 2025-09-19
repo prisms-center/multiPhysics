@@ -1,0 +1,17 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$class_p_r_i_s_m_s_1_1_p_simple_base.html" title=" " alt="" coords="5,138,199,194"/>
+<area shape="rect" id="Node000001" href="$class_p_r_i_s_m_s_1_1_quad__f.html" title=" " alt="" coords="273,5,396,31"/>
+<area shape="poly" id="edge30_Node000000_Node000001" title=" " alt="" coords="137,125,186,81,245,40,271,29,273,34,248,45,189,85,141,129"/>
+<area shape="rect" id="Node000002" href="$class_p_r_i_s_m_s_1_1_quad__grad__0.html" title=" " alt="" coords="255,55,414,80"/>
+<area shape="poly" id="edge31_Node000000_Node000002" title=" " alt="" coords="163,128,246,89,277,78,279,83,248,94,166,133"/>
+<area shape="rect" id="Node000003" href="$class_p_r_i_s_m_s_1_1_quad__grad__1.html" title=" " alt="" coords="255,104,414,130"/>
+<area shape="poly" id="edge32_Node000000_Node000003" title=" " alt="" coords="213,140,270,128,271,133,214,145"/>
+<area shape="rect" id="Node000004" href="$class_p_r_i_s_m_s_1_1_quad__hess__0__0.html" title=" " alt="" coords="247,153,422,179"/>
+<area shape="poly" id="edge33_Node000000_Node000004" title=" " alt="" coords="214,164,246,164,246,169,214,169"/>
+<area shape="rect" id="Node000005" href="$class_p_r_i_s_m_s_1_1_quad__hess__0__1.html" title=" " alt="" coords="247,203,422,228"/>
+<area shape="poly" id="edge34_Node000000_Node000005" title=" " alt="" coords="214,187,271,199,270,205,213,192"/>
+<area shape="rect" id="Node000006" href="$class_p_r_i_s_m_s_1_1_quad__hess__1__0.html" title=" " alt="" coords="247,252,422,278"/>
+<area shape="poly" id="edge35_Node000000_Node000006" title=" " alt="" coords="166,199,248,238,279,249,277,254,246,243,163,204"/>
+<area shape="rect" id="Node000007" href="$class_p_r_i_s_m_s_1_1_quad__hess__1__1.html" title=" " alt="" coords="247,301,422,327"/>
+<area shape="poly" id="edge36_Node000000_Node000007" title=" " alt="" coords="141,203,189,248,248,288,273,298,271,303,245,293,186,252,137,207"/>
+</map>

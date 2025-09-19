@@ -1,0 +1,6 @@
+var searchData=
+[
+  ['distance_5fto_5fneighbor_5fsharing_5fop_0',['distance_to_neighbor_sharing_op',['../class_simplified_grain_representation.html#ab8270e77c7d036f26bc97966c2541013',1,'SimplifiedGrainRepresentation']]],
+  ['dof1_1',['dof1',['../classstatic_condensation.html#a8e365c774a4ff8bacc0752dac973adcf',1,'staticCondensation']]],
+  ['dofs_5fper_5fcell_2',['dofs_per_cell',['../class_flood_filler.html#a9feb9326062c45e8311ec353830b73e8',1,'FloodFiller']]]
+];
