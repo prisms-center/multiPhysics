@@ -75,7 +75,7 @@ In the weak formulation, considering an arbitrary variation $\omega$, the above 
 $$
 \begin{align}
 \int_{\Omega} \omega \phi^{n+1} ~dV &= \int_{\Omega} \omega \left[ \phi^{n} - \Delta t M(4 \Delta f_{tw}~\phi^n (\phi^n-1) ( \phi^n-0.5) -\nabla\cdot(\pmb{\kappa}\nabla\phi^n) -\gamma_{tw}\tau^n_{tw})\right] ~dV \\
-&=\int_{\Omega}\omega~r_\phi~dV + \int_{\Omega}\nabla \omega\cdot \pmb{r}_{\phi x} ~dV,
+&=\int_{\Omega}\omega r_\phi~dV + \int_{\Omega}\nabla \omega\cdot \pmb{r}_{\phi x} ~dV,
 \end{align}
 $$
 
