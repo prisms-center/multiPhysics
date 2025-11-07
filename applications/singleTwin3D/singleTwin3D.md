@@ -21,13 +21,13 @@ $$
 The constant $\Delta f_{tw}$ is the energy barrier height between the parent crystal phase and the twin. The term $f_{grad}$ is an anisotropic contribution from the gradient of $\phi$ at twin boundaries, defined as
 
 $$
-f_{grad}=\frac{1}{2} \nabla\phi\cdot\pmb{\kappa}\cdot\nabla\phi,
+f_{grad}=\frac{1}{2} \nabla\phi\cdot \boldsymbol{\kappa} \cdot\nabla\phi,
 $$
 
-where $\pmb{\kappa}$ is a second-order anisotropic tensor proportional to the direction and magnitude of the twin boundary energy. Finally, $f_{el}$ is an elastic energy density contribution expressed as
+where $\mathbf{\kappa}$ is a second-order anisotropic tensor proportional to the direction and magnitude of the twin boundary energy. Finally, $f_{el}$ is an elastic energy density contribution expressed as
 
 $$
-f_{el}=\frac{1}{2}\pmb{E^e}:\mathbb{C}:\pmb{E^e},
+f_{el}=\frac{1}{2}\boldsymbol{E^e}:\mathbb{C}:\boldsymbol{E^e},
 $$
 
 where, $\mathbb{C}$, is the local elastic tensor, obtained via a linear interpolation between the value in the parent grain, $\mathbb{C}^0$, and value in the twin, $\mathbb{C}^{tw}$,
@@ -36,7 +36,7 @@ $$
 \mathbb{C}=(1-\phi)\mathbb{C}^0 + \phi~\mathbb{C}^{tw}.
 $$
 
-and $\pmb{E^e}$ is the elastic Green-Lagrange strain tensor
+and $\boldsymbol{E^e}$ is the elastic Green-Lagrange strain tensor
 
 ### Kinetics
 The evolution of the twin boundary is described by Allen-Cahn dynamics:
@@ -52,7 +52,7 @@ where $M$ is an anisotropic mobility that depends on the orientation of the twin
 $$
 \begin{align}
 \frac{\delta \mathcal{F}}{\delta \phi} =\mu_\phi= 4 \Delta f_{tw}~\phi (\phi-1) ( \phi-0.5)
--\nabla\cdot(\pmb{\kappa}\nabla\phi) -\gamma_{tw}\tau_{tw},
+-\nabla\cdot(\boldsymbol{\kappa}\nabla\phi) -\gamma_{tw}\tau_{tw},
 \end{align}
 $$
 
@@ -74,7 +74,7 @@ In the weak formulation, considering an arbitrary variation $\omega$, the above 
 
 $$
 \begin{align}
-\int_{\Omega} \omega \phi^{n+1} ~dV &= \int_{\Omega} \omega \left[ \phi^{n} - \Delta t M(4 \Delta f_{tw}~\phi^n (\phi^n-1) ( \phi^n-0.5) -\nabla\cdot(\pmb{\kappa}\nabla\phi^n) -\gamma_{tw}\tau^n_{tw})\right] ~dV \\
+\int_{\Omega} \omega \phi^{n+1} ~dV &= \int_{\Omega} \omega \left[ \phi^{n} - \Delta t M(4 \Delta f_{tw}~\phi^n (\phi^n-1) ( \phi^n-0.5) -\nabla\cdot(	\boldsymbol{\kappa}\nabla\phi^n) -\gamma_{tw}\tau^n_{tw})\right] ~dV \\
 &=\int_{\Omega}\omega r_\phi dV + \int_{\Omega}\nabla \omega\cdot \pmb{r}_{\phi x} ~dV,
 \end{align}
 $$
@@ -92,7 +92,7 @@ and
 
 $$
 \begin{align}
-\pmb{r}_{\phi x} = -\Delta t M \pmb{\kappa}\nabla \phi^{n}
+\pmb{r}_{\phi x} = -\Delta t M \boldsymbol{\kappa}\nabla \phi^{n}
 \end{align}
 $$
 
