@@ -556,7 +556,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                             PA,
                             b,
                             A,
-                            A_PA);
+                            A_PA,
+                            n_slip_systemsWOtwin);
 
       if (isTwinned)
         {
