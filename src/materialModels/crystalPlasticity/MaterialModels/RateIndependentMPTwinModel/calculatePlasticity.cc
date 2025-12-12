@@ -16,8 +16,7 @@
 //      when rotating the stiffness tensor and slip system Schmid tensor
 //      in twinned regions.
 //   2. The twin characteristic shear is enfored inside twinned regions,
-//      and zero outside twinned regions.
-//   3. 
+//      and zero outside twinned regions, based on the PF order parameter.
 //////////////////////////////////////////////////////////////////////////
 
 template <int dim>
@@ -36,11 +35,15 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   }
   
   // Initialize temporary vectors and tensors for intermediate steps
+  std::vector<double> ttwinvf(n_twin_systems);
   std::vector<double> ttwinvf1(n_twin_systems);
 
+  // twinfraction_conv contains the phase field order parameter from
+  // the previous time increment.
   // twinfraction_iter1 contains the phase field order parameter,
   // interpolated from the PF mesh during interpolate_order_parameter(),
   // see dataTransfer.cc
+  ttwinvf  = twinfraction_conv[cellID][quadPtID];
   ttwinvf1 = this->twinfraction_iter1[cellID][quadPtID];
   for (unsigned int i = 0; i < n_twin_systems; i++)
     {
@@ -49,34 +52,18 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     }
 
   // *************** Declare local variables *************** //
-  //unsigned int tTwinMaxFlag = TwinMaxFlag_conv[cellID][quadPtID];
-  //unsigned int alpha = 0;
+  // Determinants of F and FE at time tau
   double det_F_tau, det_FE_tau;
-  Vector<double> initialHardeningM(n_slip_systemsWOtwin),
-    powerLawExp(n_slip_systemsWOtwin), saturationStressV(n_slip_systemsWOtwin);
-  Vector<double> initialHardeningMTwin(n_twin_systems),
-    powerLawExpTwin(n_twin_systems), saturationStressVTwin(n_twin_systems);
-  FullMatrix<double> M_alpha(n_Tslip_systems, n_Tslip_systems),
-    N_alpha(n_Tslip_systems, n_Tslip_systems);
-  std::vector<unsigned int> activeTwinSystems(n_twin_systems),
-    tTwinFlag(n_twin_systems);
   
-  FullMatrix<double> PK1_Stiff_RVE(dim * dim, dim * dim);
   FullMatrix<double> temp(dim, dim), temp1(dim, dim), temp2(dim, dim), temp3(dim, dim),
-    temp4(dim, dim), temp5(dim, dim), temp6(dim, dim),
-    temp7(dim * dim, dim * dim); // Temporary matrices
+    temp4(dim, dim); // Temporary matrices for intermediate steps
   FullMatrix<double> T_tau(dim, dim);
   FullMatrix<double> Fpn_inv(dim, dim), FE_tau_trial(dim, dim), F_trial(dim, dim),
     CE_tau_trial(dim, dim), FP_t2(dim, dim), Ee_tau_trial(dim, dim),
     CE_tau(dim, dim);
   temp  = 0;
-  temp7 = 0;
 
-  FullMatrix<double> dgammadEmat1;
   FullMatrix<double> PK1_Stiff, P_tau, T_star_tau;
-  
-  FullMatrix<double> tslipvfsys(n_twin_systems_Size + 1, n_Tslip_systems);
-  tslipvfsys = 0;
 
   // Slip resistance and hardening moduli
   initialHardeningModulus.reinit(n_slip_systemsWOtwin);
@@ -164,8 +151,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
 
 
-
-  // Actual constitutive calculations start here
+  // ******** Actual constitutive calculations start here ******** //
   // Deformation gradients
   F_tau = F;
 
@@ -176,14 +162,39 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   for (unsigned int i = 0; i < n_Tslip_systems; i++)
     {
       s_alpha_t[i] = s_alpha_conv[cellID][quadPtID][i];
+      if (i >= n_slip_systems
+        && ttwinvf1[i - n_slip_systems] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
+        {
+          // TODO: determine if this is working correctly, or whether it needs to
+          // be done differently.
+          s_alpha_t[i] = 1e9;
+        }
     }
   
   // Parent and twin orientations
   rot1 = rot_conv[cellID][quadPtID];
   odfpoint(rotmat, rot1);
 
-  // TODO: calculate rot_twin
+  // Calculate rot_twin (for the first twin system only, right now).
+  // Assuming the crystal lattice is centrosymmetric, the twin misorientation
+  // relationship (reflection across twin plane) is equivalent to 180 degrees
+  // rotation about the twin plane normal.
+  // The quaternion for a 180deg rotation about an axis n_i is simply:
+  //    q = [0, n_1, n_2, n_3]
+  // Calculate this quaternion, multiply it to the parent orientation quaternion
+  // using the Hamilton product of quaternions, then convert back.
+  // TODO: modify to allow multiple twin systems
+  // TODO: calculate twin misorientation during initialization so it's not
+  //       recomputed at every point at every time step
+  Vector<double> quatprod(4), quat1(4), quat2(4);
   rot_twin = 0.0;
+  rod2quat(quat2, rot1);
+  quat1[0] = 0.0;
+  quat1[1] = n_alpha[n_slip_systemsWOtwin][0];
+  quat1[2] = n_alpha[n_slip_systemsWOtwin][1];
+  quat1[3] = n_alpha[n_slip_systemsWOtwin][2];
+  quatproduct(quatprod, quat2, quat1);
+  quat2rod(quatprod, rot_twin);
   odfpoint(rotmat_twin, rot_twin);
 
   // Copy the elastic stiffness tensor from user inputs
@@ -203,7 +214,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   bool isTwinned = false;
   for (unsigned int i = 0; i < n_twin_systems; i++)
     {
-      if (ttwinvf[i] > userInputs_cp.MPtwinLowerThresholdFraction1)
+      if (ttwinvf[i] >= userInputs_cp.MPtwinLowerThresholdFraction1)
         {
           isTwinned = True;
         }
