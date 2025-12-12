@@ -23,11 +23,11 @@ set Domain size Z = 1.0
 # The number of elements in each direction is 2^(refineFactor) * subdivisions
 # Subdivisions Z ignored in 2D
 # For optimal performance, use refineFactor primarily to determine the element size
-set Subdivisions X = 32
-set Subdivisions Y = 32
-set Subdivisions Z = 32
+set Subdivisions X = 1
+set Subdivisions Y = 1
+set Subdivisions Z = 1
 
-set Refine factor = 0
+set Refine factor = 5
 
 # Set the polynomial degree of the element (allowed values: 1, 2, or 3)
 set Element degree = 1
@@ -36,14 +36,14 @@ set Element degree = 1
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 0.00025
+set Time step = 2.5e-4
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 400
+set Number of time steps = 20000
 
 # The number of phase field steps per CPFE step
-set Number of phase field steps per CPFE step = 10
+set Number of phase field steps per CPFE step = 400
 
 # =================================================================================
 # Set the output parameters
@@ -128,10 +128,10 @@ set Model constant delf_tw = 31.04, DOUBLE
 set Model constant l0 = 1.0e-6, DOUBLE
 
 # Radius of initial semimajor axis of the ellipsoid
-set Model constant a0 = 0.15, DOUBLE
+set Model constant a0 = 0.2, DOUBLE
 
 # eccentricity of the elliptical seed
-set Model constant ecc = 0.95, DOUBLE
+set Model constant ecc = 0.9, DOUBLE
 
 # Regularization value
 set Model constant regval = 1.0e-8, DOUBLE

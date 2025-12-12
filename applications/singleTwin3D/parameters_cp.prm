@@ -30,16 +30,16 @@ set Domain size Z                                = 1.0
 # Mesh parameters
 ####################################
 # The number of mesh subdivisions in the x direction.
-set Subdivisions X                               = 32
+set Subdivisions X                               = 1
 
 # The number of mesh subdivisions in the y direction.
-set Subdivisions Y                               = 32
+set Subdivisions Y                               = 1
 
 # The number of mesh subdivisions in the z direction.
-set Subdivisions Z                               = 32
+set Subdivisions Z                               = 1
 
 # The number of initial refinements of the coarse mesh.
-set Refine factor                                = 0
+set Refine factor                                = 4
 
 # Only written for serial runs and if number of elements < 10000
 set Write Mesh To EPS                            = false
@@ -55,7 +55,7 @@ set Write Output                                 = true
 set Output Directory                             = results_cp
 
 # Skip Output Steps
-set Skip Output Steps                            = 100
+set Skip Output Steps                            = 1
 
 # Output Equivalent strain
 set Output Equivalent strain                     = true
@@ -84,11 +84,11 @@ set Use Simple BCs                               = false
 
 set Use velocity gradient BC                     = true
 
-set Velocity gradient row 1                      = -0.02, 0, 0
+set Velocity gradient row 1                      = -2.5e-5, 0, 0
 
-set Velocity gradient row 2                      = 0, 0.01, 0
+set Velocity gradient row 2                      = 0, 5.0e-5, 0
 
-set Velocity gradient row 3                      = 0, 0, 0.01
+set Velocity gradient row 3                      = 0, 0, -2.5e-5
 
 #File name containing BC information
 #set Boundary condition filename                  = BCinfo_yaxis.txt
@@ -120,13 +120,13 @@ set Quarter cycle time                           = 1.2
 # Solver parameters
 ####################################
 #delta T for every increment
-set Time increment                              = 0.0025
+set Time increment                              = 1.0
 
 #delta T for every pf increment after phase-field coupling
-set Time increment after phase-field coupling   = 0.0025
+set Time increment after phase-field coupling   = 0.1
 
 #Total simulation time
-set Total time                                   = 0.6
+set Total time                                   = 21
 
 # Maximum iterations for linear solver
 set Maximum linear solver iterations             = 1000000
@@ -142,10 +142,10 @@ set Maximum non linear iterations                = 15
 ####################################
 
 # Deformation time prior to introducing a twin seed
-set Seeding time                                  = 0.5
+set Seeding time                                  = 16
 
 # Deformation time prior to coupling of PF and CPFE equations (after initial deformation with or without twin seed)
-set Time before coupling                          = 0.5
+set Time before coupling                          = 16
 
 ####################################
 # Elasticity parameters
@@ -173,22 +173,23 @@ set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 16.895e3
 # Slip parameters
 ####################################
 # Number of Slip Systems
-set Number of Slip Systems                       = 18
+set Number of Slip Systems                       = 12
 
 # Latent Hardening Ratio
-set Latent Hardening Ratio filename                       = LatentHardeningRatio.txt
+#set Latent Hardening Ratio filename                       = LatentHardeningRatio.txt
+set Latent Hardening Ratio filename                       = LHR2.txt
 
 # RSS of the slip sytems
-set Initial Slip Resistance                      = 20,20,20,140 , 140, 140,8000, 8000,8000,8000,8000,8000, 240, 240.0, 240.0, 240.0, 240.0, 240.0
+set Initial Slip Resistance                      = 6, 6, 6, 78, 78, 78, 140, 140, 140, 140, 140, 140
 #set Initial Slip Resistance                      = 20,20,20,140 , 140, 140,8000, 8000,8000,8000,8000,8000, 200, 200.0, 200.0, 200.0, 200.0, 200.0
 # Heardening moduli of slip systems
-set Initial Hardening Modulus                    = 10, 10, 10,20, 20, 20, 150, 150, 150, 150, 150,150, 1000, 1000, 1000, 1000, 1000, 1000
+set Initial Hardening Modulus                    = 76, 76, 76, 163, 163, 163, 187, 187, 187, 187, 187, 187
 
 # Power law coefficient
-set Power Law Exponent                           = 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6
+set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 
 # Saturation stress
-set Saturation Stress                            = 21.0, 21.0,21.0, 155, 155, 155, 12000, 12000, 12000, 12000, 12000.0, 12000.0, 350.0, 350.0, 350.0, 350.0, 350.0, 350.0
+set Saturation Stress                            = 120, 120, 120, 150, 150, 150, 150, 150, 150, 150, 150, 150
 #set Saturation Stress                            = 95.0, 95.0,95.0, 135, 135, 135, 12000, 12000, 12000, 12000.0, 12000.0,12000, 420.0, 420.0, 420.0, 420.0, 420.0, 420.0
 # Slip Directions File
 set Slip Directions File                         = slipDirections.txt
@@ -209,16 +210,16 @@ set Advanced Twinning Model enabled              = true
 set Number of Twin Systems                       = 1
 
 # Initial CRSS of the twin sytems
-set Initial Slip Resistance Twin                 = 48, 48, 48, 48, 48, 48, 15, 15, 15, 15, 15, 15
+set Initial Slip Resistance Twin                 = 13
 
 # Hardening moduli of twin systems
-set Initial Hardening Modulus Twin               = 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800
+set Initial Hardening Modulus Twin               = 116
 
 # Power law exponents of twin systems
-set Power Law Exponent Twin                      = 0, 0,0, 0,0, 0, 0, 0,0, 0,0, 0
+set Power Law Exponent Twin                      = 1
 
 # Saturation stress of twin systems
-set Saturation Stress Twin                       = 52, 52, 52, 52, 52, 52, 25, 25, 25, 25, 25, 25
+set Saturation Stress Twin                       = 100
 
 # Twin growth saturation factor  (MaxTwin)
 set Twin Saturation Factor                       = 0.65
@@ -239,9 +240,9 @@ set Twin Normals File                            = twinNormals.txt
 # characteristic twin shear    (S)
 set Characteristic Twin Shear                    = 0.129
 #Lower Threshold fraction for MP Twin
-set MP Twin Lower Threshold Fraction             = 0.0
+set MP Twin Lower Threshold Fraction             = 0.5
 #Upper Threshold fraction for MP Twin
-set MP Twin Upper Threshold Fraction             = 1.1
+set MP Twin Upper Threshold Fraction             = 1.0
 
 ####################################
 # Constitutive model parameters
