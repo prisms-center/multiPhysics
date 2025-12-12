@@ -149,6 +149,23 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   FullMatrix<double> Dmat2(2 * dim, 2 * dim), TM(dim * dim, dim * dim);
   FullMatrix<double> ElasticityTensor(2 * dim, 2 * dim);
 
+  Vector<double> vec1(6), vec2(9);
+  vec1(0) = 0;
+  vec1(1) = 5;
+  vec1(2) = 4;
+  vec1(3) = 1;
+  vec1(4) = 3;
+  vec1(5) = 2;
+  vec2(0) = 0;
+  vec2(1) = 5;
+  vec2(2) = 4;
+  vec2(3) = 5;
+  vec2(4) = 1;
+  vec2(5) = 3;
+  vec2(6) = 4;
+  vec2(7) = 3;
+  vec2(8) = 2;
+
 
 
   // ******** Actual constitutive calculations start here ******** //
@@ -312,7 +329,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
         {
           for (unsigned int k = 0; k < dim; k++)
             {
-              SCHMID_TENSOR1[dim * i + j][k] = temp[j][k];
+              SCHMID_TENSOR[dim * i + j][k] = temp[j][k];
             }
         }
       CE_tau_trial.mmult(temp2, temp);
@@ -352,7 +369,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
           for (unsigned int k = 0; k < dim; k++)
             {
               resolved_shear_tau_trial(i) +=
-                T_star_tau_trial[j][k] * SCHMID_TENSOR1[dim * i + j][k];
+                T_star_tau_trial[j][k] * SCHMID_TENSOR[dim * i + j][k];
             }
         }
     }
@@ -482,7 +499,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             {
               for (unsigned int l = 0; l < dim; l++)
                 {
-                  temp1[k][l] = SCHMID_TENSOR1(dim * i + k, l);
+                  temp1[k][l] = (dim * i + k, l);
                 }
             }
           for (unsigned int j = 0; j < n_Tslip_systems; j++)
@@ -493,7 +510,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                 {
                   for (unsigned int l = 0; l < dim; l++)
                     {
-                      temp[k][l] = SCHMID_TENSOR1(dim * j + k, l);
+                      temp[k][l] = SCHMID_TENSOR(dim * j + k, l);
                     }
                 }
               temp2.reinit(dim, dim);
@@ -558,7 +575,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             {
               for (unsigned int k = 0; k < dim; k++)
                 {
-                  temp[j][k] = SCHMID_TENSOR1[dim * i + j][k];
+                  temp[j][k] = SCHMID_TENSOR[dim * i + j][k];
                 }
             }
 
@@ -568,7 +585,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             {
               for (unsigned int k = 0; k < dim; k++)
                 {
-                  if ((resolved_shear_tau(i) - W_kh_tau(i)) > 0)
+                  if (resolved_shear_tau(i) > 0)
                     FP_tau[j][k] = FP_tau[j][k] + x_beta(i) * temp2[j][k];
                   else
                     FP_tau[j][k] = FP_tau[j][k] - x_beta(i) * temp2[j][k];
@@ -598,7 +615,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             {
               for (unsigned int k = 0; k < dim; k++)
                 {
-                  temp[j][k] = SCHMID_TENSOR1[dim * i + j][k];
+                  temp[j][k] = SCHMID_TENSOR[dim * i + j][k];
                 }
             }
 
@@ -620,7 +637,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             {
               for (unsigned int k = 0; k < dim; k++)
                 {
-                  if ((resolved_shear_tau_trial(i) - W_kh_tau(i)) > 0)
+                  if (resolved_shear_tau_trial(i) > 0)
                     T_star_tau[j][k] = T_star_tau[j][k] - 0.5 * x_beta(i) * temp4[j][k];
                   else
                     T_star_tau[j][k] = T_star_tau[j][k] + 0.5 * x_beta(i) * temp4[j][k];
@@ -636,7 +653,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               for (unsigned int k = 0; k < dim; k++)
                 {
                   resolved_shear_tau(i) +=
-                    T_star_tau[j][k] * SCHMID_TENSOR1[dim * i + j][k];
+                    T_star_tau[j][k] * SCHMID_TENSOR[dim * i + j][k];
                 }
             }
         }
@@ -761,14 +778,14 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                 {
                   for (unsigned int k = 0; k < dim; k++)
                     {
-                      s(j, k)          = SCHMID_TENSOR1(dim * iter + j, k);
+                      s(j, k)          = SCHMID_TENSOR(dim * iter + j, k);
                       P_as_vec3(iter2) = s(j, k);
                       iter2++;
                     }
                 }
 
               TM.Tvmult(s1, P_as_vec3);
-              if ((resolved_shear_tau_trial(iter) - W_kh_t(iter)) < 0)
+              if (resolved_shear_tau_trial(iter) < 0)
                 {
                   s1.equ(-1.0, s1);
                 }
@@ -784,7 +801,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                     {
                       for (unsigned int l = 0; l < dim; l++)
                         {
-                          temp3(k, l) = SCHMID_TENSOR1(dim * iter3 + k, l);
+                          temp3(k, l) = SCHMID_TENSOR(dim * iter3 + k, l);
                           temp(l, k)  = temp3(k, l);
                         }
                     }
@@ -797,8 +814,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                   TM.mmult(temp2, temp1);
                   temp2.Tvmult(temps2, P_as_vec3);
 
-                  if (((resolved_shear_tau_trial(iter) - W_kh_t(iter)) < 0.0) ^
-                      ((resolved_shear_tau_trial(iter3) - W_kh_t(iter3)) < 0.0))
+                  if ((resolved_shear_tau_trial(iter) < 0.0) ^
+                      (resolved_shear_tau_trial(iter3) < 0.0))
                     temps2.equ(-1.0 * x_beta_old(iter3), temps2);
                   else
                     temps2.equ(x_beta_old(iter3), temps2);
@@ -854,7 +871,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               temp2.reinit(dim * dim, dim * dim);
               tracev(temp2, temp1, temp3);
 
-              if ((resolved_shear_tau_trial(alpha) - W_kh_t(alpha)) > 0)
+              if (resolved_shear_tau_trial(alpha) > 0)
                 {
                   temp2.equ(-0.5, temp2);
                 }
@@ -884,7 +901,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                 {
                   for (unsigned int k = 0; k < dim; k++)
                     {
-                      F_temp[j][k] = SCHMID_TENSOR1[dim * alpha + j][k];
+                      F_temp[j][k] = SCHMID_TENSOR[dim * alpha + j][k];
                       temp3[k][j]  = F_temp[j][k];
                     }
                 }
@@ -893,7 +910,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               left(temp2, temp3);
               temp1.add(1.0, temp2);
               TM.mmult(temp2, temp1);
-              if ((resolved_shear_tau_trial(alpha) - W_kh_t(alpha)) > 0)
+              if (resolved_shear_tau_trial(alpha) > 0)
                 {
                   temp2.equ(-1.0 * x_beta_old(alpha), temp2);
                 }
@@ -923,14 +940,14 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                   for (unsigned int k = 0; k < dim; k++)
                     {
                       dgammadFmat[k][j] = dgammadF[i][dim * j + k];
-                      temp2[j][k]       = SCHMID_TENSOR1[dim * alpha + j][k];
+                      temp2[j][k]       = SCHMID_TENSOR[dim * alpha + j][k];
                     }
                 }
 
               right(temp1, dgammadFmat);
               F_trial.mmult(temp3, temp2);
               tracev(temp2, temp1, temp3);
-              if ((resolved_shear_tau_trial(alpha) - W_kh_t(alpha)) > 0)
+              if (resolved_shear_tau_trial(alpha) > 0)
                 {
                   temp2.equ(-1.0, temp2);
                 }
