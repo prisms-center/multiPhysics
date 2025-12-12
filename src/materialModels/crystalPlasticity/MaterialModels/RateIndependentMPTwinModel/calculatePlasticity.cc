@@ -64,6 +64,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   temp  = 0;
 
   FullMatrix<double> PK1_Stiff, P_tau, T_star_tau;
+  FullMatrix<double> T_star_tau_trial(dim, dim);
 
   // Slip resistance and hardening moduli
   initialHardeningModulus.reinit(n_slip_systemsWOtwin);
@@ -130,11 +131,13 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
   // Rotation of the parent crystal at the current point (Rodrigues vector)
   Vector<double> rot1(dim);
-  FullMatrix<double> rotmat(dim, dim) = 0.0;
+  FullMatrix<double> rotmat(dim, dim);
+  rotmat = 0.0;
 
   // Rotation of the twin at the current point (Rodrigues vector)
   Vector<double> rot_twin(dim);
-  FullMatrix<double> rotmat_twin(dim, dim) = 0.0;
+  FullMatrix<double> rotmat_twin(dim, dim);
+  rotmat_twin = 0.0;
 
   // Schmid Tensors
   FullMatrix<double> SCHMID_TENSOR(n_Tslip_systems * dim, dim);
@@ -172,8 +175,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   // Deformation gradients
   F_tau = F;
 
-  FE_t = Fe_conv[cellID][quatPtID];
-  FP_t = Fp_conv[cellID][quatPtID];
+  FE_t = Fe_conv[cellID][quadPtID];
+  FP_t = Fp_conv[cellID][quadPtID];
 
   // Slip resistance and backstress from last step (current state)
   for (unsigned int i = 0; i < n_Tslip_systems; i++)
@@ -231,9 +234,9 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   bool isTwinned = false;
   for (unsigned int i = 0; i < n_twin_systems; i++)
     {
-      if (ttwinvf[i] >= userInputs_cp.MPtwinLowerThresholdFraction1)
+      if (ttwinvf[i] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
         {
-          isTwinned = True;
+          isTwinned = true;
         }
     }
 
