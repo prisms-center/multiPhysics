@@ -64,6 +64,8 @@ set Skip print steps = 1
 
 set Number of checkpoints = 0
 
+set Output directory = results_pf
+
 # =================================================================================
 # Set the boundary conditions
 # =================================================================================
