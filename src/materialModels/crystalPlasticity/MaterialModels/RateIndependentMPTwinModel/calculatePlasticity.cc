@@ -50,6 +50,10 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       if (ttwinvf1[i] < 0.0) // order parameter shouldn't be negative
         ttwinvf1[i] = 0.0;
     }
+  
+  // Copy "single phase" slip/twin directions/normals
+  m_alpha = m_alpha_SinglePhase;
+  n_alpha = n_alpha_SinglePhase;
 
   // *************** Declare local variables *************** //
   // Determinants of F and FE at time tau
@@ -63,7 +67,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     CE_tau(dim, dim);
   temp  = 0;
 
-  FullMatrix<double> PK1_Stiff, P_tau, T_star_tau;
+  FullMatrix<double> PK1_Stiff(dim * dim, dim * dim), P_tau(dim, dim);
+  FullMatrix<double> T_star_tau(dim, dim);
   FullMatrix<double> T_star_tau_trial(dim, dim);
 
   // Slip resistance and hardening moduli
@@ -182,8 +187,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   for (unsigned int i = 0; i < n_Tslip_systems; i++)
     {
       s_alpha_t[i] = s_alpha_conv[cellID][quadPtID][i];
-      if (i >= n_slip_systems
-        && ttwinvf1[i - n_slip_systems] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
+      if (i >= n_slip_systemsWOtwin
+        && ttwinvf1[i - n_slip_systemsWOtwin] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
         {
           // TODO: determine if this is working correctly, or whether it needs to
           // be done differently.
@@ -192,7 +197,14 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     }
   
   // Parent and twin orientations
-  rot1 = rot_conv[cellID][quadPtID];
+  // TODO: switch to using rotnew_conv and rotnew_iter and reorient2()?
+  //       Check whether reorient is being correctly performed, either
+  //       in this function or in updateAfterIncrement()
+  for (unsigned int i = 0; i < dim; i++)
+    {
+      rot1[i] = rot_conv[cellID][quadPtID][i];
+    }
+  
   odfpoint(rotmat, rot1);
 
   // Calculate rot_twin (for the first twin system only, right now).
@@ -219,6 +231,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
   // Copy the elastic stiffness tensor from user inputs
   // TODO: can this be moved to initialization, since it does not change w/ time?
+  elasticStiffnessMatrix.reinit(2*dim, 2*dim);
   for (unsigned int i = 0; i < 6; i++)
     {
       for (unsigned int j = 0; j < 6; j++)
@@ -701,10 +714,10 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   for (unsigned int i = 0; i < n_twin_systems; i++)
     {
       twinfraction_iter[cellID][quadPtID][i] = twinfraction_conv[cellID][quadPtID][i] +
-                                               x_beta_old[i + n_slip_systems] / twinShear;
+                                               x_beta_old[i + n_slip_systemsWOtwin] / twinShear;
     }
 
-  for (unsigned int i = 0; i < n_slip_systems; i++)
+  for (unsigned int i = 0; i < n_slip_systemsWOtwin; i++)
     {
       slipfraction_iter[cellID][quadPtID][i] =
         slipfraction_conv[cellID][quadPtID][i] + x_beta_old[i];
