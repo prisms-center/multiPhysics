@@ -173,15 +173,16 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
         Vector<double> rss(n_Tslip_systems);
         Vector<double> m1(dim), n1(dim);
         FullMatrix<double> schmidtensor(dim, dim);
+        FullMatrix<double> temprot(dim, dim);
         rss = 0.0;
         unsigned int n_slip_systemsWOtwin = this->userInputs_cp.numSlipSystems1;
-        bool isTwinned = twinfraction_conv[cellID][quadPtID] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
+        bool isTwinned = twinfraction_conv[cellID][q] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
 
         FullMatrix<double> rotmat(dim, dim), rotmat_twin(dim, dim);
         Vector<double> rot1(dim), rot_twin(dim);
         for (unsigned int i = 0; i < dim; i++)
           {
-            rot1[i] = rot_conv[cellID][quadPtID][i];
+            rot1[i] = rot_conv[cellID][q][i];
           }
         odfpoint(rotmat, rot1);
         Vector<double> quatprod(4), quat1(4), quat2(4);
@@ -204,25 +205,28 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
                 n1(j) = n_alpha[i][j];
               }
             temp = 0.0;
-            temp2 = 0.0;
+            temprot = 0.0;
             for (unsigned int j = 0; j < dim; j++)
               {
-                temp[j][k] = m1(j) * n1(k);
+                for (unsigned int k = 0; k < dim; k++)
+                  {
+                    temp[j][k] = m1(j) * n1(k);
+                  }
               }
             // Convert schmid tensor to sample coordinates
             if (isTwinned && i < n_slip_systemsWOtwin)
               {
                 // If we are inside the twin, the orientation matrix should
                 // change, but only for the slip systems.
-                rotmat_twin.mmult(temp2, temp);
-                temp2.mTmult(temp, rotmat_twin);
+                rotmat_twin.mmult(temprot, temp);
+                temprot.mTmult(temp, rotmat_twin);
               }
             else
               {
                 // If we are outside the twin, OR we are considering the shear on
                 // the twin system, we should use the original grain orientation.
-                rotmat.mmult(temp2, temp);
-                temp2.mTmult(temp, rotmat);
+                rotmat.mmult(temprot, temp);
+                temprot.mTmult(temp, rotmat);
               }
 
             for (unsigned int j = 0; j < dim; j++)
