@@ -169,6 +169,79 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
           }
         }
 
+        // calculate resolved shear stress
+        Vector<double> rss(n_Tslip_systems);
+        Vector<double> m1(dim), n1(dim);
+        FullMatrix<double> schmidtensor(dim, dim);
+        rss = 0.0;
+        unsigned int n_slip_systemsWOtwin = this->userInputs_cp.numSlipSystems1;
+        bool isTwinned = twinfraction_conv[cellID][quadPtID] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
+
+        FullMatrix<double> rotmat(dim, dim), rotmat_twin(dim, dim);
+        Vector<double> rot1(dim), rot_twin(dim);
+        for (unsigned int i = 0; i < dim; i++)
+          {
+            rot1[i] = rot_conv[cellID][quadPtID][i];
+          }
+        odfpoint(rotmat, rot1);
+        Vector<double> quatprod(4), quat1(4), quat2(4);
+        rot_twin = 0.0;
+        rod2quat(quat2, rot1);
+        quat1[0] = 0.0;
+        quat1[1] = n_alpha[n_slip_systemsWOtwin][0];
+        quat1[2] = n_alpha[n_slip_systemsWOtwin][1];
+        quat1[3] = n_alpha[n_slip_systemsWOtwin][2];
+        quatproduct(quatprod, quat2, quat1);
+        quat2rod(quatprod, rot_twin);
+        odfpoint(rotmat_twin, rot_twin);
+
+        for (unsigned int i = 0; i < n_Tslip_systems; i++)
+          {
+            schmidtensor = 0.0;
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                m1(j) = m_alpha[i][j];
+                n1(j) = n_alpha[i][j];
+              }
+            temp = 0.0;
+            temp2 = 0.0;
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                temp[j][k] = m1(j) * n1(k);
+              }
+            // Convert schmid tensor to sample coordinates
+            if (isTwinned && i < n_slip_systemsWOtwin)
+              {
+                // If we are inside the twin, the orientation matrix should
+                // change, but only for the slip systems.
+                rotmat_twin.mmult(temp2, temp);
+                temp2.mTmult(temp, rotmat_twin);
+              }
+            else
+              {
+                // If we are outside the twin, OR we are considering the shear on
+                // the twin system, we should use the original grain orientation.
+                rotmat.mmult(temp2, temp);
+                temp2.mTmult(temp, rotmat);
+              }
+
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                for (unsigned int k = 0; k < dim; k++)
+                  {
+                    schmidtensor[j][k] = temp[j][k];
+                  }
+              }
+
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                for (unsigned int k = 0; k < dim; k++)
+                  {
+                    rss(i) += T[j][k] * schmidtensor[j][k];
+                  }
+              }
+          }
+
         // calculate von-Mises stress and equivalent strain
         double traceE, traceT, vonmises, eqvstrain;
         FullMatrix<double> deve(dim, dim), devt(dim, dim);
@@ -214,9 +287,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
           this->postprocessValues(cellID, q, 4, 0) =
               this->dtwinfraction_iter1[cellID][q][0];
           this->postprocessValues(cellID, q, 5, 0) = this->twinfraction_iter1[cellID][q][0];
-          this->postprocessValues(cellID, q, 6, 0) = energy[cellID][q][0];
-          this->postprocessValues(cellID, q, 7, 0) = energy[cellID][q][4];
-          this->postprocessValues(cellID, q, 8, 0) = energy[cellID][q][5];
+          this->postprocessValues(cellID, q, 6, 0) = rss[12];
+          this->postprocessValues(cellID, q, 7, 0) = 0;
+          this->postprocessValues(cellID, q, 8, 0) = 0;
           this->postprocessValues(cellID, q, 9, 0) = 0;
           this->postprocessValues(cellID, q, 10, 0) = 0;
           this->postprocessValues(cellID, q, 11, 0) = 0;
