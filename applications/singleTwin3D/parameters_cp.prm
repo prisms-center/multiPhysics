@@ -204,7 +204,7 @@ set Slip Normals File                            = slipNormals.txt
 set Twinning enabled                             = true
 
 #Flag to indicate if Advanced Twinning Model enabled
-set Advanced Twinning Model enabled              = true
+set Advanced Twinning Model enabled              = false
 
 # Number of Twin Systems
 set Number of Twin Systems                       = 1
