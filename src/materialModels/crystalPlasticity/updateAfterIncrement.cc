@@ -176,7 +176,8 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
         FullMatrix<double> temprot(dim, dim);
         rss = 0.0;
         unsigned int n_slip_systemsWOtwin = this->userInputs_cp.numSlipSystems1;
-        bool isTwinned = twinfraction_conv[cellID][q] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
+        // TODO: fix the following line to consider multiple twin systems
+        bool isTwinned = twinfraction_conv[cellID][q][0] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
 
         FullMatrix<double> rotmat(dim, dim), rotmat_twin(dim, dim);
         Vector<double> rot1(dim), rot_twin(dim);
