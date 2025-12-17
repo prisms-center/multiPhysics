@@ -188,7 +188,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     {
       s_alpha_t[i] = s_alpha_conv[cellID][quadPtID][i];
       if (i >= n_slip_systemsWOtwin
-        && ttwinvf1[i - n_slip_systemsWOtwin] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
+        && ttwinvf1[i - n_slip_systemsWOtwin] < this->userInputs_cp.MPtwinLowerThresholdFraction1)
         {
           // TODO: determine if this is working correctly, or whether it needs to
           // be done differently.
