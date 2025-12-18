@@ -69,13 +69,15 @@ set Output Grain ID                              = true
 # Output Twin fractions
 set Output Twin fractions                        = true
 
-# Output Variable 2
+# energy_check2
 set Output Variable 1                            = true 
 #dtwinfraction_iter1
 set Output Variable 2                            = true 
 #twinfraction_iter1
 set Output Variable 3                            = true
-#set Output Variable 4                            = true
+#rss[12] (Twin resolved shear stress)
+set Output Variable 4                            = true
+
 ####################################
 # Boundary condition information
 ####################################
@@ -260,16 +262,16 @@ set Max Solver Iterations                        = 2
 # Input microstructure
 ####################################
 # Number of voxels in x direction
-set Voxels in X direction                        = 32
+set Voxels in X direction                        = 16
 
 # Number of voxels in y direction
-set Voxels in Y direction                        = 32
+set Voxels in Y direction                        = 16
 
 # Number of voxels in z direction
-set Voxels in Z direction                        = 32
+set Voxels in Z direction                        = 16
 
 # Grain ID file name
-set Grain ID file name                           = grainID_single_32x32x32.txt
+set Grain ID file name                           = grainID_single_16x16x16.txt
 
 # Number of header Lines in grain ID file
 set Header Lines GrainID File                    = 1
