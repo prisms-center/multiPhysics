@@ -677,7 +677,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
       for (unsigned int i = 0; i < n_twin_systems; i++)
         {
-          energy[cellID][quadPtID][i] = resolved_shear_tau[n_slip_systemsWOtwin + i] * 0.129;
+          energy[cellID][quadPtID][i] = resolved_shear_tau[n_slip_systemsWOtwin + i]
+              * this->userInputs_cp.twinShear1;
         }
 
       // % % % % % STEP 9 % % % % %
