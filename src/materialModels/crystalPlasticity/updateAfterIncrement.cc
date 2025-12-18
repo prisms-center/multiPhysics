@@ -293,7 +293,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
               this->dtwinfraction_iter1[cellID][q][0];
           this->postprocessValues(cellID, q, 5, 0) = this->twinfraction_iter1[cellID][q][0];
           this->postprocessValues(cellID, q, 6, 0) = rss[12];
-          this->postprocessValues(cellID, q, 7, 0) = 0;
+          this->postprocessValues(cellID, q, 7, 0) = energy[cellID][q][0];
           this->postprocessValues(cellID, q, 8, 0) = 0;
           this->postprocessValues(cellID, q, 9, 0) = 0;
           this->postprocessValues(cellID, q, 10, 0) = 0;
