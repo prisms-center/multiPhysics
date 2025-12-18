@@ -675,11 +675,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             }
         }
 
-      for (unsigned int i = 0; i < n_twin_systems; i++)
-        {
-          energy[cellID][quadPtID][i] = resolved_shear_tau[n_slip_systemsWOtwin + i]
-              * this->userInputs_cp.twinShear1;
-        }
 
       // % % % % % STEP 9 % % % % %
 
@@ -744,6 +739,23 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   T_tau.mTmult(P_tau, temp);
   P_tau.equ(det_F_tau, P_tau);
 
+  resolved_shear_tau = 0.0;
+  for (unsigned int i = 0; i < n_Tslip_systems; i++)
+    {
+      for (unsigned int j = 0; j < dim; j++)
+        {
+          for (unsigned int k = 0; k < dim; k++)
+            {
+              resolved_shear_tau(i) += 
+                  T_tau[j][k] * SCHMID_TENSOR[dim * i + j][k];
+            }
+        }
+    }
+  for (unsigned int i = 0; i < n_twin_systems; i++)
+    {
+      energy[cellID][quadPtID][i] = resolved_shear_tau[n_slip_systemsWOtwin + i]
+          * this->userInputs_cp.twinShear1;
+    }
 
   // **************** Compute the Tangent Modulus **************** //
   
