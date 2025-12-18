@@ -77,6 +77,8 @@ set Output Variable 2                            = true
 set Output Variable 3                            = true
 #rss[12] (Twin resolved shear stress)
 set Output Variable 4                            = true
+# driving force
+set Output Variable 5                            = true
 
 ####################################
 # Boundary condition information
