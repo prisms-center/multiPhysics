@@ -90,7 +90,7 @@ void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dea
 }
 
 //Applying a filter to localize driving force to the twin boundary 
-scalarvalueType_pf strain_df_filter = (1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
+scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
 
 //Defining the value and gradient terms
 scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue)*L*(mu_twV-strain_df_filter));
@@ -151,7 +151,7 @@ for(unsigned int i=0;i<dim;i++){
 }
 
 //Applying a filter to localize driving force to the twin boundary 
-scalarvalueType_pf strain_df_filter = (1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
+scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
 
 scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df_filter);
 scalargradType_pf eqx_dndt = -L*kappagradn;
