@@ -247,7 +247,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   bool isTwinned = false;
   for (unsigned int i = 0; i < n_twin_systems; i++)
     {
-      if (ttwinvf[i] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
+      if (ttwinvf1[i] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
         {
           isTwinned = true;
         }
