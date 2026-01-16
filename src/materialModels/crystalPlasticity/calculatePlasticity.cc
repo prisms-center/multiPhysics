@@ -37,6 +37,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   // Initialize temporary vectors and tensors for intermediate steps
   std::vector<double> ttwinvf(n_twin_systems);
   std::vector<double> ttwinvf1(n_twin_systems);
+  double delta_orderparam; // TODO: change to std::vector<double>
 
   // twinfraction_conv contains the phase field order parameter from
   // the previous time increment.
@@ -218,6 +219,10 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   // TODO: modify to allow multiple twin systems
   // TODO: calculate twin misorientation during initialization so it's not
   //       recomputed at every point at every time step
+  
+  /*  NOTE: This commented code corresponds to the above description,
+   *        where the twin misorientation is considered to be a 180 degree
+   *        rotation about the twin plane normal.
   Vector<double> quatprod(4), quat1(4), quat2(4);
   rot_twin = 0.0;
   rod2quat(quat2, rot1);
@@ -228,6 +233,21 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   quatproduct(quatprod, quat2, quat1);
   quat2rod(quatprod, rot_twin);
   odfpoint(rotmat_twin, rot_twin);
+  */
+
+  /*   Alternative twin misorientation: consider the twin misorientation to
+   *        be a reflection across the twin plane (improper rotation).
+   */
+  FullMatrix<double> temprot(3,3);
+  temprot[0][0] = 1.0;
+  temprot[1][1] = 1.0;
+  temprot[2][2] = 1.0;
+  for (unsigned int i = 0; i < 3; i++) {
+    for (unsigned int j = 0; j < 3; j++) {
+      temprot[i][j] -= 2*n_alpha[n_slip_systemsWOtwin][i]*n_alpha[n_slip_systemsWOtwin][j];
+    }
+  }
+  rotmat.mmult(rotmat_twin, temprot);
 
   // Copy the elastic stiffness tensor from user inputs
   // TODO: can this be moved to initialization, since it does not change w/ time?
@@ -247,7 +267,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   bool isTwinned = false;
   for (unsigned int i = 0; i < n_twin_systems; i++)
     {
-      if (ttwinvf1[i] >= this->userInputs_cp.MPtwinLowerThresholdFraction1)
+      if (ttwinvf1[i] > this->userInputs_cp.MPtwinLowerThresholdFraction1)
         {
           isTwinned = true;
         }
@@ -515,7 +535,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             {
               for (unsigned int l = 0; l < dim; l++)
                 {
-                  temp1[k][l] = (dim * i + k, l);
+                  temp1[k][l] = SCHMID_TENSOR(dim * i + k, l);
                 }
             }
           for (unsigned int j = 0; j < n_Tslip_systems; j++)
@@ -551,14 +571,15 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             }
         }
       
-      if (isTwinned)
+      // change A and b to account for already enforced twin shear, allow slip
+      // in the twin
+      // TODO: make this work when there are multiple twin systems
+      delta_orderparam = ttwinvf1[0] - ttwinvf[0];
+      if (delta_orderparam > 0)
         {
-          // change A and b to account for already enforced twin shear, allow slip
-          // in the twin
-          // TODO: make this work when there are multiple twin systems
           for (unsigned int n = 0; n < n_Tslip_systems; n++)
             {
-              b[n] -= A[n][n_slip_systemsWOtwin] * this->userInputs_cp.twinShear1;
+              b[n] -= A[n][n_slip_systemsWOtwin] * this->userInputs_cp.twinShear1 * delta_orderparam;
               A[n][n_slip_systemsWOtwin] = 0.0;
             }
         }
@@ -575,9 +596,9 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                             A_PA,
                             n_slip_systemsWOtwin);
 
-      if (isTwinned)
+      if (delta_orderparam > 0)
         {
-          x_beta[n_slip_systemsWOtwin] = this->userInputs_cp.twinShear1;
+          x_beta[n_slip_systemsWOtwin] = this->userInputs_cp.twinShear1 * delta_orderparam;
         }
 
       // Step 6: Update the plastic deformation gradient at time tau=t+dt,
