@@ -224,6 +224,24 @@ void crystalPlasticity<dim>::init(unsigned int num_quad_points)
   //load rot, rotnew and VoxelData
   for (unsigned int cell=0; cell<num_local_cells; cell++){
     unsigned int materialID=cellOrientationMap[cell];
+    
+    // Error checking: ensure orientations map is populated
+    if (orientations.eulerAngles.empty()) {
+      std::cerr << "ERROR: orientations.eulerAngles is empty! Make sure loadOrientationVector() was called before init().\n";
+      exit(1);
+    }
+    
+    // Error checking: ensure materialID exists in the map
+    if (orientations.eulerAngles.find(materialID) == orientations.eulerAngles.end()) {
+      std::cerr << "ERROR: Material ID " << materialID << " not found in orientations map.\n";
+      std::cerr << "Available material IDs: ";
+      for (const auto& entry : orientations.eulerAngles) {
+        std::cerr << entry.first << " ";
+      }
+      std::cerr << "\n";
+      exit(1);
+    }
+    
     for (unsigned int q=0; q<num_quad_points; q++){
       for (unsigned int i=0; i<dim; i++){
         rot_iter[cell][q][i]=orientations.eulerAngles[materialID][i];
