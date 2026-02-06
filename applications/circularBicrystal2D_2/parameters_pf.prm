@@ -108,7 +108,7 @@ set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
 # The gradient energy coefficients
 # In the twin plane reference plane
 # ANISOTROPIC
-set Model constant Kij_tp = ((0.0258,0,0),(0,0.00645,0),(0,0,0.0258)), TENSOR
+set Model constant Kij_tp = ((11.07,0,0),(0,2.767,0),(0,0,11.07)), TENSOR
 
 # Twin direction unit vector
 set Model constant td = (-0.631832692824310,	-0.364788775284921,	0.683898090145388), TENSOR
@@ -124,7 +124,7 @@ set Model constant euler_angs = (136.844, 90.0, 330.0), TENSOR
 
 # Twin energy barrier (double well height) 
 # 31.04 * (n^2) * (1-n)^2 has the same height as 4 * 1.94 n * (1-n) at n=1/2
-set Model constant delf_tw = 0.016125, DOUBLE
+set Model constant delf_tw = 10.0, DOUBLE
 
 # Unit lenght (in m)
 set Model constant l0 = 1.0e-6, DOUBLE
