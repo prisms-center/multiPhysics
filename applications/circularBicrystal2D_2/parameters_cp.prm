@@ -79,6 +79,10 @@ set Output Variable 3                            = true
 set Output Variable 4                            = true
 # driving force
 set Output Variable 5                            = true
+# xy component of the stress tensor
+set Output Variable 6                            = true
+# yx component of the stress tensor
+set Output Variable 7                            = true
 
 ####################################
 # Boundary condition information
