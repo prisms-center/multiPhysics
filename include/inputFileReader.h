@@ -13,7 +13,7 @@ class inputFileReader
 {
 public:
 	// Constructor
-	inputFileReader(std::string input_file_name, variableAttributeLoader variable_attributes);
+	inputFileReader(std::string input_file_name, variableAttributeLoader variable_attributes, dealii::ParameterHandler & parameter_handler);
 
 	// Method to get a list of entry values from multiple subsections in an input file
 	std::vector<std::string> get_subsection_entry_list(const std::string parameters_file_name, const std::string subsec_name,
@@ -34,7 +34,7 @@ public:
 
 
 	// Variables
-	dealii::ParameterHandler parameter_handler;
+	dealii::ParameterHandler & parameter_handler;
 	std::vector<fieldType> var_types;
     std::vector<PDEType> var_eq_types;
 	unsigned int num_pp_vars;

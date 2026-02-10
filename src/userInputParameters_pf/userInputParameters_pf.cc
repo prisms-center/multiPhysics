@@ -19,15 +19,15 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
            }
     }
 
-    subdivisions.push_back(parameter_handler.get_integer("Subdivisions X"));
+    subdivisions.push_back(parameter_handler.get_integer("PF Subdivisions X"));
 	if (dim > 1){
-		subdivisions.push_back(parameter_handler.get_integer("Subdivisions Y"));
+		subdivisions.push_back(parameter_handler.get_integer("PF Subdivisions Y"));
 		if (dim > 2){
-			subdivisions.push_back(parameter_handler.get_integer("Subdivisions Z"));
+			subdivisions.push_back(parameter_handler.get_integer("PF Subdivisions Z"));
 		}
 	}
 
-    refine_factor = parameter_handler.get_integer("Refine factor");
+    refine_factor = parameter_handler.get_integer("PF Refine factor");
 
     degree = parameter_handler.get_integer("Element degree");
 

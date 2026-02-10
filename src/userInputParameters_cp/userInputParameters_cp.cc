@@ -28,15 +28,15 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
     }
   }
 
-  subdivisions.push_back(parameter_handler.get_integer("Subdivisions X"));
+  subdivisions.push_back(parameter_handler.get_integer("CP Subdivisions X"));
   if (dim > 1){
-    subdivisions.push_back(parameter_handler.get_integer("Subdivisions Y"));
+    subdivisions.push_back(parameter_handler.get_integer("CP Subdivisions Y"));
     if (dim > 2){
-      subdivisions.push_back(parameter_handler.get_integer("Subdivisions Z"));
+      subdivisions.push_back(parameter_handler.get_integer("CP Subdivisions Z"));
     }
   }
 
-  meshRefineFactor = parameter_handler.get_integer("Refine factor");
+  meshRefineFactor = parameter_handler.get_integer("CP Refine factor");
 
   writeMeshToEPS = parameter_handler.get_bool("Write Mesh To EPS");
 
@@ -561,10 +561,10 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Domain size X","-1",dealii::Patterns::Double(),"The size of the domain in the x direction.");
   parameter_handler.declare_entry("Domain size Y","-1",dealii::Patterns::Double(),"The size of the domain in the y direction.");
   parameter_handler.declare_entry("Domain size Z","-1",dealii::Patterns::Double(),"The size of the domain in the z direction.");
-  parameter_handler.declare_entry("Subdivisions X","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the x direction.");
-  parameter_handler.declare_entry("Subdivisions Y","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the y direction.");
-  parameter_handler.declare_entry("Subdivisions Z","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the z direction.");
-  parameter_handler.declare_entry("Refine factor","-1",dealii::Patterns::Integer(),"The number of initial refinements of the coarse mesh.");
+  parameter_handler.declare_entry("CP Subdivisions X","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the x direction for CP.");
+  parameter_handler.declare_entry("CP Subdivisions Y","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the y direction for CP.");
+  parameter_handler.declare_entry("CP Subdivisions Z","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the z direction for CP.");
+  parameter_handler.declare_entry("CP Refine factor","-1",dealii::Patterns::Integer(),"The number of initial refinements of the coarse mesh for CP.");
 
   parameter_handler.declare_entry("Write Mesh To EPS","false",dealii::Patterns::Bool(),"Only written for serial runs and if number of elements < 10000");
 

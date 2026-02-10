@@ -26,21 +26,21 @@ int main (int argc, char **argv)
 
       ParameterHandler parameter_handler;
 
-    if (argc != 3) {
+    if (argc != 2) {
         std::cerr << "Usage: " << argv[0]
-                  << " <CPFE parameters file> <PF parameters file>" << std::endl;
+                  << " <parameters file>" << std::endl;
         return 1;
     }
 
-    const std::string parameter_file_cp = argv[1];
-    const std::string parameter_file_pf = argv[2];
+    const std::string parameter_file = argv[1];
 
-      //Read Crystal Plasticity parameters
-      userInputParameters_cp userInputs_cp(parameter_file_cp,parameter_handler);
-
-      //Read PhaseField Parameters
+      //Read PhaseField Parameters (declares PF parameters)
       variableAttributeLoader variable_attributes;
-      inputFileReader input_file_reader(parameter_file_pf,variable_attributes);
+      inputFileReader input_file_reader(parameter_file,variable_attributes,parameter_handler);
+
+      //Read Crystal Plasticity parameters (declares CP parameters and parses file)
+      userInputParameters_cp userInputs_cp(parameter_file,parameter_handler);
+
       userInputParameters_pf<3> userInputs_pf(input_file_reader,input_file_reader.parameter_handler,variable_attributes);
 
       customPDE<3,1> pf_problem(userInputs_pf, userInputs_cp);
