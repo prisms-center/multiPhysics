@@ -47,7 +47,7 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
 
   //output parameters
   writeOutput = parameter_handler.get_bool("Write Output");
-  outputDirectory = parameter_handler.get("Output Directory");
+  outputDirectory = parameter_handler.get("CP Output Directory");
 
   tabularOutput = parameter_handler.get_bool("Tabular Output");
   tabularTimeOutput=dealii::Utilities::string_to_double(dealii::Utilities::split_string_list(parameter_handler.get("Tabular Time Output Table")));
@@ -671,7 +671,7 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
 
 
   parameter_handler.declare_entry("Write Output","false",dealii::Patterns::Bool(),"Flag to write output vtu and pvtu files");
-  parameter_handler.declare_entry("Output Directory",".",dealii::Patterns::Anything(),"Output Directory");
+  parameter_handler.declare_entry("CP Output Directory",".",dealii::Patterns::Anything(),"CP Output Directory");
 
   parameter_handler.declare_entry("Tabular Output","false",dealii::Patterns::Bool(),"Flag to use Tabular Output");
   parameter_handler.declare_entry("Tabular Time Output Table","",dealii::Patterns::List(dealii::Patterns::Double()),"Table for Time Outputs");

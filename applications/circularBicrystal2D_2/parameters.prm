@@ -33,7 +33,7 @@ set Write Mesh To EPS                            = false
 # Output parameters
 # ==================================================================
 set Write Output                                 = true
-set Output Directory                             = results_cp
+set CP Output Directory                             = results_cp
 set Skip Output Steps                            = 5
 set Output Equivalent strain                     = true
 set Output Equivalent stress                     = true
@@ -182,7 +182,7 @@ set Number of phase field steps per CPFE step = 50
 set Skip print steps = 40
 set Number of outputs = 50
 set Output condition = EQUAL_SPACING
-set Output directory = results_pf
+set PF Output directory = results_pf
 set Print timing information with output = true
 
 # ==================================================================
