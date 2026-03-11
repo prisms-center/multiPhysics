@@ -604,7 +604,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       else
         {
           // Twinning is occuring. Set x_beta
-          x_beta(n_slip_systemsWOtwin) = delta_orderparam * userInputs_cp.twinShear1;
+          x_beta(n_slip_systemsWOtwin) = delta_orderparam * this->userInputs_cp.twinShear1;
           
           //	resolved_shear_tau_trial = resolved_shear_tau;
           FP_t2   = FP_tau;
