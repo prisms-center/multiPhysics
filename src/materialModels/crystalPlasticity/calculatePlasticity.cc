@@ -188,13 +188,16 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   for (unsigned int i = 0; i < n_Tslip_systems; i++)
     {
       s_alpha_t[i] = s_alpha_conv[cellID][quadPtID][i];
+
+      // Veera's changes Feb 18
+      /*
       if (i >= n_slip_systemsWOtwin
         && ttwinvf1[i - n_slip_systemsWOtwin] < this->userInputs_cp.MPtwinLowerThresholdFraction1)
         {
           // TODO: determine if this is working correctly, or whether it needs to
           // be done differently.
           s_alpha_t[i] = 1e9;
-        }
+        }*/
     }
   
   // Parent and twin orientations
@@ -421,6 +424,12 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   unsigned int flag2 = 0;
   resolved_shear_tau = resolved_shear_tau_trial;
 
+  // Veera's changes Feb 18
+  x_beta = 0.0;
+  delta_orderparam = ttwinvf1[0] - ttwinvf[0];
+  bool twinflag = delta_orderparam > 0.0; // TODO: make this work for detwinning (negative delta_orderparam)
+  // </end>
+
   // ********* Start Nonlinear iteration for Slip increments ********* //
 
   while (iter1)
@@ -433,172 +442,180 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
           break;
         }
 
-      //% % % % % STEP 4 % % % % %
-      n_PA = 0; // Number of active slip systems
-      b.reinit(n_Tslip_systems);
-      // Determine the set set of the n potentially active slip systems
-      for (unsigned int i = 0; i < n_Tslip_systems; i++)
+      // Skip slip calculation if twinning is happening
+      if (!twinflag)
         {
-          b(i) = fabs(resolved_shear_tau(i)) - s_alpha_tau(i);
-          if (b(i) >= tol1)
+          //% % % % % STEP 4 % % % % %
+          n_PA = 0; // Number of active slip systems
+          b.reinit(n_Tslip_systems);
+          // Determine the set set of the n potentially active slip systems
+          // Phil change 3/10: only consider slip. Twinning is determined by the PF model
+          for (unsigned int i = 0; i < n_slip_systemsWOtwin; i++)
             {
-              // TODO: decide if PA should be changed to std::vector<double>,
-              // which would eliminate the need to manually update the size
-              // every time a new value is appended
-              if (n_PA == 0)
+              b(i) = fabs(resolved_shear_tau(i)) - s_alpha_tau(i);
+              if (b(i) >= tol1)
                 {
-                  n_PA = n_PA + 1;
-                  PA.reinit(n_PA);
-                  PA(0) = i;
-                }
-              else
-                {
-                  PA_temp = PA;
-                  n_PA    = n_PA + 1;
-                  PA.reinit(n_PA);
-                  for (unsigned int j = 0; j < (n_PA - 1); j++)
+                  // TODO: decide if PA should be changed to std::vector<double>,
+                  // which would eliminate the need to manually update the size
+                  // every time a new value is appended
+                  if (n_PA == 0)
                     {
-                      PA(j) = PA_temp(j);
+                      n_PA = n_PA + 1;
+                      PA.reinit(n_PA);
+                      PA(0) = i;
                     }
-                  PA(n_PA - 1) = i;
-                  PA_temp.reinit(n_PA); //%%%%% Potentially active slip systems
+                  else
+                    {
+                      PA_temp = PA;
+                      n_PA    = n_PA + 1;
+                      PA.reinit(n_PA);
+                      for (unsigned int j = 0; j < (n_PA - 1); j++)
+                        {
+                          PA(j) = PA_temp(j);
+                        }
+                      PA(n_PA - 1) = i;
+                      PA_temp.reinit(n_PA); //%%%%% Potentially active slip systems
+                    }
                 }
             }
-        }
 
-      // If there are no potentially active slip systems, there is no plastic
-      // deformation, and the trial values are correct already.
-      if (n_PA == 0)
-        break;
+          // If there are no potentially active slip systems, there is no plastic
+          // deformation, and the trial values are correct already.
+          if (n_PA == 0)
+            break;
 
-      Vector<double> b_PA(n_PA);
-      b_PA.reinit(n_PA);
+          Vector<double> b_PA(n_PA);
+          b_PA.reinit(n_PA);
 
-      for (unsigned int i = 0; i < n_PA; i++)
-        {
-          b_PA(i) = b(PA(i));
-        }
-
-      if ((b_PA.linfty_norm()) < tol1)
-        break;
-
-      if (iter1 > 1)
-        {
-          temp.reinit(dim, dim);
-        }
-
-      //	resolved_shear_tau_trial = resolved_shear_tau;
-      FP_t2   = FP_tau;
-      Fpn_inv = 0.0;
-      Fpn_inv.invert(FP_t2);
-      FE_tau = 0.0;
-      F_tau.mmult(FE_tau, Fpn_inv);
-      temp.reinit(dim, dim);
-      temp = 0.0;
-      temp = FE_tau;
-      FE_tau.Tmmult(CE_tau, temp);
-
-      //% % % % % STEP 5 % % % % %
-      // Calculate the shear increments from the consistency condition
-      s_beta = s_alpha_tau;
-
-      // Single slip hardening rate
-      for (unsigned int i = 0; i < n_slip_systemsWOtwin; i++)
-        {
-          h_beta(i) = initialHardeningModulus[i] *
-                      pow((1 - s_beta(i) / saturationStress[i]), powerLawExponent[i]);
-        }
-
-      // Twin hardening rate
-      for (unsigned int i = 0; i < n_twin_systems; i++)
-        {
-          h_beta(n_slip_systemsWOtwin + i) =
-            initialHardeningModulusTwin[i] *
-            pow((1 - s_beta(n_slip_systemsWOtwin + i) / saturationStressTwin[i]),
-                powerLawExponentTwin[i]);
-        }
-
-      for (unsigned int i = 0; i < n_Tslip_systems; i++)
-        {
-          for (unsigned int j = 0; j < n_Tslip_systems; j++)
+          for (unsigned int i = 0; i < n_PA; i++)
             {
-              h_alpha_beta_t[i][j] = q[i][j] * h_beta(j);
-              A[i][j]              = h_alpha_beta_t[i][j];
+              b_PA(i) = b(PA(i));
             }
-        }
 
-      for (unsigned int i = 0; i < n_Tslip_systems; i++)
-        {
-          temp1.reinit(dim, dim);
-          temp1 = 0.0;
-          for (unsigned int k = 0; k < dim; k++)
-            {
-              for (unsigned int l = 0; l < dim; l++)
-                {
-                  temp1[k][l] = SCHMID_TENSOR(dim * i + k, l);
-                }
-            }
-          for (unsigned int j = 0; j < n_Tslip_systems; j++)
+          if ((b_PA.linfty_norm()) < tol1)
+            break;
+
+          if (iter1 > 1)
             {
               temp.reinit(dim, dim);
-              temp = 0.0;
-              for (unsigned int k = 0; k < dim; k++)
-                {
-                  for (unsigned int l = 0; l < dim; l++)
-                    {
-                      temp[k][l] = SCHMID_TENSOR(dim * j + k, l);
-                    }
-                }
-              temp2.reinit(dim, dim);
-              CE_tau.mmult(temp2, temp);
-              temp2.symmetrize();
-              tempv1 = 0.0;
-              Dmat.vmult(tempv1, vecform(temp2));
-              temp3 = 0.0;
-              matform(temp3, tempv1);
-              // temp3 is symm in Matlab line 94 of constitutive.m
-
-              for (unsigned int k = 0; k < dim; k++)
-                {
-                  for (unsigned int l = 0; l < dim; l++)
-                    {
-                      if ((resolved_shear_tau(i) * resolved_shear_tau(j)) < 0.0)
-                        A[i][j] -= temp1[k][l] * temp3[k][l];
-                      else
-                        A[i][j] += temp1[k][l] * temp3[k][l];
-                    }
-                }
             }
-        }
-      
-      // change A and b to account for already enforced twin shear, allow slip
-      // in the twin
-      // TODO: make this work when there are multiple twin systems
-      delta_orderparam = ttwinvf1[0] - ttwinvf[0];
-      if (delta_orderparam > 0)
-        {
-          for (unsigned int n = 0; n < n_Tslip_systems; n++)
+
+          //	resolved_shear_tau_trial = resolved_shear_tau;
+          FP_t2   = FP_tau;
+          Fpn_inv = 0.0;
+          Fpn_inv.invert(FP_t2);
+          FE_tau = 0.0;
+          F_tau.mmult(FE_tau, Fpn_inv);
+          temp.reinit(dim, dim);
+          temp = 0.0;
+          temp = FE_tau;
+          FE_tau.Tmmult(CE_tau, temp);
+
+          //% % % % % STEP 5 % % % % %
+          // Calculate the shear increments from the consistency condition
+          s_beta = s_alpha_tau;
+
+          // Single slip hardening rate
+          for (unsigned int i = 0; i < n_slip_systemsWOtwin; i++)
             {
-              b[n] -= A[n][n_slip_systemsWOtwin] * this->userInputs_cp.twinShear1 * delta_orderparam;
-              A[n][n_slip_systemsWOtwin] = 0.0;
+              h_beta(i) = initialHardeningModulus[i] *
+                          pow((1 - s_beta(i) / saturationStress[i]), powerLawExponent[i]);
             }
-        }
 
-      // Modified slip system search for adding corrective term
-      inactive_slip_removal(active,
-                            x_beta_old,
-                            x_beta,
-                            n_PA,
-                            n_Tslip_systems,
-                            PA,
-                            b,
-                            A,
-                            A_PA,
-                            n_slip_systemsWOtwin);
+          // Twin hardening rate
+          for (unsigned int i = 0; i < n_twin_systems; i++)
+            {
+              h_beta(n_slip_systemsWOtwin + i) =
+                initialHardeningModulusTwin[i] *
+                pow((1 - s_beta(n_slip_systemsWOtwin + i) / saturationStressTwin[i]),
+                    powerLawExponentTwin[i]);
+            }
 
-      if (delta_orderparam > 0)
+          for (unsigned int i = 0; i < n_Tslip_systems; i++)
+            {
+              for (unsigned int j = 0; j < n_Tslip_systems; j++)
+                {
+                  h_alpha_beta_t[i][j] = q[i][j] * h_beta(j);
+                  A[i][j]              = h_alpha_beta_t[i][j];
+                }
+            }
+
+          for (unsigned int i = 0; i < n_Tslip_systems; i++)
+            {
+              temp1.reinit(dim, dim);
+              temp1 = 0.0;
+              for (unsigned int k = 0; k < dim; k++)
+                {
+                  for (unsigned int l = 0; l < dim; l++)
+                    {
+                      temp1[k][l] = SCHMID_TENSOR(dim * i + k, l);
+                    }
+                }
+              for (unsigned int j = 0; j < n_Tslip_systems; j++)
+                {
+                  temp.reinit(dim, dim);
+                  temp = 0.0;
+                  for (unsigned int k = 0; k < dim; k++)
+                    {
+                      for (unsigned int l = 0; l < dim; l++)
+                        {
+                          temp[k][l] = SCHMID_TENSOR(dim * j + k, l);
+                        }
+                    }
+                  temp2.reinit(dim, dim);
+                  CE_tau.mmult(temp2, temp);
+                  temp2.symmetrize();
+                  tempv1 = 0.0;
+                  Dmat.vmult(tempv1, vecform(temp2));
+                  temp3 = 0.0;
+                  matform(temp3, tempv1);
+                  // temp3 is symm in Matlab line 94 of constitutive.m
+
+                  for (unsigned int k = 0; k < dim; k++)
+                    {
+                      for (unsigned int l = 0; l < dim; l++)
+                        {
+                          if ((resolved_shear_tau(i) * resolved_shear_tau(j)) < 0.0)
+                            A[i][j] -= temp1[k][l] * temp3[k][l];
+                          else
+                            A[i][j] += temp1[k][l] * temp3[k][l];
+                        }
+                    }
+                }
+            }
+          
+          // change A and b to account for already enforced twin shear, allow slip
+          // in the twin
+          // TODO: make this work when there are multiple twin systems
+          
+
+          // Modified slip system search for adding corrective term
+          inactive_slip_removal(active,
+                                x_beta_old,
+                                x_beta,
+                                n_PA,
+                                n_Tslip_systems,
+                                PA,
+                                b,
+                                A,
+                                A_PA,
+                                n_slip_systemsWOtwin);
+        } // End slip calculation, which only occurs when not twinning
+      else
         {
-          x_beta[n_slip_systemsWOtwin] = this->userInputs_cp.twinShear1 * delta_orderparam;
+          // Twinning is occuring. Set x_beta
+          x_beta(n_slip_systemsWOtwin) = delta_orderparam * userInputs_cp.twinShear1;
+          
+          //	resolved_shear_tau_trial = resolved_shear_tau;
+          FP_t2   = FP_tau;
+          Fpn_inv = 0.0;
+          Fpn_inv.invert(FP_t2);
+          FE_tau = 0.0;
+          F_tau.mmult(FE_tau, Fpn_inv);
+          temp.reinit(dim, dim);
+          temp = 0.0;
+          temp = FE_tau;
+          FE_tau.Tmmult(CE_tau, temp);
         }
 
       // Step 6: Update the plastic deformation gradient at time tau=t+dt,

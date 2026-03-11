@@ -76,6 +76,7 @@ set Quarter cycle time                           = 1.2
 # ==================================================================
 set Time increment                              = 0.01
 set Time increment after phase-field coupling   = 0.01
+set Steps for seeding the twin                  = 20
 set Total time                                   = 2.0
 set Maximum linear solver iterations             = 1000000
 set Relative linear solver tolerance             = 1.0e-9

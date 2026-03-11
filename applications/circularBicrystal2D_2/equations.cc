@@ -57,49 +57,71 @@ template <int dim, int degree>
 void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double>> & variable_list,
 				 dealii::Point<dim, dealii::VectorizedArray<double>> q_point_loc) const {
 
-	// --- Getting the values and derivatives of the model variables ---
-
-	// The order parameter and its derivatives
-	scalarvalueType_pf n = variable_list.get_scalar_value(0);
-	scalargradType_pf nx = variable_list.get_scalar_gradient(0);
-
-	// The time derivative of the order parameter
-	scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
-
-	// The strain contribiution to the driving force
-	scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
-
-	// --- Setting the expressions for the terms in the governing equations ---
-
-	scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
-	scalargradType_pf kappagradn;
-	kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1]+constV(K[0][2])*nx[2];
-	kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1]+constV(K[1][2])*nx[2];
-	kappagradn[2] = constV(K[2][0])*nx[0]+constV(K[2][1])*nx[1]+constV(K[2][2])*nx[2];
-
-	//Outward Normal vector
-	scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
-
-	//Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
-	scalarvalueType_pf L = constV(0.0);
-	for(unsigned int i=0;i<dim;i++){
-		for(unsigned int j=0;j<dim;j++){
-			//Mobility tensor (rotated)
-			L = L + nvec[i]*nvec[j]*Ltens[i][j];
+  // During seeding - recreate the initial condition, multiplied by a scalar factor
+	if (this->seedingIncrement < this->userInputs_cp.stepsForSeeding)
+	  {
+		  double seeding_scale_factor = (this->seedingIncrement / ((double)this->userInputs_cp.stepsForSeeding));
+			scalarType_pf seed_n = constV(0.0);
+			scalargradType_pf seed_nx = variable_list.get_scalar_gradient(0);
+			// unroll vectorization
+			for (unsigned int n = 0; n < q_point_loc[0].size(); n++)
+			  {
+					double n_ic;
+					setInitialCondition(q_point_loc[n], 0, n_ic, NULL);
+					seed_n[n] = seeding_scale_factor * n_ic;
+				}
+			
+			variable_list.set_scalar_value_term_RHS(0,seed_n);
+			variable_list.set_scalar_gradient_term_RHS(0,constV(0.0)*seed_nx);
 		}
-}
+	else
+	  {
+			// --- Getting the values and derivatives of the model variables ---
 
-//Applying a filter to localize driving force to the twin boundary 
-scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
+			// The order parameter and its derivatives
+			scalarvalueType_pf n = variable_list.get_scalar_value(0);
+			scalargradType_pf nx = variable_list.get_scalar_gradient(0);
 
-//Defining the value and gradient terms
-scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue)*L*(mu_twV-strain_df_filter));
-scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue)*L*kappagradn);
+			// The time derivative of the order parameter
+			scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
 
-// --- Submitting the terms for the governing equations ---
+			// The strain contribiution to the driving force
+			scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
 
-variable_list.set_scalar_value_term_RHS(0,eq_n);
-variable_list.set_scalar_gradient_term_RHS(0,eqx_n);
+			// --- Setting the expressions for the terms in the governing equations ---
+
+			scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
+			scalargradType_pf kappagradn;
+			kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1]+constV(K[0][2])*nx[2];
+			kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1]+constV(K[1][2])*nx[2];
+			kappagradn[2] = constV(K[2][0])*nx[0]+constV(K[2][1])*nx[1]+constV(K[2][2])*nx[2];
+
+			//Outward Normal vector
+			scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
+
+      // Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
+      scalarvalueType_pf L = constV(0.0);
+      for (unsigned int i = 0; i < dim; i++)
+        {
+          for (unsigned int j = 0; j < dim; j++)
+            {
+              // Mobility tensor (rotated)
+              L = L + nvec[i] * nvec[j] * Ltens[i][j];
+            }
+        }
+
+			//Applying a filter to localize driving force to the twin boundary 
+			scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
+
+			//Defining the value and gradient terms
+			scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue)*L*(mu_twV-strain_df_filter));
+			scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue)*L*kappagradn);
+
+			// --- Submitting the terms for the governing equations ---
+
+			variable_list.set_scalar_value_term_RHS(0,eq_n);
+			variable_list.set_scalar_gradient_term_RHS(0,eqx_n);
+	  }
 
 }
 

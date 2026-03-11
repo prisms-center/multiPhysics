@@ -67,6 +67,7 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
 
   delT=parameter_handler.get_double("Time increment");
   delT_pf_adjust=parameter_handler.get_double("Time increment after phase-field coupling");
+  stepsForSeeding=parameter_handler.get_integer("Steps for seeding the twin");
   criticalDeltaFCriteria=parameter_handler.get_double("critical DeltaF Criteria");
   numberTaylorSubsteps=parameter_handler.get_integer("Number of Taylor Substeps");
   totalTime=parameter_handler.get_double("Total time");
