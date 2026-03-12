@@ -14,6 +14,8 @@ crystalPlasticity<dim>::crystalPlasticity(userInputParameters_pf<dim> _userInput
   , FE_tau(dim, dim)
   , T(dim, dim)
   , P(dim, dim)
+  , F_per(dim, dim)
+  , P_per(dim, dim)
   , pf_object(_pf_object)
 {
   initCalled = false;
