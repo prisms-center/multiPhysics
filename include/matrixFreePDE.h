@@ -163,6 +163,8 @@ public:
 
   unsigned int& getCurrentIncrement();
 
+  unsigned int& getSeedingIncrement();
+
   unsigned int& getCurrentOutput();
 
   /**
@@ -535,6 +537,7 @@ protected:
   double       currentTime;
   unsigned int currentIncrement, currentOutput, currentCheckpoint,
     current_grain_reassignment;
+  unsigned int seedingIncrement;
 
   bool has_Dirichlet_BCs;
 

@@ -67,6 +67,7 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
 
   delT=parameter_handler.get_double("Time increment");
   delT_pf_adjust=parameter_handler.get_double("Time increment after phase-field coupling");
+  stepsForSeeding=parameter_handler.get_integer("Steps for seeding the twin");
   criticalDeltaFCriteria=parameter_handler.get_double("critical DeltaF Criteria");
   numberTaylorSubsteps=parameter_handler.get_integer("Number of Taylor Substeps");
   totalTime=parameter_handler.get_double("Total time");
@@ -574,6 +575,7 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
 
   parameter_handler.declare_entry("Time increment","-1",dealii::Patterns::Double(),"delta T for every increment");
   parameter_handler.declare_entry("Time increment after phase-field coupling","-1",dealii::Patterns::Double(),"delta T for every pf increment after phase-field coupling");
+  parameter_handler.declare_entry("Steps for seeding the twin","1",dealii::Patterns::Integer(),"Number of CPFE timesteps over which the twin seed is placed");
   parameter_handler.declare_entry("critical DeltaF Criteria","10000",dealii::Patterns::Double(),"critical DeltaF Criteria");
   parameter_handler.declare_entry("Total time","-1",dealii::Patterns::Double(),"Total simulation time");
   parameter_handler.declare_entry("Seeding time","-1",dealii::Patterns::Double(),"Deformation time prior to introducing a twin seed");
