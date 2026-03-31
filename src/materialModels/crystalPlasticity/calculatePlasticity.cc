@@ -156,6 +156,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
   // Elastic Modulus
   FullMatrix<double> Dmat2(2 * dim, 2 * dim), TM(dim * dim, dim * dim);
+  FullMatrix<double> Dmat2_twin(2 * dim, 2 * dim);
   FullMatrix<double> ElasticityTensor(2 * dim, 2 * dim);
 
   Vector<double> vec1(6), vec2(9);
@@ -184,20 +185,23 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   FE_t = Fe_conv[cellID][quadPtID];
   FP_t = Fp_conv[cellID][quadPtID];
 
+  // Determine the twin evolution based on the change in order parameter
+  delta_orderparam = fabs(ttwinvf1[0] - ttwinvf[0]);
+  bool twinflag = delta_orderparam > 0.0; // TODO: make this work for detwinning (negative delta_orderparam)
+
   // Slip resistance and backstress from last step (current state)
   for (unsigned int i = 0; i < n_Tslip_systems; i++)
     {
       s_alpha_t[i] = s_alpha_conv[cellID][quadPtID][i];
 
       // Veera's changes Feb 18
-      /*
-      if (i >= n_slip_systemsWOtwin
-        && ttwinvf1[i - n_slip_systemsWOtwin] < this->userInputs_cp.MPtwinLowerThresholdFraction1)
+      if (i >= n_slip_systemsWOtwin)
+        //&& ttwinvf1[i - n_slip_systemsWOtwin] < this->userInputs_cp.MPtwinLowerThresholdFraction1)
         {
           // TODO: determine if this is working correctly, or whether it needs to
           // be done differently.
           s_alpha_t[i] = 1e9;
-        }*/
+        }
     }
   
   // Parent and twin orientations
@@ -263,28 +267,11 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
         }
     }
   
-  // Determine if the current point is inside a twin
+  // Interpolate the elastic constants based on the twin fraction
   // TODO: if there are multiple twin systems, this needs to be re-worked
-  // Right now, if any twin systems have ttwinvf>threshold, the voxel is
-  // considered twinned and the orientation for twin system 1 is used
-  bool isTwinned = false;
-  for (unsigned int i = 0; i < n_twin_systems; i++)
-    {
-      if (ttwinvf1[i] > this->userInputs_cp.MPtwinLowerThresholdFraction1)
-        {
-          isTwinned = true;
-        }
-    }
-
-  // Rotate the elastic moduli based on the twin or parent grain orientation
-  if (isTwinned)
-    {
-      elasticmoduli(Dmat2, rotmat_twin, elasticStiffnessMatrix);
-    }
-  else
-    {
-      elasticmoduli(Dmat2, rotmat, elasticStiffnessMatrix);
-    }
+  
+  elasticmoduli(Dmat2_twin, rotmat_twin, elasticStiffnessMatrix);
+  elasticmoduli(Dmat2, rotmat, elasticStiffnessMatrix);
   
   Dmat.reinit(6, 6);
   Dmat = 0.0;
@@ -293,7 +280,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     {
       for (unsigned int j = 0; j < 6; j++)
         {
-          Dmat[i][j] = Dmat2[i][j];
+          Dmat[i][j] = ttwinvf1[0] * Dmat2_twin[i][j] + (1 - ttwinvf1[0]) * Dmat2[i][j];
         }
     }
   
@@ -349,7 +336,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             }
         }
       // convert the Schmid tensor to Sample coordinates
-      if (isTwinned && i < n_slip_systemsWOtwin)
+      if (ttwinvf1[0] > this->userInputs_cp.MPtwinLowerThresholdFraction1 && i < n_slip_systemsWOtwin)
         {
           // If we are inside the twin, the orientation matrix should
           // change, but only for the slip systems.
@@ -426,9 +413,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
   // Veera's changes Feb 18
   x_beta = 0.0;
-  delta_orderparam = ttwinvf1[0] - ttwinvf[0];
-  bool twinflag = delta_orderparam > 0.0; // TODO: make this work for detwinning (negative delta_orderparam)
-  // </end>
 
   // ********* Start Nonlinear iteration for Slip increments ********* //
 
@@ -798,7 +782,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
   // **************** Compute the Tangent Modulus **************** //
   
-  if (StiffnessCalFlag == 1 && twinflag)
+  if (StiffnessCalFlag == 1 && !twinflag) // Only use numeric tangent modulus if there is no twinning
     {
       for (unsigned int i = 0; i < 9; i++)
         {
