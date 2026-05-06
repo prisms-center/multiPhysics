@@ -5,9 +5,9 @@
 ####################################################################
 # Common Parameters (Used by both CP and PF)
 ####################################################################
-set Domain size X                                = 120.0
-set Domain size Y                                = 120.0
-set Domain size Z                                = 1.0
+set Domain size X                                = 2.0
+set Domain size Y                                = 2.0
+set Domain size Z                                = 0.125
 set Number of dimensions                         = 3
 
 ####################################################################
@@ -23,9 +23,9 @@ set Order of quadrature                          = 2
 # ==================================================================
 # Mesh parameters
 # ==================================================================
-set CP Subdivisions X                               = 120
-set CP Subdivisions Y                               = 120
-set CP Subdivisions Z                               = 1
+set CP Subdivisions X                               = 64
+set CP Subdivisions Y                               = 64
+set CP Subdivisions Z                               = 4
 set CP Refine factor                                = 0
 set Write Mesh To EPS                            = false
 
@@ -76,8 +76,8 @@ set Quarter cycle time                           = 1.2
 # ==================================================================
 set Time increment                              = 0.01
 set Time increment after phase-field coupling   = 0.01
-set Steps for seeding the twin                  = 20
-set Total time                                   = 2.0
+set Steps for seeding the twin                  = 1
+set Total time                                   = 4.0
 set Maximum linear solver iterations             = 1000000
 set Relative linear solver tolerance             = 1.0e-9
 set Maximum non linear iterations                = 15
@@ -85,8 +85,8 @@ set Maximum non linear iterations                = 15
 # ==================================================================
 # PRISMS-MP parameters
 # ==================================================================
-set Seeding time                                  = 1.5
-set Time before coupling                          = 1.5
+set Seeding time                                  = 0.0
+set Time before coupling                          = 0.0
 set Reorient threshold                            = 0.05
 set Active zone threshold                         = 0.95
 set Max loop iterations for phase field active zone expansion = 100
@@ -108,10 +108,10 @@ set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 16.58e3
 # ==================================================================
 set Number of Slip Systems                       = 12
 set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
-set Initial Slip Resistance                      = 6, 6, 6, 40, 40, 40, 80, 80, 80, 80, 80, 80
-set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
+set Initial Slip Resistance                      = 6, 6, 6, 78, 78, 78, 140, 140, 140, 140, 140, 140
+set Initial Hardening Modulus                    = 76, 76, 76, 163, 163, 163, 187, 187, 187, 187, 187, 187
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-set Saturation Stress                            = 20, 20, 20, 75, 75, 75, 115, 115, 115, 115, 115, 115
+set Saturation Stress                            = 120, 120, 120, 150, 150, 150, 150, 150, 150, 150, 150, 150
 set Slip Directions File                         = slipDirections.txt
 set Slip Normals File                            = slipNormals.txt
 
@@ -121,8 +121,8 @@ set Slip Normals File                            = slipNormals.txt
 set Twinning enabled                             = true
 set Advanced Twinning Model enabled              = false
 set Number of Twin Systems                       = 1
-set Initial Slip Resistance Twin                 = 60
-set Initial Hardening Modulus Twin               = 116
+set Initial Slip Resistance Twin                 = 13
+set Initial Hardening Modulus Twin               = 0
 set Power Law Exponent Twin                      = 1
 set Saturation Stress Twin                       = 100
 set Twin Saturation Factor                       = 0.65
@@ -147,9 +147,9 @@ set Max Solver Iterations                        = 2
 # ==================================================================
 # Input microstructure
 # ==================================================================
-set Voxels in X direction                        = 120
-set Voxels in Y direction                        = 120
-set Voxels in Z direction                        = 1
+set Voxels in X direction                        = 64
+set Voxels in Y direction                        = 64
+set Voxels in Z direction                        = 4
 set Grain ID file name                           = grainID.txt
 set Header Lines GrainID File                    = 1
 set Orientations file name                       = orientations.txt
@@ -168,9 +168,9 @@ set Orientations file name                       = orientations.txt
 # The number of elements in each direction is 2^(refineFactor) * subdivisions
 # Subdivisions Z ignored in 2D
 # For optimal performance, use refineFactor primarily to determine the element size
-set PF Subdivisions X = 120
-set PF Subdivisions Y = 120
-set PF Subdivisions Z = 1
+set PF Subdivisions X = 64
+set PF Subdivisions Y = 64
+set PF Subdivisions Z = 4
 set PF Refine factor = 0
 set Element degree = 1
 
