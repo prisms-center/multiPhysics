@@ -412,8 +412,8 @@ protected:
   double local_tvf;
   unsigned int local_atr_points;
 
-  void reorient_active_zone();
-  int atr_calc(double active_zone_threshold);
+  virtual void reorient_active_zone();
+  virtual int atr_calc(double active_zone_threshold);
 
   // user model related variables and methods
 #ifdef enableUserModel

@@ -56,7 +56,7 @@ crystalPlasticity<dim>::reorient_active_zone()
           for (unsigned int q = 0; q < num_quad_points; ++q)
             {
               // Reorient the active zone
-              reoriented_zone[cellID][q] = reoriented_zone[cellID][q] || obj.active_zone[cellID][q];
+              this->reoriented_zone[cellID][q] = this->reoriented_zone[cellID][q] || this->active_zone[cellID][q];
             }
           cellID++;
         }
@@ -129,8 +129,8 @@ crystalPlasticity<dim>::atr_calc(double active_zone_threshold)
 
               // The new active zone should include points above the threshold
               // but exclude points above the threshold in the old active zone.
-              active_zone[cellId][q] = atr_new && !atr_old;
-              if (active_zone[cellID][q])
+              this->active_zone[cellID][q] = atr_new && !atr_old;
+              if (this->active_zone[cellID][q])
                 {
                   local_quad_points_in_new_atr++;
                 }

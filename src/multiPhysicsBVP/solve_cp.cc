@@ -224,14 +224,14 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
        * STEP 2a/b: Check the reorientation criteria                          *
        ***********************************************************************/
 
-      cout << "Active zone average twin vf = " << atr_avg_twin_vf << std::endl;
+      pcout << "Active zone average twin vf = " << atr_avg_twin_vf << std::endl;
 
       if (atr_avg_twin_vf > userInputs_cp.reorient_threshold)
         {
           /*******************************************************************
            * STEP 2b: Reorient the active zone                                *
            *******************************************************************/
-          cout << "Reorienting the active zone, then solving PF" << std::endl;
+          pcout << "Reorienting the active zone, then solving PF" << std::endl;
           reorient_active_zone();
 
           /*******************************************************************

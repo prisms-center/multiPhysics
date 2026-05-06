@@ -297,6 +297,8 @@ private:
   double twinThresholdFraction;
   double twinSaturationFactor;
 
+  void reorient_active_zone() override;
+  int atr_calc(double active_zone_threshold) override;
 
   /**
   * slip resistance

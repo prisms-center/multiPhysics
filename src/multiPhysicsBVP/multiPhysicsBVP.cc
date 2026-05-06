@@ -58,4 +58,13 @@ template <int dim, int degree>
 MultiPhysicsBVP<dim, degree>::~MultiPhysicsBVP()
 {}
 
+template <int dim, int degree>
+void MultiPhysicsBVP<dim, degree>::reorient_active_zone()
+{}
+
+template <int dim, int degree>
+int MultiPhysicsBVP<dim, degree>::atr_calc(double active_zone_threshold)
+{}
+
+
 #include "../../include/multiPhysicsBVP_template_instantiations.h"
