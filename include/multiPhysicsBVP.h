@@ -409,8 +409,6 @@ protected:
   std::vector<std::vector<bool>> reoriented_zone;
   std::vector<std::vector<std::vector<double>>> twin_vf_conv, twin_vf_iter;
   double atr_avg_twin_vf;
-  double local_tvf;
-  unsigned int local_atr_points;
 
   virtual void reorient_active_zone();
   virtual int atr_calc(double active_zone_threshold);

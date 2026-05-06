@@ -297,6 +297,10 @@ private:
   double twinThresholdFraction;
   double twinSaturationFactor;
 
+  // NEW FIELDS FOR PTR MODEL ACTIVE ZONE SCHEME
+  double local_tvf;
+  unsigned int local_atr_points;
+
   void reorient_active_zone() override;
   int atr_calc(double active_zone_threshold) override;
 

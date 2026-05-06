@@ -87,6 +87,10 @@ set Maximum non linear iterations                = 15
 # ==================================================================
 set Seeding time                                  = 1.5
 set Time before coupling                          = 1.5
+set Reorient threshold                            = 0.05
+set Active zone threshold                         = 0.95
+set Max loop iterations for phase field active zone expansion = 100
+
 
 # ==================================================================
 # Elasticity parameters
