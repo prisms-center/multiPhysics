@@ -341,7 +341,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
                 local_F_s + slipfraction_iter[cellID][q][i] * fe_values.JxW(q);
           }
 
-          if (active_zone[cellID][q])
+          if (this->active_zone[cellID][q])
             {
               // TODO: make this work for multiple twin systems
               local_atr_points++;
@@ -883,7 +883,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   }
 
   local_tvf = local_tvf / ((double)local_atr_points);
-  atr_avg_twin_vf = Utilities::MPI::sum(local_tvf, this->mpi_communicator);
+  this->atr_avg_twin_vf = Utilities::MPI::sum(local_tvf, this->mpi_communicator);
 
   if (this->userInputs_cp.flagUserDefinedAverageOutput) {
     for (unsigned int i = 0;

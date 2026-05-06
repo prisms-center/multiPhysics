@@ -403,7 +403,19 @@ protected:
   Table<2, double>             postprocessValuesAtCellCenters;
   // cp try
   std::vector<std::vector<std::vector<double>>> twinfraction_iter1, dtwinfraction_iter1;
-// user model related variables and methods
+
+  // NEW FIELDS FOR PTR MODEL ACTIVE ZONE SCHEME
+  std::vector<std::vector<bool>> active_zone;
+  std::vector<std::vector<bool>> reoriented_zone;
+  std::vector<std::vector<std::vector<double>>> twin_vf_conv, twin_vf_iter;
+  double atr_avg_twin_vf;
+  double local_tvf;
+  unsigned int local_atr_points;
+
+  void reorient_active_zone();
+  int atr_calc(double active_zone_threshold);
+
+  // user model related variables and methods
 #ifdef enableUserModel
   unsigned int     numQuadHistoryVariables;
   Table<3, double> quadHistory;

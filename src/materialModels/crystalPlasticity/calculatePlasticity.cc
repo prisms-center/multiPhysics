@@ -251,7 +251,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   
   // TODO: if there are multiple twin systems, this needs to be re-worked
   
-  if (reoriented_zone[cellID][quadPtID])
+  if (this->reoriented_zone[cellID][quadPtID])
     { 
       elasticmoduli(Dmat2, rotmat_twin, elasticStiffnessMatrix);
     }
@@ -323,7 +323,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             }
         }
       // convert the Schmid tensor to Sample coordinates
-      if (reoriented_zone[cellID][quadPtID] && i < n_slip_systemsWOtwin)
+      if (this->reoriented_zone[cellID][quadPtID] && i < n_slip_systemsWOtwin)
         {
           // If we are inside the twin, the orientation matrix should
           // change, but only for the slip systems.
@@ -420,7 +420,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       for (unsigned int i = 0; i < n_Tslip_systems; i++)
         {
           double crss = s_alpha_tau(i);
-          if (i >= n_slip_systemsWOtwin && !active_zone[cellID][quadPtID])
+          if (i >= n_slip_systemsWOtwin && !this->active_zone[cellID][quadPtID])
             {
               // If this is a twin system and we are outside the active zone,
               // set the slip resistance to an unreachably-high value
