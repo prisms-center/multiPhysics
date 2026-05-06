@@ -74,6 +74,11 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
   seedingTime=parameter_handler.get_double("Seeding time");
   timeBeforeCoupling=parameter_handler.get_double("Time before coupling");
 
+  // NEW INPUT PARAMETERS FOR PTR MODEL ACTIVE ZONE SCHEME
+  reorient_threshold=parameter_handler.get_double("Reorient threshold");
+  active_zone_threshold=parameter_handler.get_double("Active zone threshold");
+  max_pf_loop_iters=parameter_handler.get_integer("Max loop iterations for phase field active zone expansion");
+
   enableSimpleBCs=parameter_handler.get_bool("Use Simple BCs");
   BCfilename=parameter_handler.get("Boundary condition filename");
   BCheaderLines=parameter_handler.get_integer("BC file number of header lines");
@@ -580,6 +585,11 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Total time","-1",dealii::Patterns::Double(),"Total simulation time");
   parameter_handler.declare_entry("Seeding time","-1",dealii::Patterns::Double(),"Deformation time prior to introducing a twin seed");
   parameter_handler.declare_entry("Time before coupling","-1",dealii::Patterns::Double(),"Deformation time prior to coupling of PF and CPFE equations");
+
+  // NEW PARAMETERS FOR PTR MODEL ACTIVE ZONE SCHEME
+  parameter_handler.declare_entry("Reorient threshold","0.05",dealii::Patterns::Double(),"Twin volume fraction required to reorient the active zone");
+  parameter_handler.declare_entry("Active zone threshold","0.95",dealii::Patterns::Double(),"Order parameter threshold for determining the active zone");
+  parameter_handler.declare_entry("Max loop iterations for phase field active zone expansion","100",dealii::Patterns::Integer(),"Max loop iterations for phase field active zone expansion");
 
   parameter_handler.declare_entry("Use Simple BCs","true",dealii::Patterns::Bool(),"Flag to indicate whether to use Simple (Basic) BCs");
   parameter_handler.declare_entry("Boundary condition filename","boundaryConditions.txt",dealii::Patterns::Anything(),"File name containing BC information");

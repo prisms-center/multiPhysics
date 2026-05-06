@@ -7,6 +7,8 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   local_F_r = 0.0;
   local_F_s = 0.0;
   local_F_e = 0.0;
+  local_tvf = 0.0;
+  local_atr_points = 0;
   unsigned int CheckBufferRegion, dimBuffer;
   double lowerBuffer, upperBuffer, workDensity_Element1_Tr,energy_Element1;
   Point<dim> pnt2;
@@ -339,6 +341,13 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
                 local_F_s + slipfraction_iter[cellID][q][i] * fe_values.JxW(q);
           }
 
+          if (active_zone[cellID][q])
+            {
+              // TODO: make this work for multiple twin systems
+              local_atr_points++;
+              local_tvf += twin_vf_iter[cellID][q][0];
+            }
+
           if (this->userInputs_cp.flagUserDefinedAverageOutput) {
             ////One should define their UserDefinedAverageOutput here by
             /// defining based on the state Variables In the following equation,
@@ -420,6 +429,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   slipfraction_conv = slipfraction_iter;
   rot_conv = rot_iter;
   twin_conv = twin_iter;
+  
+  // New for PTR active zone scheme
+  twin_vf_conv = twin_vf_iter;
 
   if (this->userInputs_cp.enableUserMaterialModel) {
     stateVar_conv = stateVar_iter;
@@ -869,6 +881,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
     F_r = 0;
     F_s = 0;
   }
+
+  local_tvf = local_tvf / ((double)local_atr_points);
+  atr_avg_twin_vf = Utilities::MPI::sum(local_tvf, this->mpi_communicator);
 
   if (this->userInputs_cp.flagUserDefinedAverageOutput) {
     for (unsigned int i = 0;

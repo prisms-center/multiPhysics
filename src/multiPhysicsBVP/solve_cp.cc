@@ -9,10 +9,40 @@
 
 // Loop over increments and solve each increment in PF and CPFE
 
+/*
+ PTR Model - Twin Active Zone Scheme
+ Loop procedure:
+  0. Place the twin seed and set the initial active zone.
+  1. Solve a CPFE step. This performs the FEM calculation to reach
+     mechanical equilibrium based on the applied velocity gradient.
+     Repeatedly calls constitutive.m in a loop to obtain the Cauchy stress
+     and tangent modulus (dT/dF), and only updates the displacement.
+  2. Update the CPFE data. This calculates and saves various quantities by
+     calling constitutive.m once at each integration point. The saved
+     quantities include slip resistances, von Mises stress, etc. This also
+     updates the twin volume fraction.
+    2a. If the reorientation criteria is met, and reorientation occurs
+         during updatedata(), then go to Step 3.
+    2b. Otherwise, go back to step 1 and solve another CPFE step.
+  3. In the CPFE mesh, copy the current order parameter to the old order
+     parameter field.
+  4. Transfer the driving force for twinning to phase field and solve the
+     phase field equations to evolve the order parameter.
+  5. Solve phase field steps (how many? when to stop?)
+  6. Transfer the updated order parameter from the phase field mesh to the
+    current order parameter field in the CPFE mesh.
+  7. Update the active twinning region based on the new order parameter.
+  8. Go back to Step 1 and continue solving CPFE
+*/
+
 template <int dim, int degree>
 void
 MultiPhysicsBVP<dim, degree>::solve_cp()
 {
+  /***************************************************************************
+   * STEP 0: Twin Seeding                                                     *
+   ***************************************************************************/
+
   // Section for first phase field step solution BEGINS
   //   Accessing pf_object through the virtual function
   auto &pf_obj = this->get_pf_object();
@@ -71,8 +101,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   // Setting up interpolation from PF to CPFE mesh
   QGauss<dim>         quadrature(userInputs_cp.quadOrder);
   FEValues<dim>       fe_values(FE_Scalar,
-                          quadrature,
-                          update_values | update_gradients | update_JxW_values);
+                                quadrature,
+                                update_values | update_gradients | update_JxW_values);
   const unsigned int  dofs_per_cell   = FE_Scalar.dofs_per_cell;
   const unsigned int  num_quad_points = quadrature.size();
   unsigned int        num_local_cells = triangulation_cp.n_locally_owned_active_cells();
@@ -87,196 +117,149 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                              std::vector<std::vector<double>>(num_quad_points,
                                                               twin_init));
 
+  active_zone.resize(num_local_cells, std::vector<bool>(num_quad_points));
+  reoriented_zone.resize(num_local_cells, std::vector<bool>(num_quad_points));
+  twin_vf_conv.resize(num_local_cells,
+                      std::vector<std::vector<double>>(num_quad_points, twin_init));
+  twin_vf_iter.resize(num_local_cells,
+                      std::vector<std::vector<double>>(num_quad_points, twin_init));
+
+  // TODO: transfer PF mesh to CPFE here
+  // ***** Interpolation of order parameter "n" from PF mesh into
+  // twin volume fraction CPFE mesh ******
+  interpolate_order_parameter(pf_obj,
+                              dofHandler_Scalar,
+                              quadrature,
+                              twinfraction_iter1,
+                              fe_values);
+  pcout << "\nInterpolation of n complete" << std::endl;
+  pcout << "\nInterpolation of dndt disabled" << std::endl;
+
+  // TODO: set the active zone here
+  atr_calc(uesrInputs_cp.active_zone_threshold);
+
   // CPFE time-stepping loop STARTS
-  currentIncrement_cp          = 0;
-  int cp_increment_switch_flag = 1;
-  // Flag to track whether seeding is complete
-  bool seeding_complete = false;
+  currentIncrement_cp = 0;
   while (currentIncrement_cp < totalIncrements_cp)
     {
-      if (!seeding_complete && (currentIncrement_cp * delT >= seedingT))
+      /***********************************************************************
+       * STEP 1: Solve a CPFE step (solveNonLinearSystem)                     *
+       ***********************************************************************/
+
+      pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
+            << ", Current time = " << currentIncrement_cp * delT
+            << ", Time increment = " << delT << std::endl;
+
+      // call updateBeforeIncrement
+      updateBeforeIncrement();
+
+      if (!userInputs_cp.flagTaylorModel)
         {
-          // Replace CPFE timestep with a scaled-down one
-          delT = delT_pf_adjust / ((double) userInputs_cp.stepsForSeeding);
+          // solve time increment
+          success = solveNonLinearSystem();
+        }
 
-          pcout << "Starting twin seeding loop. Using reduced timestep delT = " << delT
-                << std::endl;
+      /***********************************************************************
+       * STEP 2: Update CPFE data (updateAfterIncrement)                      *
+       ***********************************************************************/
 
-          // Perform the seeding loop.
-          for (unsigned int seedingstep = 0; seedingstep < userInputs_cp.stepsForSeeding;
-               seedingstep++)
+      // call updateAfterIncrement if solve was successful
+      if ((success) || (userInputs_cp.flagTaylorModel))
+        {
+          updateAfterIncrement();
+
+          if (currentIncrement_cp * delT >= timeBeforeC)
             {
-              // 1. increment PF
-              // Phase-Field seeding step STARTS
-              pcout << "seeding increment PF:" << pf_obj.getSeedingIncrement() << "\n";
+              // ***** Interpolation of twin energy from CPFE mesh to PF mesh ******
+              interpolate_twin_energy(pf_obj, dofHandler_Scalar);
+              pcout << "\nInterpolation of twin energy complete" << std::endl;
+            }
+          // update totalLoadFactor
+          totalLoadFactor += loadFactorSetByModel;
 
-              // solve time increment (equations.cc must handle the seeding steps)
-              pf_obj.solveIncrement(false);
+          // increase loadFactorSetByModel, if succesiveIncForIncreasingTimeStep
+          // satisfied.
+          successiveIncs++;
+          // output results to file
+          computing_timer_cp.enter_subsection("postprocess");
 
-              // Apply constraints and update ghost values
-              for (unsigned int fieldIndex = 0; fieldIndex < pf_obj.fields.size();
-                   fieldIndex++)
+          //////////////////////TabularOutput Start///////////////
+          std::vector<unsigned int> tabularTimeInputIncInt;
+          std::vector<double>       tabularTimeInputInc;
+          if (userInputs_cp.tabularOutput)
+            {
+              tabularTimeInputInc = userInputs_cp.tabularTimeOutput;
+              for (unsigned int i = 0; i < userInputs_cp.tabularTimeOutput.size(); i++)
                 {
-                  pf_obj.getConstraintsDirichletSet()[fieldIndex]->distribute(
-                    *pf_obj.getSolutionSet()[fieldIndex]);
-                  pf_obj.getConstraintsOtherSet()[fieldIndex]->distribute(
-                    *pf_obj.getSolutionSet()[fieldIndex]);
-                  pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
+                  tabularTimeInputInc[i] = tabularTimeInputInc[i] / delT;
                 }
-
-              pf_obj.getSeedingIncrement() += 1;
-              // Phase-Field seeding step ENDS
-
-              // 2. interpolate order parameter
-              interpolate_order_parameter(pf_obj,
-                                          dofHandler_Scalar,
-                                          quadrature,
-                                          twinfraction_iter1,
-                                          fe_values);
-              pcout << "\nInterpolation of n complete" << std::endl;
-
-              // 3. solve CPFE w/ smaller delT
-              pcout << "Seeding increment CPFE with delT = " << delT << std::endl;
-              // call updateBeforeIncrement
-              updateBeforeIncrement();
-
-              if (!userInputs_cp.flagTaylorModel)
+              tabularTimeInputIncInt.resize(userInputs_cp.tabularTimeOutput.size(), 0);
+              /// Converting to an integer always rounds down, even if the fraction
+              /// part is 0.99999999.
+              // Hence, I add 0.1 to make sure we always get the correct integer.
+              for (unsigned int i = 0; i < userInputs_cp.tabularTimeOutput.size(); i++)
                 {
-                  // solve time increment
-                  success = solveNonLinearSystem();
-                }
-
-              // call updateAfterIncrement if solve was successful
-              if ((success) || (userInputs_cp.flagTaylorModel))
-                {
-                  updateAfterIncrement();
-
-                  // update totalLoadFactor
-                  totalLoadFactor += loadFactorSetByModel;
-
-                  // increase loadFactorSetByModel, if succesiveIncForIncreasingTimeStep
-                  // satisfied.
-                  successiveIncs++;
-                }
-              else
-                {
-                  successiveIncs = 0;
+                  tabularTimeInputIncInt[i] = int(tabularTimeInputInc[i] + 0.1);
                 }
             }
-          // 4. Loop complete, change the relevant delT, continue from the top
-          pcout << "PF Twin Seeding complete. Resuming solve loop." << std::endl;
-          seeding_complete = true;
-
-          if (cp_increment_switch_flag == 1)
+          //////////////////////TabularOutput Finish///////////////
+          if (((!userInputs_cp.tabularOutput) &&
+               ((currentIncrement_cp + 1) % userInputs_cp.skipOutputSteps == 0)) ||
+              ((userInputs_cp.tabularOutput) &&
+               (std::count(tabularTimeInputIncInt.begin(),
+                           tabularTimeInputIncInt.end(),
+                           (currentIncrement_cp + 1)) == 1)))
             {
-              cp_increment_switch_flag = 2;
-              delT                     = delT_pf_adjust;
-              currentIncrement_cp      = std::round(seedingT / delT);
-              totalIncrements_cp       = std::round(totalT / delT);
-
-              // NOTE: the entire seeding loop corresponds to a single CPFE increment,
-              //       using the post-seeding delT. Increment here, after the timestep
-              //       is adjusted.
-              currentIncrement_cp += 1;
-
-              pcout << "\nCPFE time increment switched to " << delT_pf_adjust
-                    << std::endl;
-              pcout << "\nFrom this point on, the current increment number is calculated "
-                       "using the new time increment (Delta t)"
-                    << std::endl;
-              pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
-                    << ", Current time = " << currentIncrement_cp * delT << std::endl;
+              if (userInputs_cp.writeOutput)
+                output();
             }
+          computing_timer_cp.leave_subsection("postprocess");
         }
       else
         {
-          pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
-                << ", Current time = " << currentIncrement_cp * delT
-                << ", Time increment = " << delT << std::endl;
-          if ((currentIncrement_cp * delT >= seedingT))
-            {
-              // ***** Interpolation of order parameter "n" from PF mesh into
-              // twin volume fraction CPFE mesh ******
-              interpolate_order_parameter(pf_obj,
-                                          dofHandler_Scalar,
-                                          quadrature,
-                                          twinfraction_iter1,
-                                          fe_values);
-              pcout << "\nInterpolation of n complete" << std::endl;
-              pcout << "\nInterpolation of dndt disabled" << std::endl;
-            }
-          // call updateBeforeIncrement
-          updateBeforeIncrement();
+          successiveIncs = 0;
+        }
 
-          if (!userInputs_cp.flagTaylorModel)
-            {
-              // solve time increment
-              success = solveNonLinearSystem();
-            }
+      /***********************************************************************
+       * STEP 2a/b: Check the reorientation criteria                          *
+       ***********************************************************************/
 
-          // call updateAfterIncrement if solve was successful
-          if ((success) || (userInputs_cp.flagTaylorModel))
-            {
-              updateAfterIncrement();
+      cout << "Active zone average twin vf = " << atr_avg_twin_vf << std::endl;
 
-              if (currentIncrement_cp * delT >= timeBeforeC)
-                {
-                  // ***** Interpolation of twin energy from CPFE mesh to PF mesh ******
-                  interpolate_twin_energy(pf_obj, dofHandler_Scalar);
-                  pcout << "\nInterpolation of twin energy complete" << std::endl;
-                }
-              // update totalLoadFactor
-              totalLoadFactor += loadFactorSetByModel;
+      if (atr_avg_twin_vf > userInputs_cp.reorient_threshold)
+        {
+          /*******************************************************************
+           * STEP 2b: Reorient the active zone                                *
+           *******************************************************************/
+          cout << "Reorienting the active zone, then solving PF" << std::endl;
+          reorient_active_zone();
 
-              // increase loadFactorSetByModel, if succesiveIncForIncreasingTimeStep
-              // satisfied.
-              successiveIncs++;
-              // output results to file
-              computing_timer_cp.enter_subsection("postprocess");
+          /*******************************************************************
+           * STEP 3: Copy current to old order parameter in CPFE mesh         *
+           *******************************************************************/
 
-              //////////////////////TabularOutput Start///////////////
-              std::vector<unsigned int> tabularTimeInputIncInt;
-              std::vector<double>       tabularTimeInputInc;
-              if (userInputs_cp.tabularOutput)
-                {
-                  tabularTimeInputInc = userInputs_cp.tabularTimeOutput;
-                  for (unsigned int i = 0; i < userInputs_cp.tabularTimeOutput.size();
-                       i++)
-                    {
-                      tabularTimeInputInc[i] = tabularTimeInputInc[i] / delT;
-                    }
-                  tabularTimeInputIncInt.resize(userInputs_cp.tabularTimeOutput.size(),
-                                                0);
-                  /// Converting to an integer always rounds down, even if the fraction
-                  /// part is 0.99999999.
-                  // Hence, I add 0.1 to make sure we always get the correct integer.
-                  for (unsigned int i = 0; i < userInputs_cp.tabularTimeOutput.size();
-                       i++)
-                    {
-                      tabularTimeInputIncInt[i] = int(tabularTimeInputInc[i] + 0.1);
-                    }
-                }
-              //////////////////////TabularOutput Finish///////////////
-              if (((!userInputs_cp.tabularOutput) &&
-                   ((currentIncrement_cp + 1) % userInputs_cp.skipOutputSteps == 0)) ||
-                  ((userInputs_cp.tabularOutput) &&
-                   (std::count(tabularTimeInputIncInt.begin(),
-                               tabularTimeInputIncInt.end(),
-                               (currentIncrement_cp + 1)) == 1)))
-                {
-                  if (userInputs_cp.writeOutput)
-                    output();
-                }
-              computing_timer_cp.leave_subsection("postprocess");
-            }
-          else
+          // No need to do anything here. This step is handled during CPFE
+          // updateAfterIncrement(), where twinfraction_iter1 is copied into
+          // twinfraction_conv
+
+          /*******************************************************************
+           * STEP 4: Transfer driving force to PF mesh                        *
+           *******************************************************************/
+
+          // ***** Interpolation of twin energy from CPFE mesh to PF mesh ******
+          interpolate_twin_energy(pf_obj, dofHandler_Scalar);
+          pcout << "\nInterpolation of twin energy complete" << std::endl;
+
+          /*******************************************************************
+           * STEP 5: Solve PF equations                                       *
+           *******************************************************************/
+          bool         new_atr_empty = true;
+          unsigned int pf_loop_iter  = 1;
+          while (new_atr_empty && pf_loop_iter < userInputs_cp.max_pf_loop_iters)
             {
-              successiveIncs = 0;
-            }
-          if (currentIncrement_cp * delT >= timeBeforeC)
-            {
-              for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe;
-                   pf_step++)
+              cout << "Evolving PF equations - performing "
+                   << userInputs_pf.increments_pftocpfe << " steps" << std::endl;
+              for (unsigned int n = 0; n < userInputs_pf.increments_pftocpfe; n++)
                 {
                   // Phase-Field regular step STARTS
                   // increment current time
@@ -316,9 +299,61 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                   pf_obj.getCurrentIncrement() += 1;
                   // Phase-Field regular step ENDS
                 }
+
+              /***************************************************************
+               * STEP 6: Transfer new order parameter from PF to CPFE mesh    *
+               ***************************************************************/
+
+              // ***** Interpolation of order parameter "n" from PF mesh into
+              // twin volume fraction CPFE mesh ******
+              interpolate_order_parameter(pf_obj,
+                                          dofHandler_Scalar,
+                                          quadrature,
+                                          twinfraction_iter1,
+                                          fe_values);
+              pcout << "\nInterpolation of n complete" << std::endl;
+              pcout << "\nInterpolation of dndt disabled" << std::endl;
+
+              /***************************************************************
+               * STEP 7: Update the active zone                               *
+               ***************************************************************/
+
+              int num_atr_points = atr_calc(userInputs_cp.active_zone_threshold);
+
+              // Check the number of points in the new active zone
+
+              cout << "New active zone contains " << num_atr_points << " elements."
+                   << std::endl;
+
+              if (num_atr_points > 0)
+                {
+                  // If there are points in the new ATR, exit the while-loop
+                  new_atr_empty = false;
+                }
+              else
+                {
+                  cout << "No points in the new active zone: phase field has not evolved "
+                          "enough.\n"
+                       << "Need to continue running phase field." << std::endl;
+                }
+
+              pf_loop_iter++;
             }
-          currentIncrement_cp += 1;
+
+          if (pf_loop_iter >= userInputs_cp.max_pf_loop_iters)
+            {
+              cout << "Reached the maximum number of phase-field loop iterations without "
+                      "the active zone changing."
+                   << std::endl;
+              break;
+            }
         }
+
+      /***********************************************************************
+       * STEP 2a: No reorientation. Continue the loop                         *
+       ***********************************************************************/
+
+      currentIncrement_cp += 1;
     }
 }
 
