@@ -136,7 +136,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   pcout << "\nInterpolation of dndt disabled" << std::endl;
 
   // TODO: set the active zone here
-  atr_calc(uesrInputs_cp.active_zone_threshold);
+  atr_calc(userInputs_cp.active_zone_threshold);
 
   // CPFE time-stepping loop STARTS
   currentIncrement_cp = 0;
@@ -257,7 +257,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           unsigned int pf_loop_iter  = 1;
           while (new_atr_empty && pf_loop_iter < userInputs_cp.max_pf_loop_iters)
             {
-              cout << "Evolving PF equations - performing "
+              pcout << "Evolving PF equations - performing "
                    << userInputs_pf.increments_pftocpfe << " steps" << std::endl;
               for (unsigned int n = 0; n < userInputs_pf.increments_pftocpfe; n++)
                 {
@@ -322,7 +322,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
 
               // Check the number of points in the new active zone
 
-              cout << "New active zone contains " << num_atr_points << " elements."
+              pcout << "New active zone contains " << num_atr_points << " elements."
                    << std::endl;
 
               if (num_atr_points > 0)
@@ -332,7 +332,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                 }
               else
                 {
-                  cout << "No points in the new active zone: phase field has not evolved "
+                  pcout << "No points in the new active zone: phase field has not evolved "
                           "enough.\n"
                        << "Need to continue running phase field." << std::endl;
                 }
@@ -342,7 +342,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
 
           if (pf_loop_iter >= userInputs_cp.max_pf_loop_iters)
             {
-              cout << "Reached the maximum number of phase-field loop iterations without "
+              pcout << "Reached the maximum number of phase-field loop iterations without "
                       "the active zone changing."
                    << std::endl;
               break;
