@@ -51,8 +51,6 @@ crystalPlasticity<dim>::reorient_active_zone()
             }
           /////////////////////////////////////////////////////
 
-          unsigned int local_quad_points_in_new_atr = 0;
-
           for (unsigned int q = 0; q < num_quad_points; ++q)
             {
               // Reorient the active zone
@@ -69,6 +67,7 @@ crystalPlasticity<dim>::atr_calc(double active_zone_threshold)
 {
   unsigned int CheckBufferRegion, dimBuffer;
   double lowerBuffer, upperBuffer;
+  unsigned int local_quad_points_in_new_atr = 0;
   Point<dim> pnt2;
   QGauss<dim>        quadrature(this->userInputs_cp.quadOrder);
   FEValues<dim>      fe_values(this->FE,
@@ -113,8 +112,6 @@ crystalPlasticity<dim>::atr_calc(double active_zone_threshold)
               CheckBufferRegion = 1;
             }
           /////////////////////////////////////////////////////
-
-          unsigned int local_quad_points_in_new_atr = 0;
 
           for (unsigned int q = 0; q < num_quad_points; ++q)
             {
