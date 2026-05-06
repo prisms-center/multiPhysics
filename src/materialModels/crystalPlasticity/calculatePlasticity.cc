@@ -708,7 +708,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       //twinfraction_iter[cellID][quadPtID][i] = twinfraction_conv[cellID][quadPtID][i] +
       //                                         x_beta_old[i + n_slip_systemsWOtwin] / twinShear;
       twinfraction_iter[cellID][quadPtID][i] = ttwinvf1[i];
-      twin_vf_iter[cellID][quadPtID][i] = twin_vf_conv[cellID][quadPtID][i] + x_beta_old[i + n_slip_systemWOtwin] / this->userInputs_cp.twinShear1;
+      this->twin_vf_iter[cellID][quadPtID][i] = this->twin_vf_conv[cellID][quadPtID][i] + x_beta_old[i + n_slip_systemsWOtwin] / this->userInputs_cp.twinShear1;
     }
 
   for (unsigned int i = 0; i < n_slip_systemsWOtwin; i++)

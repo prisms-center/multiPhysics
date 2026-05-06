@@ -345,7 +345,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
             {
               // TODO: make this work for multiple twin systems
               local_atr_points++;
-              local_tvf += twin_vf_iter[cellID][q][0];
+              local_tvf += this->twin_vf_iter[cellID][q][0];
             }
 
           if (this->userInputs_cp.flagUserDefinedAverageOutput) {
@@ -431,7 +431,7 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   twin_conv = twin_iter;
   
   // New for PTR active zone scheme
-  twin_vf_conv = twin_vf_iter;
+  this->twin_vf_conv = this->twin_vf_iter;
 
   if (this->userInputs_cp.enableUserMaterialModel) {
     stateVar_conv = stateVar_iter;
