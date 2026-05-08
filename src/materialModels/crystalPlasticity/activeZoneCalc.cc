@@ -135,14 +135,9 @@ crystalPlasticity<dim>::atr_calc(double active_zone_threshold)
 
           for (unsigned int q = 0; q < num_quad_points; ++q)
             {
-              std::vector<double> ttwinvf(n_twin_systems);
-              std::vector<double> ttwinvf1(n_twin_systems);
-              ttwinvf  = twinfraction_conv[cellID][q];
-              ttwinvf1 = this->twinfraction_iter1[cellID][q];
-
               // TODO: this assumes only 1 twin system
-              bool atr_old = ttwinvf[0] > active_zone_threshold;
-              bool atr_new = ttwinvf1[0] > active_zone_threshold;
+              bool atr_old = twinfraction_conv[cellID][q][0] > active_zone_threshold;
+              bool atr_new = this->twinfraction_iter1[cellID][q][0] > active_zone_threshold;
 
               // The new active zone should include points above the threshold
               // but exclude points above the threshold in the old active zone.

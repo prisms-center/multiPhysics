@@ -29,21 +29,22 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
   double nXc, nYc, nZc, nX, nY, nZ, nZ_reg;
   double pi = 3.14159265358979323846;
   scalar_IC = 0;
+  double p2[3] = { p[0], p[1], 0.0 };
 
   if (index==0){
     //Calculating distance from center of the system
     dist = 0.0;
     for (unsigned int dir = 0; dir < dim; dir++){
-      dist += (p[dir]-center[dir]*userInputs_pf.domain_size[dir])*(p[dir]-center[dir]*userInputs_pf.domain_size[dir]);
+      dist += (p2[dir]-center[dir]*userInputs_pf.domain_size[dir])*(p2[dir]-center[dir]*userInputs_pf.domain_size[dir]);
     }
     dist = std::sqrt(dist);
     
     //Elliptical seed
     //Calculating distance from center to perimeter of the ellipse
     //Components of the normal vector from the center to point p
-    nc[0] = (p[0]-center[0]*userInputs_pf.domain_size[0])/(dist + 1.0e-7);
-    nc[1] = (p[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
-    nc[2] = (p[2]-center[2]*userInputs_pf.domain_size[2])/(dist + 1.0e-7);
+    nc[0] = (p2[0]-center[0]*userInputs_pf.domain_size[0])/(dist + 1.0e-7);
+    nc[1] = (p2[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
+    nc[2] = (p2[2]-center[2]*userInputs_pf.domain_size[2])/(dist + 1.0e-7);
 
     //Rotating td and tn according to Euler angles
     // Euler angles in radians (ZXZ convention)

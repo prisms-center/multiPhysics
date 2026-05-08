@@ -9,6 +9,8 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   local_F_e = 0.0;
   local_tvf = 0.0;
   local_atr_points = 0;
+  double global_tvf_sum;
+  double global_atr_points;
   unsigned int CheckBufferRegion, dimBuffer;
   double lowerBuffer, upperBuffer, workDensity_Element1_Tr,energy_Element1;
   Point<dim> pnt2;
@@ -293,14 +295,13 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
           // Try swapping energy_check2 (old, element-averaged) with the energy at the quadrature points
           this->postprocessValues(cellID, q, 3, 0) = energy[cellID][q][0]; //cp_twin
           //this->postprocessValues(cellID, q, 3, 0) = energy_check2[cellID]/num_quad_points; //cp_twin
-          this->postprocessValues(cellID, q, 4, 0) =
-              this->dtwinfraction_iter1[cellID][q][0];
+          this->postprocessValues(cellID, q, 4, 0) = this->reoriented_zone[cellID][q];
           this->postprocessValues(cellID, q, 5, 0) = this->twinfraction_iter1[cellID][q][0];
           this->postprocessValues(cellID, q, 6, 0) = rss[12];
-          this->postprocessValues(cellID, q, 7, 0) = energy_check2[cellID] / num_quad_points;
+          this->postprocessValues(cellID, q, 7, 0) = this->active_zone[cellID][q];
           this->postprocessValues(cellID, q, 8, 0) = T[0][1];  // stress_xy
           this->postprocessValues(cellID, q, 9, 0) = T[1][0];  // stress_yx
-          this->postprocessValues(cellID, q, 10, 0) = 0;
+          this->postprocessValues(cellID, q, 10, 0) = this->twin_vf_iter[cellID][q][0];
           this->postprocessValues(cellID, q, 11, 0) = 0;
           this->postprocessValues(cellID, q, 12, 0) = 0;
           this->postprocessValues(cellID, q, 13, 0) = 0;
@@ -882,8 +883,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
     F_s = 0;
   }
 
-  local_tvf = local_tvf / ((double)local_atr_points);
-  this->atr_avg_twin_vf = Utilities::MPI::sum(local_tvf, this->mpi_communicator);
+  global_tvf_sum = Utilities::MPI::sum(local_tvf, this->mpi_communicator);
+  global_atr_points = Utilities::MPI::sum(local_atr_points, this->mpi_communicator);
+  this->atr_avg_twin_vf = global_tvf_sum / global_atr_points;
 
   if (this->userInputs_cp.flagUserDefinedAverageOutput) {
     for (unsigned int i = 0;

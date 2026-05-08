@@ -53,6 +53,8 @@ set Output Variable 5                            = true
 set Output Variable 6                            = true
 # yx component of the stress tensor
 set Output Variable 7                            = true
+# twin_vf_iter
+set Output Variable 8                            = true
 
 # ==================================================================
 # Boundary conditions information
@@ -96,12 +98,12 @@ set Max loop iterations for phase field active zone expansion = 100
 # Elasticity parameters
 # ==================================================================
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
-set Elastic Stiffness row 1                      = 58.58e3, 25.02e3, 20.79e3, 0, 0, 0
-set Elastic Stiffness row 2                      = 25.02e3, 59.4e3, 20.79e3, 0, 0, 0
-set Elastic Stiffness row 3                      = 20.79e3, 20.79e3, 61.11e3, 0, 0, 0
-set Elastic Stiffness row 4                      = 0, 0, 0, 16.58e3, 0, 0
-set Elastic Stiffness row 5                      = 0, 0, 0, 0, 16.56e3, 0
-set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 16.58e3
+set Elastic Stiffness row 1                      = 59.4e3,  25.61e3, 21.44e3, 0, 0, 0
+set Elastic Stiffness row 2                      = 25.61e3, 59.4e3,  21.44e3, 0, 0, 0
+set Elastic Stiffness row 3                      = 21.44e3, 21.44e3, 61.6e3,  0, 0, 0
+set Elastic Stiffness row 4                      = 0, 0, 0, 16.4e3, 0, 0
+set Elastic Stiffness row 5                      = 0, 0, 0, 0, 16.4e3, 0
+set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 16.895e3
 
 # ==================================================================
 # Slip parameters
@@ -130,7 +132,7 @@ set Twin Threshold Fraction                      = 0.03
 set Critical Value for Twin Visualization        = 0.03
 set Twin Directions File                         = twinDirections.txt
 set Twin Normals File                            = twinNormals.txt
-set Characteristic Twin Shear                    = 0.1289
+set Characteristic Twin Shear                    = 0.129
 set MP Twin Lower Threshold Fraction             = 0.5
 set MP Twin Upper Threshold Fraction             = 1.0
 
@@ -185,7 +187,7 @@ set Number of phase field steps per CPFE step = 50
 # Output parameters
 # ==================================================================
 set Skip print steps = 40
-set Number of outputs = 50
+set Number of outputs = 500
 set Output condition = EQUAL_SPACING
 set PF Output directory = results_pf
 set Print timing information with output = true
@@ -206,7 +208,7 @@ set Boundary condition for variable strain_df = NATURAL
 # Model constants
 # ==================================================================
 # The gradient energy tensor in the twin plane reference plane
-set Model constant Kij_tp = ((11.07,0,0),(0,2.767,0),(0,0,11.07)), TENSOR
+set Model constant Kij_tp = ((0.127,0,0),(0,0.031749,0),(0,0,0.127)), TENSOR
 # The mobility tensor in the twin plane reference plane
 set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
 # Twin direction unit vector
@@ -217,13 +219,13 @@ set Model constant tn = (0.592273119665566,	0.341949045072694,	0.729577550569842
 set Model constant euler_angs = (136.844, 90.0, 330.0), TENSOR
 # Twin energy barrier (double well height) 
 # 31.04 * (n^2) * (1-n)^2 has the same height as 4 * 1.94 n * (1-n) at n=1/2
-set Model constant delf_tw = 10.0, DOUBLE
+set Model constant delf_tw = 8.7173, DOUBLE
 # Unit lenght (in m)
 set Model constant l0 = 1.0e-6, DOUBLE
 # Radius of initial semimajor axis of the ellipsoid
-set Model constant a0 = 8.0, DOUBLE
+set Model constant a0 = 0.2, DOUBLE
 # eccentricity of the elliptical seed
-set Model constant ecc = 0.95, DOUBLE
+set Model constant ecc = 0.00001, DOUBLE
 # Regularization value
 set Model constant regval = 1.0e-8, DOUBLE
 

@@ -97,6 +97,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   bool success;
   // load increments
   unsigned int successiveIncs = 0;
+  int num_atr_points;
 
   // Setting up interpolation from PF to CPFE mesh
   QGauss<dim>         quadrature(userInputs_cp.quadOrder);
@@ -136,7 +137,9 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   pcout << "\nInterpolation of dndt disabled" << std::endl;
 
   // TODO: set the active zone here
-  atr_calc(userInputs_cp.active_zone_threshold);
+  num_atr_points = atr_calc(userInputs_cp.active_zone_threshold);
+  pcout << "\nActive zone calculated. Number of active quad points: "
+        << num_atr_points << std::endl;
 
   // CPFE time-stepping loop STARTS
   currentIncrement_cp = 0;
@@ -318,11 +321,11 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                * STEP 7: Update the active zone                               *
                ***************************************************************/
 
-              int num_atr_points = atr_calc(userInputs_cp.active_zone_threshold);
+              num_atr_points = atr_calc(userInputs_cp.active_zone_threshold);
 
               // Check the number of points in the new active zone
 
-              pcout << "New active zone contains " << num_atr_points << " elements."
+              pcout << "New active zone contains " << num_atr_points << " quad points."
                    << std::endl;
 
               if (num_atr_points > 0)

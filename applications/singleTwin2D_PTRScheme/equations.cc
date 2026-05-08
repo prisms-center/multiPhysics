@@ -15,30 +15,31 @@
 // that can nucleate and whether the value of the field is needed for nucleation
 // rate calculations.
 
-void variableAttributeLoader::loadVariableAttributes(){
+void variableAttributeLoader::loadVariableAttributes()
+{
 	// Variable 0 - Order Parameter
 	set_variable_name				(0,"n");
 	set_variable_type				(0,SCALAR);
 	set_variable_equation_type		(0,EXPLICIT_TIME_DEPENDENT);
 
-    set_dependencies_value_term_RHS(0, "n, dndt, strain_df");
-    set_dependencies_gradient_term_RHS(0, "grad(n)");
+  set_dependencies_value_term_RHS(0, "n, dndt");
+  set_dependencies_gradient_term_RHS(0, "");
 	
 	// Variable 1 - Time Derivative of Order Parameter
 	set_variable_name				(1,"dndt");
 	set_variable_type				(1,SCALAR);
 	set_variable_equation_type		(1,AUXILIARY);
 
-    set_dependencies_value_term_RHS(1, "n, dndt, strain_df");
-    set_dependencies_gradient_term_RHS(1, "grad(n)");
+  set_dependencies_value_term_RHS(1, "n, grad(n), strain_df");
+  set_dependencies_gradient_term_RHS(1, "grad(n)");
 
 	// Variable 2 - Strain driving force
 	set_variable_name				(2,"strain_df");
 	set_variable_type				(2,SCALAR);
 	set_variable_equation_type		(2,AUXILIARY);
 
-    set_dependencies_value_term_RHS(2, "strain_df");
-    set_dependencies_gradient_term_RHS(2, "");
+  set_dependencies_value_term_RHS(2, "strain_df");
+  set_dependencies_gradient_term_RHS(2, "");
 
 }
 
@@ -57,52 +58,28 @@ template <int dim, int degree>
 void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double>> & variable_list,
 				 dealii::Point<dim, dealii::VectorizedArray<double>> q_point_loc) const {
 
-	// --- Getting the values and derivatives of the model variables ---
+  // The time derivative of the order parameter is calculated as an AUXILIARY field,
+  // in nonExplicitEquationRHS(...) below. Then, here we use that value to set the
+  // change in the order parameter, including capping the order parameter between
+  // zero and 1.
 
-	// The order parameter and its derivatives
+	// The order parameter
 	scalarvalueType_pf n = variable_list.get_scalar_value(0);
-	scalargradType_pf nx = variable_list.get_scalar_gradient(0);
 
 	// The time derivative of the order parameter
 	scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
 
-	// The strain contribiution to the driving force
-	scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
+  // Prevent the order parameter from decreasing
+  dndt = std::max(dndt, constV(0.0));
 
-	// --- Setting the expressions for the terms in the governing equations ---
+  // Calculate the new order parameter value
+  scalarvalueType_pf new_n = n + constV(userInputs_pf.dtValue) * dndt;
 
-	scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
-	scalargradType_pf kappagradn;
-	kappagradn[0] = constV(K[0][0])*nx[0]+constV(K[0][1])*nx[1]+constV(K[0][2])*nx[2];
-	kappagradn[1] = constV(K[1][0])*nx[0]+constV(K[1][1])*nx[1]+constV(K[1][2])*nx[2];
-	kappagradn[2] = constV(K[2][0])*nx[0]+constV(K[2][1])*nx[1]+constV(K[2][2])*nx[2];
+  // Restrict the order parameter between 0 and 1
+  new_n = std::min(new_n, constV(1.0));
+  new_n = std::max(new_n, constV(0.0));
 
-	//Outward Normal vector
-	scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
-
-	// Computing the outward mobility (L = grad(nvec) dot Ltens dot grad(nvec))
-	scalarvalueType_pf L = constV(0.0);
-	for (unsigned int i = 0; i < dim; i++)
-		{
-			for (unsigned int j = 0; j < dim; j++)
-				{
-					// Mobility tensor (rotated)
-					L = L + nvec[i] * nvec[j] * Ltens[i][j];
-				}
-		}
-
-	//Applying a filter to localize driving force to the twin boundary 
-	scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
-
-	//Defining the value and gradient terms
-	scalarvalueType_pf eq_n = (n-constV(userInputs_pf.dtValue)*L*(mu_twV-strain_df_filter));
-	scalargradType_pf eqx_n = -(constV(userInputs_pf.dtValue)*L*kappagradn);
-
-	// --- Submitting the terms for the governing equations ---
-
-	variable_list.set_scalar_value_term_RHS(0,eq_n);
-	variable_list.set_scalar_gradient_term_RHS(0,eqx_n);
-
+	variable_list.set_scalar_value_term_RHS(0,new_n);
 }
 
 // =============================================================================================
@@ -125,9 +102,6 @@ void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,
 // The order parameter and its derivatives
 scalarvalueType_pf n = variable_list.get_scalar_value(0);
 scalargradType_pf nx = variable_list.get_scalar_gradient(0);
-
-// The time derivative of the order parameter
-scalarvalueType_pf dndt = variable_list.get_scalar_value(1);
 
 // The strain contribiution to the driving force
 scalarvalueType_pf strain_df= variable_list.get_scalar_value(2);
@@ -154,6 +128,7 @@ for(unsigned int i=0;i<dim;i++){
 
 //Applying a filter to localize driving force to the twin boundary 
 scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
+strain_df_filter *= this->userInputs_cp.reorient_threshold;
 
 scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df_filter);
 scalargradType_pf eqx_dndt = -L*kappagradn;
