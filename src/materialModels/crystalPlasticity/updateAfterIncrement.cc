@@ -7,6 +7,10 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   local_F_r = 0.0;
   local_F_s = 0.0;
   local_F_e = 0.0;
+  local_tvf = 0.0;
+  local_atr_points = 0;
+  double global_tvf_sum;
+  double global_atr_points;
   unsigned int CheckBufferRegion, dimBuffer;
   double lowerBuffer, upperBuffer, workDensity_Element1_Tr,energy_Element1;
   Point<dim> pnt2;
@@ -169,6 +173,84 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
           }
         }
 
+        // calculate resolved shear stress
+        Vector<double> rss(n_Tslip_systems);
+        Vector<double> m1(dim), n1(dim);
+        FullMatrix<double> schmidtensor(dim, dim);
+        FullMatrix<double> temprot(dim, dim);
+        rss = 0.0;
+        unsigned int n_slip_systemsWOtwin = this->userInputs_cp.numSlipSystems1;
+        // TODO: fix the following line to consider multiple twin systems
+        bool isTwinned = twinfraction_conv[cellID][q][0] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
+
+        FullMatrix<double> rotmat(dim, dim), rotmat_twin(dim, dim);
+        Vector<double> rot1(dim), rot_twin(dim);
+        for (unsigned int i = 0; i < dim; i++)
+          {
+            rot1[i] = rot_conv[cellID][q][i];
+          }
+        odfpoint(rotmat, rot1);
+        Vector<double> quatprod(4), quat1(4), quat2(4);
+        rot_twin = 0.0;
+        rod2quat(quat2, rot1);
+        quat1[0] = 0.0;
+        quat1[1] = n_alpha[n_slip_systemsWOtwin][0];
+        quat1[2] = n_alpha[n_slip_systemsWOtwin][1];
+        quat1[3] = n_alpha[n_slip_systemsWOtwin][2];
+        quatproduct(quatprod, quat2, quat1);
+        quat2rod(quatprod, rot_twin);
+        odfpoint(rotmat_twin, rot_twin);
+
+        for (unsigned int i = 0; i < n_Tslip_systems; i++)
+          {
+            schmidtensor = 0.0;
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                m1(j) = m_alpha[i][j];
+                n1(j) = n_alpha[i][j];
+              }
+            temp = 0.0;
+            temprot = 0.0;
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                for (unsigned int k = 0; k < dim; k++)
+                  {
+                    temp[j][k] = m1(j) * n1(k);
+                  }
+              }
+            // Convert schmid tensor to sample coordinates
+            if (isTwinned && i < n_slip_systemsWOtwin)
+              {
+                // If we are inside the twin, the orientation matrix should
+                // change, but only for the slip systems.
+                rotmat_twin.mmult(temprot, temp);
+                temprot.mTmult(temp, rotmat_twin);
+              }
+            else
+              {
+                // If we are outside the twin, OR we are considering the shear on
+                // the twin system, we should use the original grain orientation.
+                rotmat.mmult(temprot, temp);
+                temprot.mTmult(temp, rotmat);
+              }
+
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                for (unsigned int k = 0; k < dim; k++)
+                  {
+                    schmidtensor[j][k] = temp[j][k];
+                  }
+              }
+
+            for (unsigned int j = 0; j < dim; j++)
+              {
+                for (unsigned int k = 0; k < dim; k++)
+                  {
+                    rss(i) += T[j][k] * schmidtensor[j][k];
+                  }
+              }
+          }
+
         // calculate von-Mises stress and equivalent strain
         double traceE, traceT, vonmises, eqvstrain;
         FullMatrix<double> deve(dim, dim), devt(dim, dim);
@@ -210,15 +292,16 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
 
           ////////User Defined Variables for visualization outputs (output_Var1
           /// to output_Var24)////////
-          this->postprocessValues(cellID, q, 3, 0) = energy_check2[cellID]/num_quad_points; //cp_twin
-          this->postprocessValues(cellID, q, 4, 0) =
-              this->dtwinfraction_iter1[cellID][q][0];
+          // Try swapping energy_check2 (old, element-averaged) with the energy at the quadrature points
+          this->postprocessValues(cellID, q, 3, 0) = energy[cellID][q][0]; //cp_twin
+          //this->postprocessValues(cellID, q, 3, 0) = energy_check2[cellID]/num_quad_points; //cp_twin
+          this->postprocessValues(cellID, q, 4, 0) = this->reoriented_zone[cellID][q];
           this->postprocessValues(cellID, q, 5, 0) = this->twinfraction_iter1[cellID][q][0];
-          this->postprocessValues(cellID, q, 6, 0) = energy[cellID][q][0];
-          this->postprocessValues(cellID, q, 7, 0) = energy[cellID][q][4];
-          this->postprocessValues(cellID, q, 8, 0) = energy[cellID][q][5];
-          this->postprocessValues(cellID, q, 9, 0) = 0;
-          this->postprocessValues(cellID, q, 10, 0) = 0;
+          this->postprocessValues(cellID, q, 6, 0) = rss[12];
+          this->postprocessValues(cellID, q, 7, 0) = this->active_zone[cellID][q];
+          this->postprocessValues(cellID, q, 8, 0) = T[0][1];  // stress_xy
+          this->postprocessValues(cellID, q, 9, 0) = T[1][0];  // stress_yx
+          this->postprocessValues(cellID, q, 10, 0) = this->twin_vf_iter[cellID][q][0];
           this->postprocessValues(cellID, q, 11, 0) = 0;
           this->postprocessValues(cellID, q, 12, 0) = 0;
           this->postprocessValues(cellID, q, 13, 0) = 0;
@@ -258,6 +341,13 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
             local_F_s =
                 local_F_s + slipfraction_iter[cellID][q][i] * fe_values.JxW(q);
           }
+
+          if (this->active_zone[cellID][q])
+            {
+              // TODO: make this work for multiple twin systems
+              local_atr_points++;
+              local_tvf += this->twin_vf_iter[cellID][q][0];
+            }
 
           if (this->userInputs_cp.flagUserDefinedAverageOutput) {
             ////One should define their UserDefinedAverageOutput here by
@@ -340,6 +430,9 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   slipfraction_conv = slipfraction_iter;
   rot_conv = rot_iter;
   twin_conv = twin_iter;
+  
+  // New for PTR active zone scheme
+  this->twin_vf_conv = this->twin_vf_iter;
 
   if (this->userInputs_cp.enableUserMaterialModel) {
     stateVar_conv = stateVar_iter;
@@ -789,6 +882,10 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
     F_r = 0;
     F_s = 0;
   }
+
+  global_tvf_sum = Utilities::MPI::sum(local_tvf, this->mpi_communicator);
+  global_atr_points = Utilities::MPI::sum(local_atr_points, this->mpi_communicator);
+  this->atr_avg_twin_vf = global_tvf_sum / global_atr_points;
 
   if (this->userInputs_cp.flagUserDefinedAverageOutput) {
     for (unsigned int i = 0;

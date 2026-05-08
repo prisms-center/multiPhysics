@@ -8,7 +8,8 @@
 #include <iostream>
 
 // Constructor
-inputFileReader::inputFileReader(std::string input_file_name, variableAttributeLoader variable_attributes){
+inputFileReader::inputFileReader(std::string input_file_name, variableAttributeLoader variable_attributes, dealii::ParameterHandler & param_handler) 
+    : parameter_handler(param_handler) {
     // Extract an ordered vector of the variable types from variable_attributes
     unsigned int number_of_variables = variable_attributes.var_name_list.size();
     var_types = variable_attributes.var_type;
@@ -32,11 +33,6 @@ inputFileReader::inputFileReader(std::string input_file_name, variableAttributeL
 
     // Read in all of the parameters now
     declare_parameters(parameter_handler,var_types,var_eq_types,num_constants,var_nucleates);
-    #if (DEAL_II_VERSION_MAJOR < 9 && DEAL_II_VERSION_MINOR < 5)
-    parameter_handler.read_input(input_file_name);
-    #else
-    parameter_handler.parse_input(input_file_name);
-    #endif
     number_of_dimensions = parameter_handler.get_integer("Number of dimensions");
 }
 
@@ -247,10 +243,10 @@ void inputFileReader::declare_parameters(dealii::ParameterHandler & parameter_ha
     parameter_handler.declare_entry("Domain size Y","-1",dealii::Patterns::Double(),"The size of the domain in the y direction.");
     parameter_handler.declare_entry("Domain size Z","-1",dealii::Patterns::Double(),"The size of the domain in the z direction.");
     parameter_handler.declare_entry("Element degree","1",dealii::Patterns::Integer(),"The polynomial order of the finte element.");
-    parameter_handler.declare_entry("Subdivisions X","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the x direction.");
-    parameter_handler.declare_entry("Subdivisions Y","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the y direction.");
-    parameter_handler.declare_entry("Subdivisions Z","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the z direction.");
-    parameter_handler.declare_entry("Refine factor","-1",dealii::Patterns::Integer(),"The number of initial refinements of the coarse mesh.");
+    parameter_handler.declare_entry("PF Subdivisions X","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the x direction for PF.");
+    parameter_handler.declare_entry("PF Subdivisions Y","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the y direction for PF.");
+    parameter_handler.declare_entry("PF Subdivisions Z","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the z direction for PF.");
+    parameter_handler.declare_entry("PF Refine factor","-1",dealii::Patterns::Integer(),"The number of initial refinements of the coarse mesh for PF.");
 
     parameter_handler.declare_entry("Mesh adaptivity","false",dealii::Patterns::Bool(),"Whether to enable mesh adaptivity.");
     parameter_handler.declare_entry("Max refinement level","-1",dealii::Patterns::Integer(),"The maximum level of refinement.");
@@ -316,7 +312,7 @@ void inputFileReader::declare_parameters(dealii::ParameterHandler & parameter_ha
     }
 
     parameter_handler.declare_entry("Output file name (base)","solution",dealii::Patterns::Anything(),"The name for the output file, before the time step and processor info are added.");
-    parameter_handler.declare_entry("Output directory","",dealii::Patterns::Anything(),"The name for the directory for vtu or vtk files, relative to current directory.");
+    parameter_handler.declare_entry("PF Output directory","",dealii::Patterns::Anything(),"The name for the directory for vtu or vtk files, relative to current directory.");
     parameter_handler.declare_entry("Output file type","vtu",dealii::Patterns::Anything(),"The output file type (either vtu or vtk).");
     parameter_handler.declare_entry("Output separate files per process","false",dealii::Patterns::Bool(),"Whether to output separate vtu files for each process in a parallel calculation (automatically set to true for vtk files).");
     parameter_handler.declare_entry("Output condition","EQUAL_SPACING",dealii::Patterns::Anything(),"The spacing type for outputing the solution fields.");

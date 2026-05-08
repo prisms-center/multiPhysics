@@ -111,6 +111,7 @@ private:
   *calculate the stress and tangent modulus
   */
   void calculatePlasticity(unsigned int cellID, unsigned int quadPtID, unsigned int StiffnessCalFlag);
+  void calculatePlasticity2(unsigned int cellID, unsigned int quadPtID, unsigned int StiffnessCalFlag);
   void getElementalValues(FEValues<dim>&fe_values, unsigned int dofs_per_cell, unsigned int num_quad_points, FullMatrix<double>&elementalJacobian, Vector<double>&elementalResidual);
   void updateAfterIncrement();
   void updateBeforeIteration();
@@ -197,6 +198,14 @@ private:
   * First Piola-Kirchhoff stress
   */
   FullMatrix<double> P;
+  /**
+   * Perturbed deformation gradient, used for numeric tangent modulus
+   */
+  FullMatrix<double> F_per;
+  /**
+   * Perturbed First Piola-Kirchoff stress, used for numeric tangent modulus
+   */
+  FullMatrix<double> P_per;
   /**
   * volume weighted Cauchy stress per core
   */
@@ -287,6 +296,14 @@ private:
   bool enableTwinning;
   double twinThresholdFraction;
   double twinSaturationFactor;
+
+  // NEW FIELDS FOR PTR MODEL ACTIVE ZONE SCHEME
+  double local_tvf;
+  unsigned int local_atr_points;
+
+  void reorient_active_zone() override;
+  int atr_calc(double active_zone_threshold) override;
+
   /**
   * slip resistance
   */

@@ -28,15 +28,15 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
     }
   }
 
-  subdivisions.push_back(parameter_handler.get_integer("Subdivisions X"));
+  subdivisions.push_back(parameter_handler.get_integer("CP Subdivisions X"));
   if (dim > 1){
-    subdivisions.push_back(parameter_handler.get_integer("Subdivisions Y"));
+    subdivisions.push_back(parameter_handler.get_integer("CP Subdivisions Y"));
     if (dim > 2){
-      subdivisions.push_back(parameter_handler.get_integer("Subdivisions Z"));
+      subdivisions.push_back(parameter_handler.get_integer("CP Subdivisions Z"));
     }
   }
 
-  meshRefineFactor = parameter_handler.get_integer("Refine factor");
+  meshRefineFactor = parameter_handler.get_integer("CP Refine factor");
 
   writeMeshToEPS = parameter_handler.get_bool("Write Mesh To EPS");
 
@@ -47,7 +47,7 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
 
   //output parameters
   writeOutput = parameter_handler.get_bool("Write Output");
-  outputDirectory = parameter_handler.get("Output Directory");
+  outputDirectory = parameter_handler.get("CP Output Directory");
 
   tabularOutput = parameter_handler.get_bool("Tabular Output");
   tabularTimeOutput=dealii::Utilities::string_to_double(dealii::Utilities::split_string_list(parameter_handler.get("Tabular Time Output Table")));
@@ -67,11 +67,17 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
 
   delT=parameter_handler.get_double("Time increment");
   delT_pf_adjust=parameter_handler.get_double("Time increment after phase-field coupling");
+  stepsForSeeding=parameter_handler.get_integer("Steps for seeding the twin");
   criticalDeltaFCriteria=parameter_handler.get_double("critical DeltaF Criteria");
   numberTaylorSubsteps=parameter_handler.get_integer("Number of Taylor Substeps");
   totalTime=parameter_handler.get_double("Total time");
   seedingTime=parameter_handler.get_double("Seeding time");
   timeBeforeCoupling=parameter_handler.get_double("Time before coupling");
+
+  // NEW INPUT PARAMETERS FOR PTR MODEL ACTIVE ZONE SCHEME
+  reorient_threshold=parameter_handler.get_double("Reorient threshold");
+  active_zone_threshold=parameter_handler.get_double("Active zone threshold");
+  max_pf_loop_iters=parameter_handler.get_integer("Max loop iterations for phase field active zone expansion");
 
   enableSimpleBCs=parameter_handler.get_bool("Use Simple BCs");
   BCfilename=parameter_handler.get("Boundary condition filename");
@@ -561,10 +567,10 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Domain size X","-1",dealii::Patterns::Double(),"The size of the domain in the x direction.");
   parameter_handler.declare_entry("Domain size Y","-1",dealii::Patterns::Double(),"The size of the domain in the y direction.");
   parameter_handler.declare_entry("Domain size Z","-1",dealii::Patterns::Double(),"The size of the domain in the z direction.");
-  parameter_handler.declare_entry("Subdivisions X","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the x direction.");
-  parameter_handler.declare_entry("Subdivisions Y","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the y direction.");
-  parameter_handler.declare_entry("Subdivisions Z","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the z direction.");
-  parameter_handler.declare_entry("Refine factor","-1",dealii::Patterns::Integer(),"The number of initial refinements of the coarse mesh.");
+  parameter_handler.declare_entry("CP Subdivisions X","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the x direction for CP.");
+  parameter_handler.declare_entry("CP Subdivisions Y","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the y direction for CP.");
+  parameter_handler.declare_entry("CP Subdivisions Z","1",dealii::Patterns::Integer(),"The number of mesh subdivisions in the z direction for CP.");
+  parameter_handler.declare_entry("CP Refine factor","-1",dealii::Patterns::Integer(),"The number of initial refinements of the coarse mesh for CP.");
 
   parameter_handler.declare_entry("Write Mesh To EPS","false",dealii::Patterns::Bool(),"Only written for serial runs and if number of elements < 10000");
 
@@ -574,10 +580,16 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
 
   parameter_handler.declare_entry("Time increment","-1",dealii::Patterns::Double(),"delta T for every increment");
   parameter_handler.declare_entry("Time increment after phase-field coupling","-1",dealii::Patterns::Double(),"delta T for every pf increment after phase-field coupling");
+  parameter_handler.declare_entry("Steps for seeding the twin","1",dealii::Patterns::Integer(),"Number of CPFE timesteps over which the twin seed is placed");
   parameter_handler.declare_entry("critical DeltaF Criteria","10000",dealii::Patterns::Double(),"critical DeltaF Criteria");
   parameter_handler.declare_entry("Total time","-1",dealii::Patterns::Double(),"Total simulation time");
   parameter_handler.declare_entry("Seeding time","-1",dealii::Patterns::Double(),"Deformation time prior to introducing a twin seed");
   parameter_handler.declare_entry("Time before coupling","-1",dealii::Patterns::Double(),"Deformation time prior to coupling of PF and CPFE equations");
+
+  // NEW PARAMETERS FOR PTR MODEL ACTIVE ZONE SCHEME
+  parameter_handler.declare_entry("Reorient threshold","0.05",dealii::Patterns::Double(),"Twin volume fraction required to reorient the active zone");
+  parameter_handler.declare_entry("Active zone threshold","0.95",dealii::Patterns::Double(),"Order parameter threshold for determining the active zone");
+  parameter_handler.declare_entry("Max loop iterations for phase field active zone expansion","100",dealii::Patterns::Integer(),"Max loop iterations for phase field active zone expansion");
 
   parameter_handler.declare_entry("Use Simple BCs","true",dealii::Patterns::Bool(),"Flag to indicate whether to use Simple (Basic) BCs");
   parameter_handler.declare_entry("Boundary condition filename","boundaryConditions.txt",dealii::Patterns::Anything(),"File name containing BC information");
@@ -671,7 +683,7 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
 
 
   parameter_handler.declare_entry("Write Output","false",dealii::Patterns::Bool(),"Flag to write output vtu and pvtu files");
-  parameter_handler.declare_entry("Output Directory",".",dealii::Patterns::Anything(),"Output Directory");
+  parameter_handler.declare_entry("CP Output Directory",".",dealii::Patterns::Anything(),"CP Output Directory");
 
   parameter_handler.declare_entry("Tabular Output","false",dealii::Patterns::Bool(),"Flag to use Tabular Output");
   parameter_handler.declare_entry("Tabular Time Output Table","",dealii::Patterns::List(dealii::Patterns::Double()),"Table for Time Outputs");

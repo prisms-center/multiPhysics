@@ -58,4 +58,17 @@ template <int dim, int degree>
 MultiPhysicsBVP<dim, degree>::~MultiPhysicsBVP()
 {}
 
+template <int dim, int degree>
+void MultiPhysicsBVP<dim, degree>::reorient_active_zone()
+{
+  pcout << "Unimplemented virtual function reorient_active_zone - should be unreachable." << std::endl;
+}
+
+template <int dim, int degree>
+int MultiPhysicsBVP<dim, degree>::atr_calc(double active_zone_threshold)
+{
+  pcout << "Unimplemented virtual function atr_calc - should be unreachable." << std::endl;
+}
+
+
 #include "../../include/multiPhysicsBVP_template_instantiations.h"

@@ -42,10 +42,16 @@ public:
   double externalMeshParameter;
   double delT; // Time increment
   double delT_pf_adjust; // Time increment after phase-field coupling
+  unsigned int stepsForSeeding;
   double criticalDeltaFCriteria;  //Critical DeltaF Criteria
   double totalTime; // Total simulation time
   double seedingTime; // Deformation time prior to introducing a twin seed
   double timeBeforeCoupling; // Deformation time prior to coupling of PF and CPFE equations
+
+  // NEW INPUT PARAMETERS FOR PTR MODEL ACTIVE ZONE SCHEME
+  double reorient_threshold;
+  double active_zone_threshold;
+  unsigned int max_pf_loop_iters;
 
   bool enableSimpleBCs; // Specify whether to use Simple (Basic) BCs
   std::string BCfilename; // Boundary conditions file

@@ -20,6 +20,7 @@ MatrixFreePDE<dim, degree>::MatrixFreePDE(userInputParameters_pf<dim> _userInput
   , currentOutput(0)
   , currentCheckpoint(0)
   , current_grain_reassignment(0)
+  , seedingIncrement(0)
   , computing_timer(pcout, TimerOutput::summary, TimerOutput::wall_times)
   , first_integrated_var_output_complete(false)
 {}
@@ -103,6 +104,12 @@ template<int dim, int degree>
 unsigned int& MatrixFreePDE<dim,degree>::getCurrentIncrement()
 {
     return currentIncrement;
+}
+
+template<int dim, int degree>
+unsigned int& MatrixFreePDE<dim,degree>::getSeedingIncrement()
+{
+    return seedingIncrement;
 }
 
 template<int dim, int degree>
