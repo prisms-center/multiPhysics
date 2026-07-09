@@ -4,6 +4,8 @@
 #include <sstream>
 #include "dealIIheaders.h"
 
+#ifndef CRYSTAL_ORIENTATIONS_IO_H
+#define CRYSTAL_ORIENTATIONS_IO_H
 
 template <int dim>
 class crystalOrientationsIO{
@@ -22,3 +24,5 @@ private:
   std::map<double,std::map<double, std::map<double, unsigned int> > > inputVoxelData;
   dealii::ConditionalOStream  pcout;
 };
+
+#endif

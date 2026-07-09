@@ -416,7 +416,6 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
   Fp_conv = Fp_iter;
   s_alpha_conv = s_alpha_iter;
   W_kh_conv = W_kh_iter;
-  twinfraction_conv = twinfraction_iter;
   slipfraction_conv = slipfraction_iter;
   rot_conv = rot_iter;
   twin_conv = twin_iter;
