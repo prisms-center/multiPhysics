@@ -99,6 +99,10 @@ private:
 
   unsigned int& getCurrentOutput() override;
 
+  // Function to update Fp, Fe, and R based on the PF order parameter
+  void update_twin_mask() override;
+  void copy_current_op_to_old() override;
+
   // Plasticity functions
 
   void init(unsigned int num_quad_points);

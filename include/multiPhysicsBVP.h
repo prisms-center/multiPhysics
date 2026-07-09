@@ -122,6 +122,12 @@ protected:
   virtual unsigned int &
   getCurrentOutput() = 0;
 
+  virtual void
+  update_twin_mask() = 0;
+
+  virtual void
+  copy_current_op_to_old() = 0;
+
   // INDENTATION
   IndexSet     active_set, debug_set, frozen_set;
   unsigned int active_set_size, old_active_set_size, freeze_out_iterations;
@@ -403,6 +409,7 @@ protected:
   Table<2, double>             postprocessValuesAtCellCenters;
   // cp try
   std::vector<std::vector<std::vector<double>>> twinfraction_iter1, dtwinfraction_iter1;
+  std::vector<std::vector<std::vector<bool>>> twin_mask;
 // user model related variables and methods
 #ifdef enableUserModel
   unsigned int     numQuadHistoryVariables;
