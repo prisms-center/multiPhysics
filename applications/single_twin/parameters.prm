@@ -23,8 +23,8 @@ set Order of quadrature                          = 2
 # ==================================================================
 # Mesh parameters
 # ==================================================================
-set CP Subdivisions X                               = 64
-set CP Subdivisions Y                               = 64
+set CP Subdivisions X                               = 32
+set CP Subdivisions Y                               = 32
 set CP Subdivisions Z                               = 2
 set CP Refine factor                                = 0
 set Write Mesh To EPS                            = false
@@ -197,6 +197,13 @@ set Number of checkpoints = 0
 set Boundary condition for variable dndt = NATURAL
 set Boundary condition for variable n = NATURAL
 set Boundary condition for variable strain_df = NATURAL
+
+# ==================================================================
+# PRISMS-MP twin parameters
+# ==================================================================
+# The fractional coordinates where the twin CRSS is evaluated and
+# where the twin seed is placed (0 < x < 1).
+set Twin nucleation point (x, y, z) = 0.5, 0.5, 0.5
 
 # ==================================================================
 # Model constants

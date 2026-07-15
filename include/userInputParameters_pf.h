@@ -168,6 +168,9 @@ public:
     std::string grain_structure_variable_name;
     unsigned int num_grain_smoothing_cycles;
 
+	// PRISMS-MP parameters
+	dealii::Point<dim> twin_nucleation_point;
+
 private:
 	// Method to create the list of time steps where the results should be output (called from loadInputParameters)
 	std::vector<unsigned int> setTimeStepList(const std::string outputSpacingType, unsigned int numberOfOutputs,

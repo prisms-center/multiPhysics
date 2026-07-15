@@ -97,6 +97,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   int cp_increment_switch_flag = 1;
   // Flag to track whether seeding is complete
   bool seeding_complete = false;
+  double seeding_point_rss = 0.0;
   while (currentIncrement_cp < totalIncrements_cp)
     {
       pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
@@ -112,9 +113,10 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           // solve time increment
           success = solveNonLinearSystem();
         }
-
-      // Check seeding time: if seeding time reached or exceeded:
-      if (!seeding_complete && currentIncrement_cp * delT >= seedingT)
+      
+      // Check CRSS at seeding point
+      // TO-DO: this needs to be re-worked for multiple twin seeds and multiple variants (effort: hard)
+      if (!seeding_complete && seeding_point_rss > userInputs_cp.initialSlipResistanceTwin1[0])
         {
           pcout << "\nTwin seeding time reached. Placing seed in CPFE mesh" << std::endl;
           // Place the seed if not already placed, by doing the following (seed already present in PF mesh)
@@ -141,86 +143,108 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           seeding_complete = true;
         }
         
-        // PF solve loop:
-        if (currentIncrement_cp * delT >= timeBeforeC)
-          {
-            // If the coupling time has been reached, solve N pf steps
-            for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe; pf_step++)
-              {
-                // Transfer CPFE data to PF
-                interpolate_twin_energy(pf_obj, dofHandler_Scalar);
-                pcout << "\nInterpolation of twin energy complete" << std::endl;
+      // PF solve loop:
+      if (seeding_complete)
+        {
+          // If the coupling time has been reached, solve N pf steps
+          for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe; pf_step++)
+            {
+              // Transfer CPFE data to PF
+              interpolate_twin_energy(pf_obj, dofHandler_Scalar);
+              pcout << "\nInterpolation of twin energy complete" << std::endl;
 
-                // Solve PF equations to evolve the twin
-                // Phase-Field regular step STARTS
-                // increment current time
-                pf_obj.getCurrentTime() += userInputs_pf.dtValue;
-                if (pf_obj.getCurrentIncrement() % userInputs_pf.skip_print_steps == 0)
-                  {
-                    pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement()
-                          << "  time: " << pf_obj.getCurrentTime() << "\n";
-                    // pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() <<
-                    // "\n";
-                  }
+              // Solve PF equations to evolve the twin
+              // Phase-Field regular step STARTS
+              // increment current time
+              pf_obj.getCurrentTime() += userInputs_pf.dtValue;
+              if (pf_obj.getCurrentIncrement() % userInputs_pf.skip_print_steps == 0)
+                {
+                  pcout << "\ntime increment PF:" << pf_obj.getCurrentIncrement()
+                        << "  time: " << pf_obj.getCurrentTime() << "\n";
+                  // pcout << "\ncurrent output PF:" << pf_obj.getCurrentOutput() <<
+                  // "\n";
+                }
 
-                // solve time increment
-                pf_obj.solveIncrement(false);
+              // solve time increment
+              pf_obj.solveIncrement(false);
 
-                // if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] ==
-                // pf_obj.getCurrentIncrement_pf()) { Apply constraints and update ghost
-                // values
-                for (unsigned int fieldIndex = 0; fieldIndex < pf_obj.fields.size();
-                      fieldIndex++)
-                  {
-                    pf_obj.getConstraintsDirichletSet()[fieldIndex]->distribute(
-                      *pf_obj.getSolutionSet()[fieldIndex]);
-                    pf_obj.getConstraintsOtherSet()[fieldIndex]->distribute(
-                      *pf_obj.getSolutionSet()[fieldIndex]);
-                    pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
-                  }
+              // if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] ==
+              // pf_obj.getCurrentIncrement_pf()) { Apply constraints and update ghost
+              // values
+              for (unsigned int fieldIndex = 0; fieldIndex < pf_obj.fields.size();
+                    fieldIndex++)
+                {
+                  pf_obj.getConstraintsDirichletSet()[fieldIndex]->distribute(
+                    *pf_obj.getSolutionSet()[fieldIndex]);
+                  pf_obj.getConstraintsOtherSet()[fieldIndex]->distribute(
+                    *pf_obj.getSolutionSet()[fieldIndex]);
+                  pf_obj.getSolutionSet()[fieldIndex]->update_ghost_values();
+                }
 
-                if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] ==
-                    pf_obj.getCurrentIncrement())
-                  {
-                    // Output Results
-                    pf_obj.getOutputResults();
-                    pf_obj.getCurrentOutput() += 1;
-                  }
+              if (userInputs_pf.outputTimeStepList[pf_obj.getCurrentOutput()] ==
+                  pf_obj.getCurrentIncrement())
+                {
+                  // Output Results
+                  pf_obj.getOutputResults();
+                  pf_obj.getCurrentOutput() += 1;
+                }
 
-                pf_obj.getCurrentIncrement() += 1;
-                // Phase-Field regular step ENDS
+              pf_obj.getCurrentIncrement() += 1;
+              // Phase-Field regular step ENDS
 
-                // In CPFE mesh: copy current OP to old OP, then transfer PF data to CPFE
-                copy_current_op_to_old();
-                
-                interpolate_order_parameter(pf_obj,
-                                          dofHandler_Scalar,
-                                          quadrature,
-                                          twinfraction_iter1,
-                                          fe_values);
-                pcout << "\nInterpolation of n complete" << std::endl;
-                pcout << "\nInterpolation of dndt disabled" << std::endl;
-                
-                // Solve CPFE nonlinear problem
-                pcout << "\nResolving mechanical equilibrium..." << std::endl;
-                if (!userInputs_cp.flagTaylorModel)
-                  {
-                    // solve time increment
-                    success = solveNonLinearSystem();
-                  }
+              // In CPFE mesh: copy current OP to old OP, then transfer PF data to CPFE
+              copy_current_op_to_old();
+              
+              interpolate_order_parameter(pf_obj,
+                                        dofHandler_Scalar,
+                                        quadrature,
+                                        twinfraction_iter1,
+                                        fe_values);
+              pcout << "\nInterpolation of n complete" << std::endl;
+              pcout << "\nInterpolation of dndt disabled" << std::endl;
+              
+              // Solve CPFE nonlinear problem
+              pcout << "\nResolving mechanical equilibrium..." << std::endl;
+              if (!userInputs_cp.flagTaylorModel)
+                {
+                  // solve time increment
+                  success = solveNonLinearSystem();
+                }
 
-                // TODO: Check whether the order parameter changed.
-                // If no evolution occured, we can exit this loop and skip forward by
-                // the appropriate number of timesteps/output steps
-              }
-          }
+              // TODO: Check whether the order parameter changed.
+              // If no evolution occured, we can exit this loop and skip forward by
+              // the appropriate number of timesteps/output steps
+            }
+        }
         
       // Commit plastic state: UpdateAfterIncrement
       if ((success) || (userInputs_cp.flagTaylorModel))
         {
           updateAfterIncrement();
 
-          if (currentIncrement_cp * delT >= timeBeforeC)
+          if (!seeding_complete)
+            {
+              // Evaluate the twin CRSS at the seeding point
+              IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
+              IndexSet locally_relevant_dofs;
+              DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
+              vectorType_cp twin_rss;
+              twin_rss.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
+              twin_rss = *postFieldsWithGhosts[6]; // Index 6 needs to be the twin RSS. TO-DO: change this so it's not reliant on user-defined output variables
+              twin_rss.update_ghost_values();
+              Utilities::MPI::RemotePointEvaluation<dim, dim> rpe;
+              dealii::Point<dim> eval_point;
+              eval_point[0] = userInputs_pf.twin_nucleation_point[0] * userInputs_cp.span[0];
+              eval_point[1] = userInputs_pf.twin_nucleation_point[1] * userInputs_cp.span[1];
+              eval_point[2] = userInputs_pf.twin_nucleation_point[2] * userInputs_cp.span[2];
+              std::vector<Point<dim>> evaluation_points = { eval_point };
+              MappingQ1<dim,dim> mapping;
+              const std::vector<double> evaluated_values = VectorTools::point_values<1>(mapping, dofHandler_Scalar, twin_rss, evaluation_points, rpe);
+              seeding_point_rss = evaluated_values[0];
+              pcout << "Twin RSS at seeding point = " << seeding_point_rss << std::endl;
+            }
+
+          if (seeding_complete)
             {
               // ***** Interpolation of twin energy from CPFE mesh to PF mesh ******
               interpolate_twin_energy(pf_obj, dofHandler_Scalar);
@@ -275,7 +299,10 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           successiveIncs = 0;
         }
 
+      // TO-DO: fix this to work with variable seed time
+      //        (i.e., seeding based on CRSS, such that we don't know seedingT in advance)
       // Check if we just hit the seeding time. If so, adjust the CPFE timestep
+      /*
       if (cp_increment_switch_flag == 1 && currentIncrement_cp * delT >= seedingT)
         {
           cp_increment_switch_flag = 2;
@@ -291,6 +318,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
                 << ", Current time = " << currentIncrement_cp * delT << std::endl;
         }
+      */
       
       // CPFE increment complete
       currentIncrement_cp += 1;

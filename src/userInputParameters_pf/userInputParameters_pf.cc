@@ -435,6 +435,19 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
     // Load the BC information from the strings into a varBCs object
     load_BC_list(list_of_BCs);
 
+    // PRISMS-MP constants
+    // TO-DO: re-work this for seeding multiple twins. Should be able to input a list of many nucleation sites
+    // Alternatively, implement a stochastic nucleation algorithm that automatically decides where to seed twins (effot: hard)
+    std::vector<double> twin_nuc_point = dealii::Utilities::string_to_double(dealii::Utilities::split_string_list(parameter_handler.get("Twin nucleation point (x, y, z)")));
+    if (twin_nuc_point.size() < dim || twin_nuc_point.size() > 3){
+        std::cerr << "PRISMS-PF Error: The number of values for the Twin Nucleation Point must match the number of dimensions in the problem." << std::endl;
+        abort();
+    }
+    twin_nucleation_point.clear();
+    twin_nucleation_point[0] = twin_nuc_point[0];
+    twin_nucleation_point[1] = twin_nuc_point[1];
+    twin_nucleation_point[2] = twin_nuc_point[2];
+
     // Load the user-defined constants
     load_user_constants(input_file_reader,parameter_handler);
 }

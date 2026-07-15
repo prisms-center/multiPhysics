@@ -17,7 +17,10 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
     // Use "if" statements to set the initial condition for each variable
     // according to its variable index
 
-    double center[3] = {0.5,0.5,0.5};
+    double center[3];
+    center[0] = userInputs_pf.twin_nucleation_point[0];
+    center[1] = userInputs_pf.twin_nucleation_point[1];
+    center[2] = userInputs_pf.twin_nucleation_point[2];
     dealii::Tensor<1, dim> nc;
     dealii::Tensor<1, dim> n;
     dealii::Tensor<1, dim> n_int;
