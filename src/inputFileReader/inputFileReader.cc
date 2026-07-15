@@ -407,6 +407,8 @@ void inputFileReader::declare_parameters(dealii::ParameterHandler & parameter_ha
 
     parameter_handler.declare_entry("Minimum radius for loaded grains","0.0",dealii::Patterns::Double(),"The minimum radius for a body to be considered a grain instead of an artifact from the loading process.");
 
+    // PRISMS-MP: specify the twin center
+    parameter_handler.declare_entry("Twin nucleation point (x, y, z)","0.5,0.5,0.5",dealii::Patterns::List(dealii::Patterns::Double()),"The fractional coordinates where the twin CRSS is evaluated and where the twin seed is placed (0 < x < 1).");
 
     // Declare the user-defined constants
     for (unsigned int i=0; i<num_of_constants; i++){
