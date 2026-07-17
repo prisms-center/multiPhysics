@@ -98,6 +98,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   // Flag to track whether seeding is complete
   bool seeding_complete = false;
   double seeding_point_rss = 0.0;
+  double old_load_factor;
   while (currentIncrement_cp < totalIncrements_cp)
     {
       pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
@@ -134,11 +135,14 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
 
           // Solve CPFE nonlinear problem
           pcout << "\nResolving mechanical equilibrium..." << std::endl;
+          old_load_factor = loadFactorSetByModel;
+          loadFactorSetByModel = 0.0;
           if (!userInputs_cp.flagTaylorModel)
             {
               // solve time increment
               success = solveNonLinearSystem();
             }
+          loadFactorSetByModel = old_load_factor;
 
           seeding_complete = true;
         }
@@ -205,11 +209,14 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
               
               // Solve CPFE nonlinear problem
               pcout << "\nResolving mechanical equilibrium..." << std::endl;
+              old_load_factor = loadFactorSetByModel;
+              loadFactorSetByModel = 0.0;
               if (!userInputs_cp.flagTaylorModel)
                 {
                   // solve time increment
                   success = solveNonLinearSystem();
                 }
+              loadFactorSetByModel = old_load_factor;
 
               // TODO: Check whether the order parameter changed.
               // If no evolution occured, we can exit this loop and skip forward by
