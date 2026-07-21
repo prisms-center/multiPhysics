@@ -288,16 +288,13 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
 
           ////////User Defined Variables for visualization outputs (output_Var1
           /// to output_Var24)////////
-          // Try swapping energy_check2 (old, element-averaged) with the energy at the quadrature points
           this->postprocessValues(cellID, q, 3, 0) = energy[cellID][q][0]; //cp_twin
-          //this->postprocessValues(cellID, q, 3, 0) = energy_check2[cellID]/num_quad_points; //cp_twin
-          this->postprocessValues(cellID, q, 4, 0) =
-              this->dtwinfraction_iter1[cellID][q][0];
+          this->postprocessValues(cellID, q, 4, 0) = std::max(this->twinfraction_iter1[cellID][q][0] - twinfraction_conv[cellID][q][0], 0.0);
           this->postprocessValues(cellID, q, 5, 0) = this->twinfraction_iter1[cellID][q][0];
           this->postprocessValues(cellID, q, 6, 0) = rss[12];
-          this->postprocessValues(cellID, q, 7, 0) = energy_check2[cellID] / num_quad_points;
-          this->postprocessValues(cellID, q, 8, 0) = T[0][1];  // stress_xy
-          this->postprocessValues(cellID, q, 9, 0) = T[1][0];  // stress_yx
+          this->postprocessValues(cellID, q, 7, 0) = this->twin_mask[cellID][q][0];
+          this->postprocessValues(cellID, q, 8, 0) = Fp_conv[cellID][q][0][0];
+          this->postprocessValues(cellID, q, 9, 0) = twinfraction_conv[cellID][q][0];  // stress_xy
           this->postprocessValues(cellID, q, 10, 0) = 0;
           this->postprocessValues(cellID, q, 11, 0) = 0;
           this->postprocessValues(cellID, q, 12, 0) = 0;

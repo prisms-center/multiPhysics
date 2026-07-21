@@ -147,6 +147,32 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
             Ltens_ccref.clear();
             K_ccref.clear();
 
+            // Recompute Q
+            e_X.clear();
+            e_Y.clear();
+            e_Z.clear();
+            e_X = td;
+            e_Y = tn;
+
+            // Compute e_Z = e_X cross e_Y
+            e_Z[0] = e_X[1]*e_Y[2] - e_X[2]*e_Y[1];
+            e_Z[1] = e_X[2]*e_Y[0] - e_X[0]*e_Y[2];
+            e_Z[2] = e_X[0]*e_Y[1] - e_X[1]*e_Y[0];
+
+            // Normalize e_Z
+            double norm_eZ = std::sqrt(e_Z*e_Z);
+            for (unsigned int i = 0; i < dim; i++)
+                e_Z[i] /= (norm_eZ + regval);
+
+            // Construct rotation matrix Q as 3 column vectors
+            dealii::Tensor<2, dim> Q;
+            for (unsigned int i = 0; i < dim; i++)
+              {
+                Q[i][0] = e_X[i];
+                Q[i][1] = e_Y[i];
+                Q[i][2] = e_Z[i];
+              }
+
             // Rotate by Q (on the left)
             for (unsigned int i = 0; i < dim; i++)
               {
@@ -197,6 +223,37 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
             // Save the values to the maps
             Kij_map[materialID] = K;
             Lij_map[materialID] = Ltens;
+
+            // Print intermediate quantities for debugging
+            this->pcout << "Grain orientation matrix for materialID " << materialID << std::endl;
+            this->pcout << "rotmat = [" << rotmat[0][0] << ", " << rotmat[0][1] << ", " << rotmat[0][2] << "]" << std::endl;
+            this->pcout << "         [" << rotmat[1][0] << ", " << rotmat[1][1] << ", " << rotmat[1][2] << "]" << std::endl;
+            this->pcout << "         [" << rotmat[2][0] << ", " << rotmat[2][1] << ", " << rotmat[2][2] << "]" << std::endl;
+
+            this->pcout << "Twin orientation matrix (Q)" << std::endl;
+            this->pcout << "Q = [" << Q[0][0] << ", " << Q[0][1] << ", " << Q[0][2] << "]" << std::endl;
+            this->pcout << "    [" << Q[1][0] << ", " << Q[1][1] << ", " << Q[1][2] << "]" << std::endl;
+            this->pcout << "    [" << Q[2][0] << ", " << Q[2][1] << ", " << Q[2][2] << "]" << std::endl;
+
+            this->pcout << "Intermediate coefficient matrices (in parent grain frame, for debugging)" << std::endl;
+            this->pcout << "K_ccref = [" << K_ccref[0][0] << ", " << K_ccref[0][1] << ", " << K_ccref[0][2] << "]" << std::endl;
+            this->pcout << "          [" << K_ccref[1][0] << ", " << K_ccref[1][1] << ", " << K_ccref[1][2] << "]" << std::endl;
+            this->pcout << "          [" << K_ccref[2][0] << ", " << K_ccref[2][1] << ", " << K_ccref[2][2] << "]" << std::endl;
+
+            this->pcout << "Ltens_ccref = [" << Ltens_ccref[0][0] << ", " << Ltens_ccref[0][1] << ", " << Ltens_ccref[0][2] << "]" << std::endl;
+            this->pcout << "              [" << Ltens_ccref[1][0] << ", " << Ltens_ccref[1][1] << ", " << Ltens_ccref[1][2] << "]" << std::endl;
+            this->pcout << "              [" << Ltens_ccref[2][0] << ", " << Ltens_ccref[2][1] << ", " << Ltens_ccref[2][2] << "]" << std::endl;
+
+            // Print values
+            this->pcout << "Phase-field coefficients for materialID " << materialID << std::endl;
+            this->pcout << "kappa = [" << K[0][0] << ", " << K[0][1] << ", " << K[0][2] << "]" << std::endl;
+            this->pcout << "        [" << K[1][0] << ", " << K[1][1] << ", " << K[1][2] << "]" << std::endl;
+            this->pcout << "        [" << K[2][0] << ", " << K[2][1] << ", " << K[2][2] << "]" << std::endl;
+
+            this->pcout << std::endl;
+            this->pcout << "L = [" << Ltens[0][0] << ", " << Ltens[0][1] << ", " << Ltens[0][2] << "]" << std::endl;
+            this->pcout << "    [" << Ltens[1][0] << ", " << Ltens[1][1] << ", " << Ltens[1][2] << "]" << std::endl;
+            this->pcout << "    [" << Ltens[2][0] << ", " << Ltens[2][1] << ", " << Ltens[2][2] << "]" << std::endl;
           }
       }
     else

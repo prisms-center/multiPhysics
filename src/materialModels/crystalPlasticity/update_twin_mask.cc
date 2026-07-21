@@ -207,8 +207,13 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                   }
               }
 
+            cellID++;
+
           }
       }
+    
+    double total_op_change = Utilities::MPI::sum(local_op_change, this->mpi_communicator);
+    this->pcout << "Integrated change in the order parameter: " << total_op_change << std::endl;
 
 }
 
