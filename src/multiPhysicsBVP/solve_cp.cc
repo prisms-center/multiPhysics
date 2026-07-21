@@ -206,6 +206,10 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                                         fe_values);
               pcout << "\nInterpolation of n complete" << std::endl;
               pcout << "\nInterpolation of dndt disabled" << std::endl;
+
+              // Update twin mask and Fstar
+              pcout << "\nUpdating twin mask" << std::endl;
+              update_twin_mask();
               
               // Solve CPFE nonlinear problem
               pcout << "\nResolving mechanical equilibrium..." << std::endl;
