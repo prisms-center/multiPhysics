@@ -10,7 +10,7 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
 
     Vector<double> rot1(dim), rot_new(dim);
     FullMatrix<double> rotmat(dim, dim), rotmat_twin(dim, dim), temp1(dim, dim), FP_t(dim, dim);
-    FullMatrix<double> Fstar_crystal(dim, dim), Fstar_twin(dim, dim);
+    FullMatrix<double> Fstar_crystal(dim, dim);
     FullMatrix<double> Fstar_sample(dim, dim), Fstar(dim, dim);
     FullMatrix<double> Fe_new(dim, dim), Fp_new(dim, dim), Fp_new_inv(dim, dim);
     rotmat = 0.0;
@@ -112,32 +112,23 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                         rot1 = rot_conv[cellID][q];
                       }
                     odfpoint(rotmat, rot1);
+                    
+                    // Calculate Fstar in the crystal:
+                    Fstar_crystal.reinit(dim, dim);
+                    Fstar_crystal(0,0) = 1.0;
+                    Fstar_crystal(1,1) = 1.0;
+                    Fstar_crystal(2,2) = 1.0;
 
-                    // Get the twin rotation matrix
-                    temp1.reinit(dim, dim);
-                    temp1[0][0] = 1.0;
-                    temp1[1][1] = 1.0;
-                    temp1[2][2] = 1.0;
                     for (unsigned int i = 0; i < 3; i++)
                       {
                         for (unsigned int j = 0; j < 3; j++)
                           {
-                            temp1[i][j] -= 2*n_alpha[n_slip_systemsWOtwin][i]*n_alpha[n_slip_systemsWOtwin][j];
+                            Fstar_crystal[i][j] += this->userInputs_cp.twinShear1 * m_alpha[n_slip_systemsWOtwin][i] * n_alpha[n_slip_systemsWOtwin][j];
                           }
                       }
 
-                    // Calculate Fstar in the crystal:
-                    Fstar_crystal.reinit(dim, dim);
-                    Fstar_crystal(0,0) = 1.0;
-                    Fstar_crystal(0,1) = this->userInputs_cp.twinShear1;
-                    Fstar_crystal(1,1) = 1.0;
-                    Fstar_crystal(2,2) = 1.0;
-
-                    // Convert to the twin coordinates:
-                    Fstar_crystal.mmult(Fstar_twin, temp1);
-
                     // Convert Fstar to sample coords
-                    rotmat.mmult(temp1, Fstar_twin);
+                    rotmat.mmult(temp1, Fstar_crystal);
                     temp1.mTmult(Fstar_sample, rotmat);
 
                     // Set Fstar based on the order parameter
