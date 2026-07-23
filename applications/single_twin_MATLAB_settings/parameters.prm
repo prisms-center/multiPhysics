@@ -34,7 +34,7 @@ set Write Mesh To EPS                            = false
 # ==================================================================
 set Write Output                                 = true
 set CP Output Directory                             = results_cp
-set Skip Output Steps                            = 5
+set Skip Output Steps                            = 1
 set Output Equivalent strain                     = true
 set Output Equivalent stress                     = true
 set Output Grain ID                              = true

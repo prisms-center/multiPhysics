@@ -21,34 +21,18 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
     center[0] = userInputs_pf.twin_nucleation_point[0];
     center[1] = userInputs_pf.twin_nucleation_point[1];
     center[2] = userInputs_pf.twin_nucleation_point[2];
-    dealii::Tensor<1, dim> nc;
-    dealii::Tensor<1, dim> n;
-    dealii::Tensor<1, dim> n_int;
     dealii::Tensor<1, dim> td_int;
     dealii::Tensor<1, dim> tn_int;
-    nc.clear(); n.clear(); n_int.clear(); td_int.clear(); tn_int.clear();
+    dealii::Tensor<1,dim> rot;
+    dealii::Tensor<2,dim> rotmat;
+    td_int.clear(); tn_int.clear(); rot.clear(); rotmat.clear();
     double dist, edist;
     double b0 = a0*std::sqrt((1.0 - ecc*ecc));
-    double nX, nY, nZ, nZ_reg;
+    double nX, nY;
     scalar_IC = 0;
 
     if (index==0)
       {
-        // Calculating distance from center of the system
-        dist = 0.0;
-        for (unsigned int dir = 0; dir < dim; dir++)
-          {
-            dist += (p[dir]-center[dir]*userInputs_pf.domain_size[dir])*(p[dir]-center[dir]*userInputs_pf.domain_size[dir]);
-          }
-        dist = std::sqrt(dist);
-        
-        // Elliptical seed
-        // Calculating distance from center to perimeter of the ellipse
-        // Components of the normal vector from the center to point p
-        nc[0] = (p[0]-center[0]*userInputs_pf.domain_size[0])/(dist + 1.0e-7);
-        nc[1] = (p[1]-center[1]*userInputs_pf.domain_size[1])/(dist + 1.0e-7);
-        nc[2] = (p[2]-center[2]*userInputs_pf.domain_size[2])/(dist + 1.0e-7);
-
         // Get the materialID (a.k.a. grain ID) from CPFE for this point
         double coords[3] = { p[0], p[1], p[2] };
         unsigned int materialID = this->cpfe_orientations->getMaterialID(coords);
@@ -58,12 +42,11 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
         // components, despite the name.
         // TODO: Refector the relevant CPFE code to change the name from
         // eulerAngles to rodriguesVectors
-        dealii::Tensor<1,dim> rot;
         rot.clear();
         rot[0] = this->cpfe_orientations->eulerAngles[materialID][0];
         rot[1] = this->cpfe_orientations->eulerAngles[materialID][1];
         rot[2] = this->cpfe_orientations->eulerAngles[materialID][2];
-        dealii::Tensor<2,dim> rotmat;
+
         rotmat.clear();
         rodrigues_to_rotmat(rotmat, rot);
         
@@ -109,25 +92,36 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
             Q[i][2] = e_Z[i];
           }
 
-        // Intermediate vector, n_int
-        for (unsigned int i = 0; i < 3; i++)
+        // Form the vector from the seed center to the point in sample coordinates
+        dealii::Tensor<1, dim> r;
+        for (unsigned int i = 0; i < dim; i++)
+          r[i] = p[i] - center[i]*userInputs_pf.domain_size[i];
+        
+        //Rotate "r" vector into the twin coordinate system using Q^T 
+         dealii::Tensor<1, dim> r_twin;
+        r_twin.clear();
+
+        for (unsigned int i = 0; i < dim; i++)
           {
-            for (unsigned int j = 0; j < 3; j++)
+            for (unsigned int j = 0; j < dim; j++)
               {
-                n[i] += Q[j][i] * nc[j];
+                r_twin[i] += Q[j][i] * r[j];
               }
           }
+        
+        //Ignore the twin-frame Z component and use only X,Y  
+        double rX = r_twin[0];
+        double rY = r_twin[1];
+        //Calculate the distance from the center of the ellipse to the point in the ellipse
+        dist = std::sqrt(rX*rX + rY*rY);
 
         //Rotated unit vector with respect to the twin plane    
-        nX = n[0];
-        nY = n[1];
-        nZ = n[2];
+        nX = rX / (dist + regval);
+        nY = rY / (dist + regval);
 
         //Distance from center of the ellipse to a point in the ellipse that intersects the line defined by (nX,nY,nZ)
-        //Regularized nZ such that nX^2 + nY^2 + nZ^2 = 1
-        nZ_reg = std::sqrt(1.0-nX*nX-nY*nY);
-        edist = 1.0/(std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0) + (nZ_reg/a0)*(nZ_reg/a0)) + regval);
-                        
+        edist = 1.0 / (std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0)) + regval);   
+
         scalar_IC = 0.5*(1.0-std::tanh((dist-edist)/(regval + 1.0*del0*std::sqrt(edist/(a0 + regval)))));
 
         scalar_IC = std::min(scalar_IC, 1.0);
