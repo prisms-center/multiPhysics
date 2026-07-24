@@ -214,7 +214,8 @@ set Twin nucleation point (x, y, z) = 0.5, 0.5, 0.5
 # Model constants
 # ==================================================================
 # The gradient energy tensor in the twin plane reference plane
-set Model constant Kij_tp = ((0.127,0,0),(0,0.031749,0),(0,0,0.127)), TENSOR
+# set Model constant Kij_tp = ((0.127,0,0),(0,0.031749,0),(0,0,0.127)), TENSOR
+set Model constant Kij_tp = ((0.762,0,0),(0,0.1905,0),(0,0,0.762)), TENSOR
 # The mobility tensor in the twin plane reference plane
 set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
 # Twin direction unit vector
@@ -225,7 +226,8 @@ set Model constant tn = (0.592273119665566,	-0.341949045072694,	0.72957755056984
 set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
 # Twin energy barrier (double well height) 
 # 31.04 * (n^2) * (1-n)^2 has the same height as 4 * 1.94 n * (1-n) at n=1/2
-set Model constant delf_tw = 8.7173, DOUBLE
+# set Model constant delf_tw = 8.7173, DOUBLE
+set Model constant delf_tw = 1.4529, DOUBLE
 # Unit lenght (in m)
 set Model constant l0 = 1.0e-6, DOUBLE
 # Radius of initial semimajor axis of the ellipsoid
@@ -234,5 +236,6 @@ set Model constant a0 = 3.0, DOUBLE
 set Model constant ecc = 0.0, DOUBLE
 # Regularization value
 set Model constant regval = 1.0e-8, DOUBLE
-
+# Minimum value of the kinetic coefficient, L
+set Model constant minL = 0.6, DOUBLE
 

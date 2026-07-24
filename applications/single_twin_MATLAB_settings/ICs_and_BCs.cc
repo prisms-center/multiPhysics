@@ -95,7 +95,9 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
         // Form the vector from the seed center to the point in sample coordinates
         dealii::Tensor<1, dim> r;
         for (unsigned int i = 0; i < dim; i++)
-          r[i] = p[i] - center[i]*userInputs_pf.domain_size[i];
+          {
+            r[i] = p[i] - center[i]*userInputs_pf.domain_size[i];
+          }
         
         //Rotate "r" vector into the twin coordinate system using Q^T 
          dealii::Tensor<1, dim> r_twin;

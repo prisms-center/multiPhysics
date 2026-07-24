@@ -188,6 +188,8 @@ void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,
               }
           }
       }
+    
+    L = std::max(L, constV(minL));
 
     //Applying a filter to localize driving force to the twin boundary 
     scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
