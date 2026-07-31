@@ -192,6 +192,7 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                     for (unsigned int i = 0; i < dim; i++)
                       {
                         rot_conv[cellID][q][i] = rot_new[i];
+                        rot_iter[cellID][q][i] = rot_new[i];
                       }
                     
                     this->twin_mask[cellID][q][0] = true;
@@ -206,6 +207,46 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
     double total_op_change = Utilities::MPI::sum(local_op_change, this->mpi_communicator);
     this->pcout << "Integrated change in the order parameter: " << total_op_change << std::endl;
 
+}
+
+template <int dim> void crystalPlasticity<dim>::update_twin_df() {
+    QGauss<dim> quadrature(this->userInputs_cp.quadOrder);
+    const unsigned int num_quad_points = quadrature.size();
+
+    if (this->userInputs_cp.flagTaylorModel)
+      {
+        if (initCalled == false)
+          {
+            if (this->userInputs_cp.enableAdvancedTwinModel)
+              {
+                init2(num_quad_points);
+              } 
+            else 
+              {
+                init(num_quad_points);
+              }
+          }
+      }
+  
+    // Loop over elements
+    unsigned int cellID = 0;
+    typename DoFHandler<dim>::active_cell_iterator cell = this->dofHandler
+                                                            .begin_active(),
+                                                 endc = this->dofHandler.end();
+
+    for (; cell != endc; ++cell)
+      {
+        if (cell->is_locally_owned())
+          {
+            for (unsigned int q = 0; q < num_quad_points; ++q)
+              {
+                this->postprocessValues(cellID, q, 3, 0) = energy[cellID][q][0]; 
+              }
+            cellID++;
+          }
+      }
+    
+    MultiPhysicsBVP<dim, 1>::projection();
 }
 
 #include "../../../include/crystalPlasticity_template_instantiations.h"

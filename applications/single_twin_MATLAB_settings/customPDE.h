@@ -18,7 +18,7 @@ public:
         , userInputs_cp(_userInputs_cp)
     {
         //Average equilibrium interface width
-        del0 = std::sqrt(2.0*(K[0][0]+K[1][1])/delf_tw);
+        del0 = std::sqrt(2.0*Kij_tp[1][1]/delf_tw);
     }
 
     // Function to set the initial conditions (in ICs_and_BCs.h)

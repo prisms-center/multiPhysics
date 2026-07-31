@@ -128,6 +128,9 @@ protected:
   virtual void
   copy_current_op_to_old() = 0;
 
+  virtual void
+  update_twin_df() = 0;
+
   // INDENTATION
   IndexSet     active_set, debug_set, frozen_set;
   unsigned int active_set_size, old_active_set_size, freeze_out_iterations;

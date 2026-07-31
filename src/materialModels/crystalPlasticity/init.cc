@@ -5,7 +5,7 @@
 template <int dim>
 void crystalPlasticity<dim>::init(unsigned int num_quad_points)
 {
-
+  
   //call loadOrientations to load material orientations
   loadOrientations();
 
@@ -203,6 +203,7 @@ void crystalPlasticity<dim>::init(unsigned int num_quad_points)
     rotnew_init(i)=0.0;
   }
 
+  rot_original.resize(num_local_cells,std::vector<Vector<double>>(num_quad_points,rot_init));
   rot_conv.resize(num_local_cells,std::vector<Vector<double> >(num_quad_points,rot_init));
   rotnew_conv.resize(num_local_cells,std::vector<Vector<double> >(num_quad_points,rotnew_init));
   rot_iter.resize(num_local_cells,std::vector<Vector<double> >(num_quad_points,rot_init));
@@ -261,6 +262,7 @@ void crystalPlasticity<dim>::init(unsigned int num_quad_points)
 
   rot_conv=rot_iter;
   rotnew_conv=rotnew_iter;
+  rot_original=rot_iter;
 
 
 

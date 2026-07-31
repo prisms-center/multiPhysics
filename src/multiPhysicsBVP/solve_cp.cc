@@ -144,6 +144,11 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
             }
           loadFactorSetByModel = old_load_factor;
 
+          // Update the output variable for twin driving force (PF needs this)
+          pcout << "\nUpdating twin RSS...";
+          update_twin_df();
+          pcout << " done." << std::endl;
+
           seeding_complete = true;
         }
         
@@ -153,6 +158,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           // If the coupling time has been reached, solve N pf steps
           for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe; pf_step++)
             {
+              pcout << "\n Solving PF increment " << pf_obj.getCurrentIncrement() << std::endl;
+
               // Transfer CPFE data to PF
               interpolate_twin_energy(pf_obj, dofHandler_Scalar);
               pcout << "\nInterpolation of twin energy complete" << std::endl;
@@ -205,7 +212,6 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                                         twinfraction_iter1,
                                         fe_values);
               pcout << "\nInterpolation of n complete" << std::endl;
-              pcout << "\nInterpolation of dndt disabled" << std::endl;
 
               // Update twin mask and Fstar
               pcout << "\nUpdating twin mask" << std::endl;
@@ -221,6 +227,11 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                   success = solveNonLinearSystem();
                 }
               loadFactorSetByModel = old_load_factor;
+
+              // Update the output variable for twin driving force (PF needs this)
+              pcout << "\nUpdating twin RSS...";
+              update_twin_df();
+              pcout << " done." << std::endl;
 
               // TODO: Check whether the order parameter changed.
               // If no evolution occured, we can exit this loop and skip forward by

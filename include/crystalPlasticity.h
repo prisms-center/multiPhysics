@@ -102,6 +102,7 @@ private:
   // Function to update Fp, Fe, and R based on the PF order parameter
   void update_twin_mask() override;
   void copy_current_op_to_old() override;
+  void update_twin_df() override;
 
   // Plasticity functions
 
@@ -116,10 +117,10 @@ private:
   */
   void calculatePlasticity(unsigned int cellID, unsigned int quadPtID, unsigned int StiffnessCalFlag);
   void calculatePlasticity2(unsigned int cellID, unsigned int quadPtID, unsigned int StiffnessCalFlag);
-  void getElementalValues(FEValues<dim>&fe_values, unsigned int dofs_per_cell, unsigned int num_quad_points, FullMatrix<double>&elementalJacobian, Vector<double>&elementalResidual);
-  void updateAfterIncrement();
-  void updateBeforeIteration();
-  void updateBeforeIncrement();
+  void getElementalValues(FEValues<dim>&fe_values, unsigned int dofs_per_cell, unsigned int num_quad_points, FullMatrix<double>&elementalJacobian, Vector<double>&elementalResidual) override;
+  void updateAfterIncrement() override;
+  void updateBeforeIteration() override;
+  void updateBeforeIncrement() override;
   void writeQuadratureOutput(std::string _outputDirectory, unsigned int _currentIncrement);
   void addToQuadratureOutput(std::vector<double>& _QuadOutputs);
   /**
@@ -235,7 +236,7 @@ private:
   /**
   * Stores original crystal orientations as rodrigues vectors by element number and quadratureID
   */
-  std::vector<std::vector<  Vector<double> > >  rot_conv,rot_iter,rot;
+  std::vector<std::vector<  Vector<double> > >  rot_conv,rot_iter,rot,rot_original;
   /**
   * Stores deformed crystal orientations as rodrigues vectors by element number and quadratureID
   */
