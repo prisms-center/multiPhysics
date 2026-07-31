@@ -157,8 +157,9 @@ void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,
     // --- Setting the expressions for the terms in the governing equations ---
 
     scalarvalueType_pf mu_twV = constV(delf_tw)*(4.0*n*(n-1.0)*(n-0.5));
-    scalargradType_pf kappagradn;
+    scalargradType_pf kappagradn, fbr_term;
     scalarvalueType_pf L = constV(0.0);
+    scalarvalueType_pf critical_grad = constV(1 / (2.0*del0));  // ~5.8 for kij=0.03125 and delf_tw=8.7
 
     //Outward Normal vector
     scalargradType_pf nvec = -nx/(std::sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2])+constV(regval));
@@ -194,8 +195,11 @@ void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,
     //Applying a filter to localize driving force to the twin boundary 
     scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
 
+    // Calculate the Forward-Backward Regularization term
+    fbr_term = fbr_mu * tanh((nx.norm() - critical_grad) / critical_grad) * nx;
+
     scalarvalueType_pf eq_dndt = -L*(mu_twV-strain_df_filter);
-    scalargradType_pf eqx_dndt = -L*kappagradn;
+    scalargradType_pf eqx_dndt = -L*(kappagradn + fbr_term);
 
     // --- Submitting the terms for the governing equations ---
 

@@ -18,7 +18,7 @@ public:
         , userInputs_cp(_userInputs_cp)
     {
         //Average equilibrium interface width
-        del0 = std::sqrt(2.0*(Kij_tp[0][0]+Kij_tp[1][1])/delf_tw);
+        del0 = std::sqrt(2.0*Kij_tp[1][1]/delf_tw);
     }
 
     // Function to set the initial conditions (in ICs_and_BCs.h)
@@ -77,6 +77,7 @@ private:
     double ecc = userInputs_pf.get_model_constant_double("ecc");
     double regval = userInputs_pf.get_model_constant_double("regval");
     double minL = userInputs_pf.get_model_constant_double("minL");
+    double fbr_mu = userInputs_pf.get_model_constant_double("fbr_mu");
 
     //Declaring constants
     //Grad. energy coefficient and mobility tensors
@@ -95,5 +96,16 @@ private:
     mutable std::map<unsigned int, dealii::Tensor<2,dim>> Lij_map = {};
 
 };
+
+// Custom hyperbolic tangent function for dealii vectorized arrays
+template <typename Number, std::size_t width>
+inline ::dealii::VectorizedArray<Number, width>
+tanh(const ::dealii::VectorizedArray<Number, width> &x)
+{
+  ::dealii::VectorizedArray<Number, width> out;
+  for (unsigned int i = 0; i < dealii::VectorizedArray<Number, width>::size(); ++i)
+    out[i] = std::tanh(x[i]);
+  return out;
+}
 
 #endif
