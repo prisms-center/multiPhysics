@@ -134,10 +134,11 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   Vector<double> s_alpha_t(n_Tslip_systems);
   Vector<double> s_alpha_tau(n_Tslip_systems);
 
-  // Rotation of the parent crystal at the current point (Rodrigues vector)
-  Vector<double> rot1(dim);
-  FullMatrix<double> rotmat(dim, dim);
+  // Rotation of the crystal at the current point (Rodrigues vector)
+  Vector<double> rot1(dim), rot_parent(dim);
+  FullMatrix<double> rotmat(dim, dim), rotmat_parent(dim, dim);
   rotmat = 0.0;
+  rotmat_parent = 0.0;
 
   // Rotation of the twin at the current point (Rodrigues vector)
   //Vector<double> rot_twin(dim);
@@ -203,9 +204,11 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   for (unsigned int i = 0; i < dim; i++)
     {
       rot1[i] = rot_conv[cellID][quadPtID][i];
+      rot_parent[i] = rot_original[cellID][quadPtID][i];
     }
   
   odfpoint(rotmat, rot1);
+  odfpoint(rotmat_parent, rot_parent);
 
   // Calculate rot_twin (for the first twin system only, right now).
   // Assuming the crystal lattice is centrosymmetric, the twin misorientation
@@ -344,8 +347,16 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
           rotmat.mmult(temp2, temp);
           temp2.mTmult(temp, rotmat);
         }*/
-      rotmat.mmult(temp2, temp);
-      temp2.mTmult(temp, rotmat);
+      if (i < n_slip_systemsWOtwin)
+        {
+          rotmat.mmult(temp2, temp);
+          temp2.mTmult(temp, rotmat);
+        }
+      else
+        {
+          rotmat_parent.mmult(temp2, temp);
+          temp2.mTmult(temp, rotmat_parent);
+        }
       
       for (unsigned int j = 0; j < dim; j++)
         {

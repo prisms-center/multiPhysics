@@ -124,7 +124,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
         //Distance from center of the ellipse to a point in the ellipse that intersects the line defined by (nX,nY,nZ)
         edist = 1.0 / (std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0)) + regval);   
 
-        scalar_IC = 0.5*(1.0-std::tanh((dist-edist)/(regval + 1.0*del0*std::sqrt(edist/(a0 + regval)))));
+        scalar_IC = 0.5*(1.0-std::tanh((dist-edist)/(regval + 1.0*del0*std::sqrt(edist/a0))));
 
         scalar_IC = std::min(scalar_IC, 1.0);
 

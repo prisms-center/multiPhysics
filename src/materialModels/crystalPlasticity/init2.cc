@@ -5,7 +5,6 @@
 template <int dim>
 void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
 {
-
   //call loadOrientations to load material orientations
   loadOrientations();
 
@@ -305,6 +304,7 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
   rot.resize(num_local_cells, std::vector<Vector<double> >(num_quad_points, rot_init));
   rotnew_conv.resize(num_local_cells, std::vector<Vector<double> >(num_quad_points, rotnew_init));
   rotnew_iter.resize(num_local_cells, std::vector<Vector<double> >(num_quad_points, rotnew_init));
+  rot_original.resize(num_local_cells, std::vector<Vector<double> >(num_quad_points, rotnew_init));
 
   twinfraction_iter.resize(num_local_cells,std::vector<std::vector<double> >(num_quad_points,twin_init));
   energy.resize(num_local_cells,std::vector<std::vector<double> >(num_quad_points,twin_init));
@@ -353,6 +353,7 @@ void crystalPlasticity<dim>::init2(unsigned int num_quad_points)
         rot[cell][q][i]=orientations.eulerAngles[materialID][i];
         rotnew_iter[cell][q][i]=orientations.eulerAngles[materialID][i];
         rotnew_conv[cell][q][i] = orientations.eulerAngles[materialID][i];
+        rot_original[cell][q][i] = orientations.eulerAngles[materialID][i];
       }
       for (unsigned int Region = 1; Region<(n_twin_systems / 2) + 1; Region++) {
 
