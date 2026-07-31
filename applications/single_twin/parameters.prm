@@ -126,7 +126,7 @@ set Twin Threshold Fraction                      = 0.03
 set Critical Value for Twin Visualization        = 0.03
 set Twin Directions File                         = twinDirections.txt
 set Twin Normals File                            = twinNormals.txt
-set Characteristic Twin Shear                    = 0.05
+set Characteristic Twin Shear                    = 0.129
 set MP Twin Lower Threshold Fraction             = 0.9
 set MP Twin Upper Threshold Fraction             = 0.9
 
@@ -219,7 +219,6 @@ set Model constant tn = (0.592273119665566,	-0.341949045072694,	0.72957755056984
 # Euler angles for grain orientation (ZXZ convention)
 set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
 # Twin energy barrier (double well height) 
-# 31.04 * (n^2) * (1-n)^2 has the same height as 4 * 1.94 n * (1-n) at n=1/2
 set Model constant delf_tw = 8.7173, DOUBLE
 # Unit lenght (in m)
 set Model constant l0 = 1.0e-6, DOUBLE
@@ -229,5 +228,6 @@ set Model constant a0 = 3.0, DOUBLE
 set Model constant ecc = 0.0, DOUBLE
 # Regularization value
 set Model constant regval = 1.0e-8, DOUBLE
-
+# Minimum value of the kinetic coefficient, L
+set Model constant minL = 0.6, DOUBLE
 

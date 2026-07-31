@@ -238,4 +238,4 @@ set Model constant regval = 1.0e-8, DOUBLE
 # Minimum value of the kinetic coefficient, L
 set Model constant minL = 0.6, DOUBLE
 # Coefficient for the Forward-Backward Regularization term (FBR)
-set Model constant fbr_mu =  0.2, DOUBLE
+set Model constant fbr_mu = 20.0, DOUBLE

@@ -18,7 +18,7 @@ public:
         , userInputs_cp(_userInputs_cp)
     {
         //Average equilibrium interface width
-        del0 = std::sqrt(2.0*(K[0][0]+K[1][1])/delf_tw);
+        del0 = std::sqrt(2.0*(Kij_tp[0][0]+Kij_tp[1][1])/delf_tw);
     }
 
     // Function to set the initial conditions (in ICs_and_BCs.h)
@@ -76,6 +76,7 @@ private:
     double a0 = userInputs_pf.get_model_constant_double("a0");
     double ecc = userInputs_pf.get_model_constant_double("ecc");
     double regval = userInputs_pf.get_model_constant_double("regval");
+    double minL = userInputs_pf.get_model_constant_double("minL");
 
     //Declaring constants
     //Grad. energy coefficient and mobility tensors

@@ -26,7 +26,10 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
     dealii::Tensor<1, dim> n_int;
     dealii::Tensor<1, dim> td_int;
     dealii::Tensor<1, dim> tn_int;
+    dealii::Tensor<1,dim> rot;
+    dealii::Tensor<2,dim> rotmat;
     nc.clear(); n.clear(); n_int.clear(); td_int.clear(); tn_int.clear();
+    
     double dist, edist;
     double b0 = a0*std::sqrt((1.0 - ecc*ecc));
     double nX, nY, nZ, nZ_reg;
@@ -58,12 +61,11 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
         // components, despite the name.
         // TODO: Refector the relevant CPFE code to change the name from
         // eulerAngles to rodriguesVectors
-        dealii::Tensor<1,dim> rot;
         rot.clear();
         rot[0] = this->cpfe_orientations->eulerAngles[materialID][0];
         rot[1] = this->cpfe_orientations->eulerAngles[materialID][1];
         rot[2] = this->cpfe_orientations->eulerAngles[materialID][2];
-        dealii::Tensor<2,dim> rotmat;
+
         rotmat.clear();
         rodrigues_to_rotmat(rotmat, rot);
         
@@ -128,7 +130,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
         nZ_reg = std::sqrt(1.0-nX*nX-nY*nY);
         edist = 1.0/(std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0) + (nZ_reg/a0)*(nZ_reg/a0)) + regval);
                         
-        scalar_IC = 0.5*(1.0-std::tanh((dist-edist)/(regval + 1.0*del0*std::sqrt(edist/(a0 + regval)))));
+        scalar_IC = 0.5*(1.0-std::tanh((dist-edist)/(regval + 1.0*del0*std::sqrt(edist/a0))));
 
         scalar_IC = std::min(scalar_IC, 1.0);
 
