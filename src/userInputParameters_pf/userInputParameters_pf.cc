@@ -95,9 +95,15 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
 
     // Time stepping parameters
     dtValue = parameter_handler.get_double("Time step");
-    int totalIncrements_temp = parameter_handler.get_integer("Number of time steps");
     increments_pftocpfe = parameter_handler.get_integer("Number of phase field steps per CPFE step");
     finalTime = parameter_handler.get_double("Simulation end time");
+
+    // The total increments for PRISMS-MP is based on the number of CPFE increments,
+    // the PF steps per CPFE step, and the seeding time (which is not known a priori).
+    // Compute the maximum possible PF steps if the twin were seeded immediately
+    double cpfe_timestep = parameter_handler.get_double("Time increment");
+    double cpfe_final_time = parameter_handler.get_double("Total time");
+    int totalIncrements_temp = std::ceil(cpfe_final_time / cpfe_timestep) * increments_pftocpfe;
 
     // Linear solver parameters
     for (unsigned int i=0; i<number_of_variables; i++){
@@ -209,6 +215,7 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
     // Output parameters
     std::string output_condition = parameter_handler.get("Output condition");
     unsigned int num_outputs = parameter_handler.get_integer("Number of outputs");
+    unsigned int output_interval = parameter_handler.get_integer("Output interval");
     std::vector<int> user_given_time_step_list_temp = dealii::Utilities::string_to_int(dealii::Utilities::split_string_list(parameter_handler.get("List of time steps to output")));
     std::vector<unsigned int> user_given_time_step_list;
     for (unsigned int i=0; i<user_given_time_step_list_temp.size(); i++) user_given_time_step_list.push_back(user_given_time_step_list_temp[i]);
@@ -269,6 +276,11 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
         }
     }
 
+    // For FIXED_INTERVAL output, set the num_outputs variable to the output interval.
+    // Then, in setTimeStepList, that value is used to create the list of output steps.
+    if (output_condition == "FIXED_INTERVAL") {
+        num_outputs = output_interval;
+    }
 
     // Use these inputs to create a list of time steps where the code should output, stored in the member
     outputTimeStepList = setTimeStepList(output_condition, num_outputs,user_given_time_step_list);
