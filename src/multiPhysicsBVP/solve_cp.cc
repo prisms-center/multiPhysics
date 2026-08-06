@@ -156,7 +156,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       if (seeding_complete)
         {
           // If the coupling time has been reached, solve N pf steps
-          for (unsigned int pf_step = 0; pf_step < userInputs_pf.increments_pftocpfe; pf_step++)
+          for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_pftocpfe; pf_step++)
             {
               pcout << "\n Solving PF increment " << pf_obj.getCurrentIncrement() << std::endl;
 
@@ -202,39 +202,45 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
               pf_obj.getCurrentIncrement() += 1;
               // Phase-Field regular step ENDS
 
-              // In CPFE mesh: copy current OP to old OP, then transfer PF data to CPFE
-              copy_current_op_to_old();
-              
-              interpolate_order_parameter(pf_obj,
-                                        dofHandler_Scalar,
-                                        quadrature,
-                                        twinfraction_iter1,
-                                        fe_values);
-              pcout << "\nInterpolation of n complete" << std::endl;
-
-              // Update twin mask and Fstar
-              pcout << "\nUpdating twin mask" << std::endl;
-              update_twin_mask();
-              
-              // Solve CPFE nonlinear problem
-              pcout << "\nResolving mechanical equilibrium..." << std::endl;
-              old_load_factor = loadFactorSetByModel;
-              loadFactorSetByModel = 0.0;
-              if (!userInputs_cp.flagTaylorModel)
+              // Re-solve CPFE mechanical equilibrium
+              if (pf_step % userInputs_pf.increments_between_mechanics == 0
+                    || pf_step == userInputs_pf.increments_pftocpfe)
                 {
-                  // solve time increment
-                  success = solveNonLinearSystem();
-                }
-              loadFactorSetByModel = old_load_factor;
+                  // In CPFE mesh: copy current OP to old OP, then transfer PF data to CPFE
+                  copy_current_op_to_old();
+                  
+                  interpolate_order_parameter(pf_obj,
+                                            dofHandler_Scalar,
+                                            quadrature,
+                                            twinfraction_iter1,
+                                            fe_values);
+                  pcout << "\nInterpolation of n complete" << std::endl;
 
-              // Update the output variable for twin driving force (PF needs this)
-              pcout << "\nUpdating twin RSS...";
-              update_twin_df();
-              pcout << " done." << std::endl;
+                  // Update twin mask and Fstar
+                  pcout << "\nUpdating twin mask" << std::endl;
+                  update_twin_mask();
+                  
+                  // Solve CPFE nonlinear problem
+                  pcout << "\nResolving mechanical equilibrium..." << std::endl;
+                  old_load_factor = loadFactorSetByModel;
+                  loadFactorSetByModel = 0.0;
+                  if (!userInputs_cp.flagTaylorModel)
+                    {
+                      // solve time increment
+                      success = solveNonLinearSystem();
+                    }
+                  loadFactorSetByModel = old_load_factor;
+
+                  // Update the output variable for twin driving force (PF needs this)
+                  pcout << "\nUpdating twin RSS...";
+                  update_twin_df();
+                  pcout << " done." << std::endl;
+                }
 
               // TODO: Check whether the order parameter changed.
               // If no evolution occured, we can exit this loop and skip forward by
-              // the appropriate number of timesteps/output steps
+              // the appropriate number of timesteps/output steps.
+              // Just make sure the CPFE mechanical equilibrium is re-solved before calling updateAfterIncrement()
             }
         }
         
