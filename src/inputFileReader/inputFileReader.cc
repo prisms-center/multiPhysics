@@ -271,10 +271,13 @@ void inputFileReader::declare_parameters(dealii::ParameterHandler & parameter_ha
 
     }
 
-    parameter_handler.declare_entry("Number of time steps","-1",dealii::Patterns::Integer(),"The time step size for the simulation.");
     parameter_handler.declare_entry("Number of phase field steps per CPFE step","-1",dealii::Patterns::Integer(),"The number of phase field steps per CPFE step.");
     parameter_handler.declare_entry("Time step","-0.1",dealii::Patterns::Double(),"The time step size for the simulation.");
     parameter_handler.declare_entry("Simulation end time","-0.1",dealii::Patterns::Double(),"The value of simulated time where the simulation ends.");
+
+    // Load some of the CPFE values for calculating the total number of possible PF steps
+    parameter_handler.declare_entry("Time increment","-0.1",dealii::Patterns::Double(),"The CPFE time step.");
+    parameter_handler.declare_entry("Total time","-0.1",dealii::Patterns::Double(),"The CPFE final simulation time.");
 
     for (unsigned int i=0; i<var_types.size(); i++){
         if (var_eq_types.at(i) == TIME_INDEPENDENT || var_eq_types.at(i) == IMPLICIT_TIME_DEPENDENT){
@@ -318,6 +321,7 @@ void inputFileReader::declare_parameters(dealii::ParameterHandler & parameter_ha
     parameter_handler.declare_entry("Output condition","EQUAL_SPACING",dealii::Patterns::Anything(),"The spacing type for outputing the solution fields.");
     parameter_handler.declare_entry("List of time steps to output","0",dealii::Patterns::Anything(),"The list of time steps to output, used for the LIST type.");
     parameter_handler.declare_entry("Number of outputs","10",dealii::Patterns::Integer(),"The number of outputs (or number of outputs per decade for the N_PER_DECADE type).");
+    parameter_handler.declare_entry("Output interval","1",dealii::Patterns::Integer(),"The interval between output steps, only used when the output condition is FIXED_INTERVAL.");
     parameter_handler.declare_entry("Skip print steps","1",dealii::Patterns::Integer(),"The number of time steps between updates to the screen.");
     parameter_handler.declare_entry("Print timing information with output","false",dealii::Patterns::Bool(),"Whether to print the summary table of the wall time and wall time for indiviual subroutines every time the code outputs.");
 

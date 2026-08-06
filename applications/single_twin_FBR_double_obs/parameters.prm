@@ -179,15 +179,14 @@ set Element degree = 1
 # Time step parameters
 # ==================================================================
 set Time step = 0.01
-set Number of time steps = 2000
 set Number of phase field steps per CPFE step = 100
 
 # ==================================================================
 # Output parameters
 # ==================================================================
 set Skip print steps = 100
-set Number of outputs = 2000
-set Output condition = EQUAL_SPACING
+set Output condition = FIXED_INTERVAL
+set Output interval  = 1
 set PF Output directory = results_pf
 set Print timing information with output = true
 

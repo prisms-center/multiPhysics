@@ -162,7 +162,6 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
 
               // Transfer CPFE data to PF
               interpolate_twin_energy(pf_obj, dofHandler_Scalar);
-              pcout << "\nInterpolation of twin energy complete" << std::endl;
 
               // Solve PF equations to evolve the twin
               // Phase-Field regular step STARTS

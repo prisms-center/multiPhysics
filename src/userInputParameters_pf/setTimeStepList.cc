@@ -6,7 +6,19 @@ std::vector<unsigned int> userInputParameters_pf<dim>::setTimeStepList(const std
 {
     std::vector<unsigned int> timeStepList;
 
-    if (numberOfOutputs > 0) {
+    if (outputSpacingType == "FIXED_INTERVAL") {
+        // In this case, assume the variable 'numberOfOutputs' has been redefined to mean the output interval
+        // This is handled in userInputParameters_pf.cc prior to calling this function.
+        if (numberOfOutputs > totalIncrements_pf || numberOfOutputs <= 0) {
+            timeStepList.push_back(totalIncrements_pf+1);
+        }
+        else {
+            for (unsigned int iter = 0; iter <= totalIncrements_pf; iter += numberOfOutputs) {
+                timeStepList.push_back(iter);
+            }
+        }
+    }
+    else if (numberOfOutputs > 0) {
         if (outputSpacingType == "EQUAL_SPACING"){
             if (numberOfOutputs > totalIncrements_pf)
             numberOfOutputs = totalIncrements_pf;
