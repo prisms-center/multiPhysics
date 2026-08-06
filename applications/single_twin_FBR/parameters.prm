@@ -180,6 +180,7 @@ set Element degree = 1
 # ==================================================================
 set Time step = 0.001
 set Number of phase field steps per CPFE step = 100
+set Phase field steps between re-solving mechanics = 1
 
 # ==================================================================
 # Output parameters

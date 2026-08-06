@@ -87,6 +87,7 @@ public:
 	double finalTime;
 	unsigned int totalIncrements_pf;
 	unsigned int increments_pftocpfe;
+	unsigned int increments_between_mechanics;
 
 	// Elliptic solver parameters
     LinearSolverParameters linear_solver_parameters;

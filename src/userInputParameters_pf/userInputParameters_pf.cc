@@ -96,6 +96,7 @@ userInputParameters_pf<dim>::userInputParameters_pf(inputFileReader & input_file
     // Time stepping parameters
     dtValue = parameter_handler.get_double("Time step");
     increments_pftocpfe = parameter_handler.get_integer("Number of phase field steps per CPFE step");
+    increments_between_mechanics = parameter_handler.get_integer("Phase field steps between re-solving mechanics");
     finalTime = parameter_handler.get_double("Simulation end time");
 
     // The total increments for PRISMS-MP is based on the number of CPFE increments,
