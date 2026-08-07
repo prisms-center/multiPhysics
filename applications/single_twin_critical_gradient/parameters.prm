@@ -1,0 +1,251 @@
+# Consolidated Parameters File
+# Created by consolidate_parameters.py
+# This file contains both Crystal Plasticity (CP) and Phase Field (PF) parameters
+
+####################################################################
+# Common Parameters (Used by both CP and PF)
+####################################################################
+set Domain size X                                = 120.0
+set Domain size Y                                = 120.0
+set Domain size Z                                = 2.0
+set Number of dimensions                         = 3
+
+####################################################################
+# CRYSTAL PLASTICITY (CP) SECTION
+####################################################################
+# ==================================================================
+# FE parameters
+# ==================================================================
+set Flag To Use Taylor Model                   = false
+set Order of finite elements                     = 1
+set Order of quadrature                          = 2
+
+# ==================================================================
+# Mesh parameters
+# ==================================================================
+set CP Subdivisions X                               = 120
+set CP Subdivisions Y                               = 120
+set CP Subdivisions Z                               = 2
+set CP Refine factor                                = 0
+set Write Mesh To EPS                            = false
+
+# ==================================================================
+# Output parameters
+# ==================================================================
+set Write Output                                 = true
+set CP Output Directory                             = results_cp
+set Skip Output Steps                            = 1
+set Output Equivalent strain                     = true
+set Output Equivalent stress                     = true
+set Output Grain ID                              = true
+set Output Twin fractions                        = true
+# energy_check2
+set Output Variable 1                            = true
+#dtwinfraction_iter1
+set Output Variable 2                            = true
+#twinfraction_iter1
+set Output Variable 3                            = true
+#rss[12] (Twin resolved shear stress)
+set Output Variable 4                            = true
+# driving force
+set Output Variable 5                            = true
+# xy component of the stress tensor
+set Output Variable 6                            = true
+# yx component of the stress tensor
+set Output Variable 7                            = true
+
+# ==================================================================
+# Boundary conditions information
+# ==================================================================
+
+#File name containing BC information
+set Boundary condition filename                  = BCinfo.txt
+
+#BC file number of header lines
+set BC file number of header lines               = 2
+
+#Number of boundary conditions
+set Number of boundary conditions                = 8
+
+# ==================================================================
+# Cyclic loading information
+# ==================================================================
+set Enable cyclic loading                        = false
+set Cyclic loading face                          = 6
+set Cyclic loading direction                     = 3
+set Quarter cycle time                           = 1.2
+
+# ==================================================================
+# Solver Parameters
+# ==================================================================
+set Time increment                              = 0.5
+set Time increment after phase-field coupling   = 0.5
+set Steps for seeding the twin                  = 1
+set Total time                                   = 10.0
+set Maximum linear solver iterations             = 1000000
+set Relative linear solver tolerance             = 1.0e-9
+set Maximum non linear iterations                = 15
+
+# ==================================================================
+# PRISMS-MP parameters
+# ==================================================================
+set Seeding time                                  = 0.70
+set Time before coupling                          = 0.70
+
+# ==================================================================
+# Elasticity parameters
+# ==================================================================
+# Elastic Stiffness Matrix -Voigt Notation (MPa)
+# Isotropic constants
+set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
+set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
+set Elastic Stiffness row 3                      = 2.079e4, 2.079e4, 6.111e4, 0, 0, 0
+set Elastic Stiffness row 4                      = 0, 0, 0, 1.658e4, 0, 0
+set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.658e4, 0
+set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
+
+# ==================================================================
+# Slip parameters
+# ==================================================================
+set Number of Slip Systems                       = 12
+set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
+set Initial Slip Resistance                      = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
+set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
+set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+set Saturation Stress                            = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
+set Slip Directions File                         = slipDirections.txt
+set Slip Normals File                            = slipNormals.txt
+
+# ==================================================================
+# Twin parameters
+# ==================================================================
+set Twinning enabled                             = true
+set Advanced Twinning Model enabled              = false
+set Number of Twin Systems                       = 1
+set Initial Slip Resistance Twin                 = 60
+set Initial Hardening Modulus Twin               = 116
+set Power Law Exponent Twin                      = 1
+set Saturation Stress Twin                       = 100
+set Twin Saturation Factor                       = 0.65
+set Twin Threshold Fraction                      = 0.03
+set Critical Value for Twin Visualization        = 0.03
+set Twin Directions File                         = twinDirections.txt
+set Twin Normals File                            = twinNormals.txt
+set Characteristic Twin Shear                    = 0.129
+set MP Twin Lower Threshold Fraction             = 0.5
+set MP Twin Upper Threshold Fraction             = 0.5
+
+# ==================================================================
+# Constitutive model parameters
+# ==================================================================
+# Stress tolerance for the yield surface (MPa)
+set Stress Tolerance                             = 1e-9
+# Maximum no. of active slip search iterations
+set Max Slip Search Iterations                   = 2
+# Maximum no. of iterations to achieve non-linear convergence
+set Max Solver Iterations                        = 2
+
+# ==================================================================
+# Input microstructure
+# ==================================================================
+set Voxels in X direction                        = 128
+set Voxels in Y direction                        = 128
+set Voxels in Z direction                        = 2
+set Grain ID file name                           = grainID.txt
+set Header Lines GrainID File                    = 1
+set Orientations file name                       = orientations.txt
+
+####################################################################
+# PHASE FIELD (PF) SECTION
+####################################################################
+# Application units (Parameters by Liu et al. 2021)
+# Unit energy density = 1 MPa
+# Unit length = 1 micron
+# Unit time = 1 second 
+
+# ==================================================================
+# Mesh parameters
+# ==================================================================
+# The number of elements in each direction is 2^(refineFactor) * subdivisions
+# Subdivisions Z ignored in 2D
+# For optimal performance, use refineFactor primarily to determine the element size
+set PF Subdivisions X = 120
+set PF Subdivisions Y = 120
+set PF Subdivisions Z = 2
+set PF Refine factor = 0
+set Element degree = 1
+
+# ==================================================================
+# Time step parameters
+# ==================================================================
+set Time step = 0.01
+set Number of phase field steps per CPFE step = 100
+set Phase field steps between re-solving mechanics = 100
+
+# ==================================================================
+# Output parameters
+# ==================================================================
+set Skip print steps = 100
+set Output condition = FIXED_INTERVAL
+set Output interval  = 1
+set PF Output directory = results_pf
+set Print timing information with output = true
+
+# ==================================================================
+# Checkpoint parameters
+# ==================================================================
+set Number of checkpoints = 0
+
+# ==================================================================
+# Boundary conditions
+# ==================================================================
+set Boundary condition for variable dndt = NATURAL
+set Boundary condition for variable n = NATURAL
+set Boundary condition for variable strain_df = NATURAL
+
+# ==================================================================
+# PRISMS-MP twin parameters
+# ==================================================================
+# The fractional coordinates where the twin CRSS is evaluated and
+# where the twin seed is placed (0 < x < 1).
+set Twin nucleation point (x, y, z) = 0.5, 0.5, 0.5
+
+# ==================================================================
+# Model constants
+# ==================================================================
+# The gradient energy tensor in the twin plane reference plane
+set Model constant Kij_tp = ((1.935,0,0),(0,0.48375,0),(0,0,1.935)), TENSOR
+
+# The mobility tensor in the twin plane reference plane
+set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
+
+# Twin direction unit vector
+set Model constant td = (-0.631832692824310,	0.364788775284921,	0.683898090145388), TENSOR
+
+# Twin normal unit vector
+set Model constant tn = (0.592273119665566,	-0.341949045072694,	0.729577550569842), TENSOR
+
+# Euler angles for grain orientation (ZXZ convention)
+set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
+
+# Twin energy barrier (double well height) 
+set Model constant delf_tw = 0.6192, DOUBLE
+
+# Unit lenght (in m)
+set Model constant l0 = 5.0e-6, DOUBLE
+
+# Radius of initial semimajor axis of the ellipsoid
+set Model constant a0 = 2.2, DOUBLE
+
+# eccentricity of the elliptical seed
+set Model constant ecc = 0.95, DOUBLE
+
+# Regularization value
+set Model constant regval = 1.0e-8, DOUBLE
+
+# Minimum value of the kinetic coefficient, L
+set Model constant minL = 1.0e-5, DOUBLE
+
+# Coefficient for the Forward-Backward Regularization term (FBR)
+set Model constant critical_grad =  0.4, DOUBLE
+
