@@ -96,7 +96,6 @@ set Time before coupling                          = 0.70
 # Elasticity parameters
 # ==================================================================
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
-# Isotropic constants
 set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
 set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
 set Elastic Stiffness row 3                      = 2.079e4, 2.079e4, 6.111e4, 0, 0, 0
@@ -148,8 +147,8 @@ set Max Solver Iterations                        = 2
 # ==================================================================
 # Input microstructure
 # ==================================================================
-set Voxels in X direction                        = 128
-set Voxels in Y direction                        = 128
+set Voxels in X direction                        = 120
+set Voxels in Y direction                        = 120
 set Voxels in Z direction                        = 2
 set Grain ID file name                           = grainID.txt
 set Header Lines GrainID File                    = 1
@@ -180,7 +179,7 @@ set Element degree = 1
 # ==================================================================
 set Time step = 0.01
 set Number of phase field steps per CPFE step = 100
-set Phase field steps between re-solving mechanics = 100
+set Phase field steps between re-solving mechanics = 50
 
 # ==================================================================
 # Output parameters
@@ -220,10 +219,10 @@ set Model constant Kij_tp = ((1.935,0,0),(0,0.48375,0),(0,0,1.935)), TENSOR
 set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
 
 # Twin direction unit vector
-set Model constant td = (-0.631832692824310,	0.364788775284921,	0.683898090145388), TENSOR
+set Model constant td = (-0.631832692824310, 0.364788775284921, 0.683898090145388), TENSOR
 
 # Twin normal unit vector
-set Model constant tn = (0.592273119665566,	-0.341949045072694,	0.729577550569842), TENSOR
+set Model constant tn = (0.592273119665566, -0.341949045072694, 0.729577550569842), TENSOR
 
 # Euler angles for grain orientation (ZXZ convention)
 set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR

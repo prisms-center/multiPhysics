@@ -5,9 +5,9 @@
 ####################################################################
 # Common Parameters (Used by both CP and PF)
 ####################################################################
-set Domain size X                                = 50.0
-set Domain size Y                                = 50.0
-set Domain size Z                                = 1.0
+set Domain size X                                = 120.0
+set Domain size Y                                = 120.0
+set Domain size Z                                = 2.0
 set Number of dimensions                         = 3
 
 ####################################################################
@@ -23,8 +23,8 @@ set Order of quadrature                          = 2
 # ==================================================================
 # Mesh parameters
 # ==================================================================
-set CP Subdivisions X                               = 32
-set CP Subdivisions Y                               = 32
+set CP Subdivisions X                               = 120
+set CP Subdivisions Y                               = 120
 set CP Subdivisions Z                               = 2
 set CP Refine factor                                = 0
 set Write Mesh To EPS                            = false
@@ -34,7 +34,7 @@ set Write Mesh To EPS                            = false
 # ==================================================================
 set Write Output                                 = true
 set CP Output Directory                             = results_cp
-set Skip Output Steps                            = 5
+set Skip Output Steps                            = 1
 set Output Equivalent strain                     = true
 set Output Equivalent stress                     = true
 set Output Grain ID                              = true
@@ -57,11 +57,15 @@ set Output Variable 7                            = true
 # ==================================================================
 # Boundary conditions information
 # ==================================================================
-set Use Simple BCs                               = false
-set Use velocity gradient BC                     = true
-set Velocity gradient row 1                      = 0.0, 1.0e-2, 0
-set Velocity gradient row 2                      = 1.0e-2, 0, 0
-set Velocity gradient row 3                      = 0, 0, 0
+
+#File name containing BC information
+set Boundary condition filename                  = BCinfo.txt
+
+#BC file number of header lines
+set BC file number of header lines               = 2
+
+#Number of boundary conditions
+set Number of boundary conditions                = 8
 
 # ==================================================================
 # Cyclic loading information
@@ -74,10 +78,10 @@ set Quarter cycle time                           = 1.2
 # ==================================================================
 # Solver Parameters
 # ==================================================================
-set Time increment                              = 0.05
-set Time increment after phase-field coupling   = 0.05
+set Time increment                              = 0.5
+set Time increment after phase-field coupling   = 0.5
 set Steps for seeding the twin                  = 1
-set Total time                                   = 1.0
+set Total time                                   = 10.0
 set Maximum linear solver iterations             = 1000000
 set Relative linear solver tolerance             = 1.0e-9
 set Maximum non linear iterations                = 15
@@ -92,12 +96,12 @@ set Time before coupling                          = 0.70
 # Elasticity parameters
 # ==================================================================
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
-set Elastic Stiffness row 1                      = 58.58e3, 25.02e3, 20.79e3, 0, 0, 0
-set Elastic Stiffness row 2                      = 25.02e3, 59.4e3, 20.79e3, 0, 0, 0
-set Elastic Stiffness row 3                      = 20.79e3, 20.79e3, 61.11e3, 0, 0, 0
-set Elastic Stiffness row 4                      = 0, 0, 0, 16.58e3, 0, 0
-set Elastic Stiffness row 5                      = 0, 0, 0, 0, 16.56e3, 0
-set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 16.58e3
+set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
+set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
+set Elastic Stiffness row 3                      = 2.079e4, 2.079e4, 6.111e4, 0, 0, 0
+set Elastic Stiffness row 4                      = 0, 0, 0, 1.658e4, 0, 0
+set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.658e4, 0
+set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
 
 # ==================================================================
 # Slip parameters
@@ -127,8 +131,8 @@ set Critical Value for Twin Visualization        = 0.03
 set Twin Directions File                         = twinDirections.txt
 set Twin Normals File                            = twinNormals.txt
 set Characteristic Twin Shear                    = 0.129
-set MP Twin Lower Threshold Fraction             = 0.9
-set MP Twin Upper Threshold Fraction             = 0.9
+set MP Twin Lower Threshold Fraction             = 0.5
+set MP Twin Upper Threshold Fraction             = 0.5
 
 # ==================================================================
 # Constitutive model parameters
@@ -143,8 +147,8 @@ set Max Solver Iterations                        = 2
 # ==================================================================
 # Input microstructure
 # ==================================================================
-set Voxels in X direction                        = 64
-set Voxels in Y direction                        = 64
+set Voxels in X direction                        = 120
+set Voxels in Y direction                        = 120
 set Voxels in Z direction                        = 2
 set Grain ID file name                           = grainID.txt
 set Header Lines GrainID File                    = 1
@@ -164,9 +168,9 @@ set Orientations file name                       = orientations.txt
 # The number of elements in each direction is 2^(refineFactor) * subdivisions
 # Subdivisions Z ignored in 2D
 # For optimal performance, use refineFactor primarily to determine the element size
-set PF Subdivisions X = 128
-set PF Subdivisions Y = 128
-set PF Subdivisions Z = 8
+set PF Subdivisions X = 120
+set PF Subdivisions Y = 120
+set PF Subdivisions Z = 2
 set PF Refine factor = 0
 set Element degree = 1
 
@@ -174,8 +178,8 @@ set Element degree = 1
 # Time step parameters
 # ==================================================================
 set Time step = 0.01
-set Number of phase field steps per CPFE step = 20
-set Phase field steps between re-solving mechanics = 1
+set Number of phase field steps per CPFE step = 100
+set Phase field steps between re-solving mechanics = 50
 
 # ==================================================================
 # Output parameters
@@ -210,24 +214,35 @@ set Twin nucleation point (x, y, z) = 0.5, 0.5, 0.5
 # ==================================================================
 # The gradient energy tensor in the twin plane reference plane
 set Model constant Kij_tp = ((0.127,0,0),(0,0.031749,0),(0,0,0.127)), TENSOR
+
 # The mobility tensor in the twin plane reference plane
 set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
+
 # Twin direction unit vector
-set Model constant td = (-0.631832692824310,	0.364788775284921,	0.683898090145388), TENSOR
+set Model constant td = (-0.631832692824310, 0.364788775284921, 0.683898090145388), TENSOR
+
 # Twin normal unit vector
-set Model constant tn = (0.592273119665566,	-0.341949045072694,	0.729577550569842), TENSOR
+set Model constant tn = (0.592273119665566, -0.341949045072694, 0.729577550569842), TENSOR
+
 # Euler angles for grain orientation (ZXZ convention)
 set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
+
 # Twin energy barrier (double well height) 
 set Model constant delf_tw = 8.7173, DOUBLE
+
 # Unit lenght (in m)
 set Model constant l0 = 1.0e-6, DOUBLE
+
 # Radius of initial semimajor axis of the ellipsoid
-set Model constant a0 = 3.0, DOUBLE
+set Model constant a0 = 2.2, DOUBLE
+
 # eccentricity of the elliptical seed
-set Model constant ecc = 0.0, DOUBLE
+set Model constant ecc = 0.95, DOUBLE
+
 # Regularization value
 set Model constant regval = 1.0e-8, DOUBLE
+
 # Minimum value of the kinetic coefficient, L
-set Model constant minL = 0.6, DOUBLE
+set Model constant minL = 1.0e-5, DOUBLE
+
 
