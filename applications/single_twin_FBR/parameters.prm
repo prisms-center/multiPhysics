@@ -7,7 +7,7 @@
 ####################################################################
 set Domain size X                                = 120.0
 set Domain size Y                                = 120.0
-set Domain size Z                                = 1.875
+set Domain size Z                                = 2.0
 set Number of dimensions                         = 3
 
 ####################################################################
@@ -23,8 +23,8 @@ set Order of quadrature                          = 2
 # ==================================================================
 # Mesh parameters
 # ==================================================================
-set CP Subdivisions X                               = 128
-set CP Subdivisions Y                               = 128
+set CP Subdivisions X                               = 120
+set CP Subdivisions Y                               = 120
 set CP Subdivisions Z                               = 2
 set CP Refine factor                                = 0
 set Write Mesh To EPS                            = false
@@ -78,10 +78,10 @@ set Quarter cycle time                           = 1.2
 # ==================================================================
 # Solver Parameters
 # ==================================================================
-set Time increment                              = 0.05
-set Time increment after phase-field coupling   = 0.05
+set Time increment                              = 0.5
+set Time increment after phase-field coupling   = 0.5
 set Steps for seeding the twin                  = 1
-set Total time                                   = 1.0
+set Total time                                   = 10.0
 set Maximum linear solver iterations             = 1000000
 set Relative linear solver tolerance             = 1.0e-9
 set Maximum non linear iterations                = 15
@@ -96,13 +96,12 @@ set Time before coupling                          = 0.70
 # Elasticity parameters
 # ==================================================================
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
-# Isotropic constants
-set Elastic Stiffness row 1                      = 5.897e4,  2.4086e4, 2.4086e4, 0, 0, 0
-set Elastic Stiffness row 2                      = 2.4086e4, 5.897e4,  2.4086e4, 0, 0, 0
-set Elastic Stiffness row 3                      = 2.4086e4, 2.4086e4, 5.897e4, 0, 0, 0
-set Elastic Stiffness row 4                      = 0, 0, 0, 1.7442e4, 0, 0
-set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.7442e4, 0
-set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.7442e4
+set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
+set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
+set Elastic Stiffness row 3                      = 2.079e4, 2.079e4, 6.111e4, 0, 0, 0
+set Elastic Stiffness row 4                      = 0, 0, 0, 1.658e4, 0, 0
+set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.658e4, 0
+set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
 
 # ==================================================================
 # Slip parameters
@@ -122,7 +121,7 @@ set Slip Normals File                            = slipNormals.txt
 set Twinning enabled                             = true
 set Advanced Twinning Model enabled              = false
 set Number of Twin Systems                       = 1
-set Initial Slip Resistance Twin                 = 13
+set Initial Slip Resistance Twin                 = 60
 set Initial Hardening Modulus Twin               = 116
 set Power Law Exponent Twin                      = 1
 set Saturation Stress Twin                       = 100
@@ -148,8 +147,8 @@ set Max Solver Iterations                        = 2
 # ==================================================================
 # Input microstructure
 # ==================================================================
-set Voxels in X direction                        = 128
-set Voxels in Y direction                        = 128
+set Voxels in X direction                        = 120
+set Voxels in Y direction                        = 120
 set Voxels in Z direction                        = 2
 set Grain ID file name                           = grainID.txt
 set Header Lines GrainID File                    = 1
@@ -169,8 +168,8 @@ set Orientations file name                       = orientations.txt
 # The number of elements in each direction is 2^(refineFactor) * subdivisions
 # Subdivisions Z ignored in 2D
 # For optimal performance, use refineFactor primarily to determine the element size
-set PF Subdivisions X = 128
-set PF Subdivisions Y = 128
+set PF Subdivisions X = 120
+set PF Subdivisions Y = 120
 set PF Subdivisions Z = 2
 set PF Refine factor = 0
 set Element degree = 1
@@ -178,9 +177,9 @@ set Element degree = 1
 # ==================================================================
 # Time step parameters
 # ==================================================================
-set Time step = 0.001
+set Time step = 0.01
 set Number of phase field steps per CPFE step = 100
-set Phase field steps between re-solving mechanics = 1
+set Phase field steps between re-solving mechanics = 50
 
 # ==================================================================
 # Output parameters
@@ -214,28 +213,38 @@ set Twin nucleation point (x, y, z) = 0.5, 0.5, 0.5
 # Model constants
 # ==================================================================
 # The gradient energy tensor in the twin plane reference plane
-# set Model constant Kij_tp = ((0.127,0,0),(0,0.031749,0),(0,0,0.127)), TENSOR
 set Model constant Kij_tp = ((1.935,0,0),(0,0.48375,0),(0,0,1.935)), TENSOR
+
 # The mobility tensor in the twin plane reference plane
 set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
-# set Model constant Lij_tp = ((0.6,0,0),(0,0.6,0),(0,0,0.6)), TENSOR
+
 # Twin direction unit vector
-set Model constant td = (-0.631832692824310,	0.364788775284921,	0.683898090145388), TENSOR
+set Model constant td = (-0.631832692824310, 0.364788775284921, 0.683898090145388), TENSOR
+
 # Twin normal unit vector
-set Model constant tn = (0.592273119665566,	-0.341949045072694,	0.729577550569842), TENSOR
+set Model constant tn = (0.592273119665566, -0.341949045072694, 0.729577550569842), TENSOR
+
 # Euler angles for grain orientation (ZXZ convention)
 set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
+
 # Twin energy barrier (double well height) 
 set Model constant delf_tw = 0.6192, DOUBLE
+
 # Unit lenght (in m)
 set Model constant l0 = 5.0e-6, DOUBLE
+
 # Radius of initial semimajor axis of the ellipsoid
-set Model constant a0 = 2.0, DOUBLE
+set Model constant a0 = 2.2, DOUBLE
+
 # eccentricity of the elliptical seed
-set Model constant ecc = 1.0e-6, DOUBLE
+set Model constant ecc = 0.95, DOUBLE
+
 # Regularization value
 set Model constant regval = 1.0e-8, DOUBLE
+
 # Minimum value of the kinetic coefficient, L
-set Model constant minL = 0.6, DOUBLE
+set Model constant minL = 1.0e-6, DOUBLE
+
 # Coefficient for the Forward-Backward Regularization term (FBR)
-set Model constant fbr_mu = 20.0, DOUBLE
+set Model constant fbr_mu = 0.0, DOUBLE
+
