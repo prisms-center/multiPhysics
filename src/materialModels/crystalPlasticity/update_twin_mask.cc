@@ -10,8 +10,8 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
 
     Vector<double> rot1(dim), rot_new(dim);
     FullMatrix<double> rotmat(dim, dim), rotmat_twin(dim, dim), temp1(dim, dim), FP_t(dim, dim);
-    FullMatrix<double> Fstar_crystal(dim, dim);
-    FullMatrix<double> Fstar_sample(dim, dim), Fstar(dim, dim);
+    FullMatrix<double> Lstar_crystal(dim, dim);
+    FullMatrix<double> Lstar_sample(dim, dim), Fstar(dim, dim);
     FullMatrix<double> Fe_new(dim, dim), Fp_new(dim, dim), Fp_new_inv(dim, dim);
     rotmat = 0.0;
 
@@ -106,40 +106,37 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                     // Update Fp and Fe
                     FP_t = Fp_conv[cellID][q];
 
-                    // Get the current orientation for this point
+                    // Get the parent orientation for this point
                     for (unsigned int i = 0; i < dim; i++)
                       {
-                        rot1 = rot_conv[cellID][q];
+                        rot1 = rot_original[cellID][q];
                       }
                     odfpoint(rotmat, rot1);
                     
-                    // Calculate Fstar in the crystal:
-                    Fstar_crystal.reinit(dim, dim);
-                    Fstar_crystal(0,0) = 1.0;
-                    Fstar_crystal(1,1) = 1.0;
-                    Fstar_crystal(2,2) = 1.0;
-
+                    // Calculate Lstar in the crystal:
+                    Lstar_crystal.reinit(dim, dim);
+                    
                     for (unsigned int i = 0; i < 3; i++)
                       {
                         for (unsigned int j = 0; j < 3; j++)
                           {
-                            Fstar_crystal[i][j] += this->userInputs_cp.twinShear1 * m_alpha[n_slip_systemsWOtwin][i] * n_alpha[n_slip_systemsWOtwin][j];
+                            Lstar_crystal[i][j] += this->userInputs_cp.twinShear1 * m_alpha[n_slip_systemsWOtwin][i] * n_alpha[n_slip_systemsWOtwin][j];
                           }
                       }
 
-                    // Convert Fstar to sample coords
-                    rotmat.mmult(temp1, Fstar_crystal);
-                    temp1.mTmult(Fstar_sample, rotmat);
+                    // Convert Lstar to sample coords
+                    rotmat.mmult(temp1, Lstar_crystal);
+                    temp1.mTmult(Lstar_sample, rotmat);
 
                     // Set Fstar based on the order parameter
-                    Fstar = Fstar_sample;
+                    Fstar = Lstar_sample;
                     Fstar *= delta_orderparam;
-                    Fstar(0,0) += (1 - delta_orderparam);
-                    Fstar(1,1) += (1 - delta_orderparam);
-                    Fstar(2,2) += (1 - delta_orderparam);
+                    Fstar(0,0) += 1.0;
+                    Fstar(1,1) += 1.0;
+                    Fstar(2,2) += 1.0;
 
                     // Adjust Fe and Fp
-                    FP_t.mmult(Fp_new, Fstar);
+                    Fstar.mmult(Fp_new, FP_t);
                     Fp_new_inv.invert(Fp_new);
                     F.mmult(Fe_new, Fp_new_inv);
 
