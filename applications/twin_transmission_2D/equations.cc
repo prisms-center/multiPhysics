@@ -199,7 +199,7 @@ void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,
     //scalarvalueType_pf strain_df_filter = 1.5*(1.0 - (2.0*n-1.0)*(2.0*n-1.0))*strain_df;
   
     scalarvalueType_pf strain_df_filter = (2.0*constV(alpha)*n_b + 6.0*(2.0-constV(alpha))*n_b*n_b 
-                                            + (constV(alpha)-3.0)*n_b*n_b*n_b) * strain_df;
+                                            + 4.0*(constV(alpha)-3.0)*n_b*n_b*n_b) * strain_df;
 
     // Calculate the Forward-Backward Regularization term
     fbr_term = fbr_mu * tanh((nx.norm() - critical_grad) / critical_grad) * nx;
