@@ -157,8 +157,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       if (seeding_complete)
         {
           // If the coupling time has been reached, solve N pf steps
-          //for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_pftocpfe; pf_step++)
-          for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_between_mechanics; pf_step++)
+          for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_pftocpfe; pf_step++)
             {
               pcout << "\n Solving PF increment " << pf_obj.getCurrentIncrement() << std::endl;
 
@@ -205,9 +204,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
               // Phase-Field regular step ENDS
 
               // Re-solve CPFE mechanical equilibrium
-              //if (pf_step % userInputs_pf.increments_between_mechanics == 0
-              //      || pf_step == userInputs_pf.increments_pftocpfe)
-              if (pf_step == userInputs_pf.increments_pftocpfe)
+              if (pf_step % userInputs_pf.increments_between_mechanics == 0
+                    || pf_step == userInputs_pf.increments_pftocpfe)
                 {
                   // In CPFE mesh: copy current OP to old OP, then transfer PF data to CPFE
                   copy_current_op_to_old();
