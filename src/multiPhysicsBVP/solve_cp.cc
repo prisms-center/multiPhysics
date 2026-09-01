@@ -99,7 +99,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   bool seeding_complete = false;
   double seeding_point_rss = 0.0;
   double old_load_factor;
-  while (currentIncrement_cp < totalIncrements_cp)
+  while (!seeding_complete && currentIncrement_cp < totalIncrements_cp)
     {
       pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
                 << ", Current time = " << currentIncrement_cp * delT
@@ -117,7 +117,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       
       // Check CRSS at seeding point
       // TO-DO: this needs to be re-worked for multiple twin seeds and multiple variants (effort: hard)
-      if (!seeding_complete && seeding_point_rss > userInputs_cp.initialSlipResistanceTwin1[0])
+      //
+      if (seeding_point_rss > userInputs_cp.initialSlipResistanceTwin1[0])
         {
           pcout << "\nTwin seeding time reached. Placing seed in CPFE mesh" << std::endl;
           // Place the seed if not already placed, by doing the following (seed already present in PF mesh)
@@ -156,7 +157,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       if (seeding_complete)
         {
           // If the coupling time has been reached, solve N pf steps
-          for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_pftocpfe; pf_step++)
+          //for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_pftocpfe; pf_step++)
+          for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_between_mechanics; pf_step++)
             {
               pcout << "\n Solving PF increment " << pf_obj.getCurrentIncrement() << std::endl;
 
@@ -203,8 +205,9 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
               // Phase-Field regular step ENDS
 
               // Re-solve CPFE mechanical equilibrium
-              if (pf_step % userInputs_pf.increments_between_mechanics == 0
-                    || pf_step == userInputs_pf.increments_pftocpfe)
+              //if (pf_step % userInputs_pf.increments_between_mechanics == 0
+              //      || pf_step == userInputs_pf.increments_pftocpfe)
+              if (pf_step == userInputs_pf.increments_pftocpfe)
                 {
                   // In CPFE mesh: copy current OP to old OP, then transfer PF data to CPFE
                   copy_current_op_to_old();
