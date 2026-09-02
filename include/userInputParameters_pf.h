@@ -170,7 +170,7 @@ public:
     unsigned int num_grain_smoothing_cycles;
 
 	// PRISMS-MP parameters
-	dealii::Point<dim> twin_nucleation_point;
+	std::vector<double> twin_nucleation_point;
 
 private:
 	// Method to create the list of time steps where the results should be output (called from loadInputParameters)

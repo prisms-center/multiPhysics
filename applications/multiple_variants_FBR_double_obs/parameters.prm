@@ -53,8 +53,8 @@ set Output Variable 5                            = true
 set Output Variable 6                            = true
 # yx component of the stress tensor
 set Output Variable 7                            = true
-set Output Variable 8 = true
 
+set Output Variable 23 = true
 set Output Variable 24 = true
 
 # ==================================================================
@@ -98,26 +98,7 @@ set Time before coupling                          = 0.70
 # ==================================================================
 # Elasticity parameters
 # ==================================================================
-# Flag to indicate if User Material Model is enabled
-set Enable User Material Model                   = true
-
-# Flag to indicate if User Material Model is enabled Phase 1
-set Enable User Material Model 1                  = true
-
-# Initial guess stress flag
-set Advanced Rate Dependent Model enabled  = false
-
-# Number of User Material Constants in a Material model Phase 1
-set Number of User Material Constants 1              = 12
-
-# Number of User Material State Variables in a Material model Phase 1
-set Number of User Material State Variables 1        = 62
-
-# Material Constants in a Material model Phase 1
-set User Material Constants 1             = 1.0e-3, 0.04 , 1.0e-6 , 1.0e-6 ,  10000 , 10000,  0, 0, 0, 0 , 200.0, 200.0
-
-# Material State Variables in a Material model Phase 1
-set User Material State Variables Initial Values 1        = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+set Advanced Rate Dependent Model enabled = false
 
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
 set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
@@ -132,10 +113,10 @@ set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
 # ==================================================================
 set Number of Slip Systems                       = 12
 set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
-set Initial Slip Resistance                      = 10, 10, 10, 40, 40, 40, 80, 80, 80, 80, 80, 80
-set Initial Hardening Modulus                    = 300, 300, 300, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
+set Initial Slip Resistance                      = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
+set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-set Saturation Stress                            = 20, 20, 20, 80, 80, 80, 160, 160, 160, 160, 160, 160
+set Saturation Stress                            = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
 set Slip Directions File                         = slipDirections.txt
 set Slip Normals File                            = slipNormals.txt
 
@@ -144,11 +125,11 @@ set Slip Normals File                            = slipNormals.txt
 # ==================================================================
 set Twinning enabled                             = true
 set Advanced Twinning Model enabled              = false
-set Number of Twin Systems                       = 1
-set Initial Slip Resistance Twin                 = 60
-set Initial Hardening Modulus Twin               = 116
-set Power Law Exponent Twin                      = 1
-set Saturation Stress Twin                       = 100
+set Number of Twin Systems                       = 2
+set Initial Slip Resistance Twin                 = 60, 60
+set Initial Hardening Modulus Twin               = 116, 116
+set Power Law Exponent Twin                      = 1, 1
+set Saturation Stress Twin                       = 100, 100
 set Twin Saturation Factor                       = 0.65
 set Twin Threshold Fraction                      = 0.03
 set Critical Value for Twin Visualization        = 0.03
@@ -202,8 +183,8 @@ set Element degree = 1
 # Time step parameters
 # ==================================================================
 set Time step = 0.01
-set Number of phase field steps per CPFE step = 10
-set Phase field steps between re-solving mechanics = 10
+set Number of phase field steps per CPFE step = 100
+set Phase field steps between re-solving mechanics = 50
 
 # ==================================================================
 # Output parameters
@@ -222,16 +203,22 @@ set Number of checkpoints = 0
 # ==================================================================
 # Boundary conditions
 # ==================================================================
-set Boundary condition for variable dndt = NATURAL
-set Boundary condition for variable n = NATURAL
-set Boundary condition for variable strain_df = NATURAL
+set Boundary condition for variable dndt0 = NATURAL
+set Boundary condition for variable n0 = NATURAL
+set Boundary condition for variable strain_df0 = NATURAL
+
+set Boundary condition for variable dndt1 = NATURAL
+set Boundary condition for variable n1 = NATURAL
+set Boundary condition for variable strain_df1 = NATURAL
 
 # ==================================================================
 # PRISMS-MP twin parameters
 # ==================================================================
 # The fractional coordinates where the twin CRSS is evaluated and
 # where the twin seed is placed (0 < x < 1).
-set Twin nucleation point (x, y, z) = 0.5, 0.5, 0.5
+# For multiple variants, specify one coordinate per variant, in a list.
+# i.e., x1, y1, z1, x2, y2, z2, x3, y3, z3, ...
+set Twin nucleation point (x, y, z) = 0.5, 0.6, 0.5, 0.3, 0.4, 0.5
 
 # ==================================================================
 # Model constants
@@ -241,15 +228,6 @@ set Model constant Kij_tp = ((1.64248,0,0),(0,0.41062,0),(0,0,1.64248)), TENSOR
 
 # The mobility tensor in the twin plane reference plane
 set Model constant Lij_tp = ((0.3,0,0),(0,0.0375,0),(0,0,0.3)), TENSOR
-
-# Twin direction unit vector
-set Model constant td = (-0.631832692824310, 0.364788775284921, 0.683898090145388), TENSOR
-
-# Twin normal unit vector
-set Model constant tn = (0.592273119665566, -0.341949045072694, 0.729577550569842), TENSOR
-
-# Euler angles for grain orientation (ZXZ convention)
-set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
 
 # Twin energy barrier (double obstacle coefficient) (MPa)
 set Model constant U = 0.0328496, DOUBLE
@@ -264,7 +242,7 @@ set Model constant critical_grad = 0.6, DOUBLE
 set Model constant interface_width = 0.5, DOUBLE
 
 # Radius of initial semimajor axis of the ellipsoid
-set Model constant a0 = 1.2, DOUBLE
+set Model constant a0 = 2.2, DOUBLE
 
 # eccentricity of the elliptical seed
 set Model constant ecc = 0.95, DOUBLE
@@ -280,3 +258,6 @@ set Model constant fbr_mu = 0.0, DOUBLE
 
 # Parameter alpha for function h(n) = alpha*n^2 + 2*(2-alpha)*n^3 +(alpha-3)*n^4 
 set Model constant alpha = 0.0, DOUBLE
+
+# Coefficient of the twin variant interaction term
+set Model constant twin_interaction_coefficient = 2.0, DOUBLE
