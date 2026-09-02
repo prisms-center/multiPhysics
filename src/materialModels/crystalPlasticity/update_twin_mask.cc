@@ -69,132 +69,136 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                   }
               }
 
-            for (unsigned int q = 0; q < num_quad_points; ++q)
-              {
-                delta_orderparam = std::max(this->twinfraction_iter1[cellID][q][0] - twinfraction_conv[cellID][q][0], 0.0);
+              for (unsigned int idx = 0; idx < this->userInputs_cp.numTwinSystems1; idx++)
+                {
+                  for (unsigned int q = 0; q < num_quad_points; ++q)
+                    {
+                      delta_orderparam = std::max(this->twinfraction_iter1[cellID][q][idx] - twinfraction_conv[cellID][q][idx], 0.0);
 
-                local_op_change += delta_orderparam;
+                      local_op_change += delta_orderparam;
 
-                if (delta_orderparam > 0.0)
-                  {
-                    // Get deformation gradient
-                    F = 0.0;
-                    if (this->userInputs_cp.flagTaylorModel)
-                      {
-                        F = this->Fprev;
-                      }
-                    else 
-                      {
-                        for (unsigned int d = 0; d < dofs_per_cell; ++d)
-                          {
-                            unsigned int i =
-                                fe_values.get_fe().system_to_component_index(d).first;
-                            for (unsigned int j = 0; j < dim; ++j) {
-                            F[i][j] +=
-                                Ulocal(d) *
-                                fe_values.shape_grad(
-                                    d, q)[j]; // u_{i,j}= U(d)*N(d)_{,j}, where d is the DOF
-                                                // correonding to the i'th dimension
+                      if (delta_orderparam > 0.0)
+                        {
+                          // Get deformation gradient
+                          F = 0.0;
+                          if (this->userInputs_cp.flagTaylorModel)
+                            {
+                              F = this->Fprev;
                             }
-                          }
-                        for (unsigned int i = 0; i < dim; ++i)
-                          {
-                            F[i][i] += 1;
-                          }
-                      }
+                          else 
+                            {
+                              for (unsigned int d = 0; d < dofs_per_cell; ++d)
+                                {
+                                  unsigned int i =
+                                      fe_values.get_fe().system_to_component_index(d).first;
+                                  for (unsigned int j = 0; j < dim; ++j) {
+                                  F[i][j] +=
+                                      Ulocal(d) *
+                                      fe_values.shape_grad(
+                                          d, q)[j]; // u_{i,j}= U(d)*N(d)_{,j}, where d is the DOF
+                                                      // correonding to the i'th dimension
+                                  }
+                                }
+                              for (unsigned int i = 0; i < dim; ++i)
+                                {
+                                  F[i][i] += 1;
+                                }
+                            }
 
-                    // Update Fp and Fe
-                    FP_t = Fp_conv[cellID][q];
+                          // Update Fp and Fe
+                          FP_t = Fp_conv[cellID][q];
 
-                    // Get the parent orientation for this point
-                    for (unsigned int i = 0; i < dim; i++)
-                      {
-                        rot1 = rot_original[cellID][q];
-                      }
-                    odfpoint(rotmat, rot1);
-                    
-                    // Calculate Lstar in the crystal:
-                    Lstar_crystal.reinit(dim, dim);
-                    
-                    for (unsigned int i = 0; i < 3; i++)
-                      {
-                        for (unsigned int j = 0; j < 3; j++)
-                          {
-                            Lstar_crystal[i][j] += this->userInputs_cp.twinShear1 * m_alpha[n_slip_systemsWOtwin][i] * n_alpha[n_slip_systemsWOtwin][j];
-                          }
-                      }
+                          // Get the parent orientation for this point
+                          for (unsigned int i = 0; i < dim; i++)
+                            {
+                              rot1 = rot_original[cellID][q];
+                            }
+                          odfpoint(rotmat, rot1);
+                          
+                          // Calculate Lstar in the crystal:
+                          Lstar_crystal.reinit(dim, dim);
+                          
+                          for (unsigned int i = 0; i < 3; i++)
+                            {
+                              for (unsigned int j = 0; j < 3; j++)
+                                {
+                                  Lstar_crystal[i][j] += this->userInputs_cp.twinShear1 * m_alpha[n_slip_systemsWOtwin + idx][i] * n_alpha[n_slip_systemsWOtwin + idx][j];
+                                }
+                            }
 
-                    // Convert Lstar to sample coords
-                    rotmat.mmult(temp1, Lstar_crystal);
-                    temp1.mTmult(Lstar_sample, rotmat);
+                          // Convert Lstar to sample coords
+                          rotmat.mmult(temp1, Lstar_crystal);
+                          temp1.mTmult(Lstar_sample, rotmat);
 
-                    // Set Fstar based on the order parameter
-                    Fstar = Lstar_sample;
-                    Fstar *= delta_orderparam;
-                    Fstar(0,0) += 1.0;
-                    Fstar(1,1) += 1.0;
-                    Fstar(2,2) += 1.0;
+                          // Set Fstar based on the order parameter
+                          Fstar = Lstar_sample;
+                          Fstar *= delta_orderparam;
+                          Fstar(0,0) += 1.0;
+                          Fstar(1,1) += 1.0;
+                          Fstar(2,2) += 1.0;
 
-                    // Adjust Fe and Fp
-                    Fstar.mmult(Fp_new, FP_t);
-                    Fp_new_inv.invert(Fp_new);
-                    F.mmult(Fe_new, Fp_new_inv);
+                          // Adjust Fe and Fp
+                          Fstar.mmult(Fp_new, FP_t);
+                          Fp_new_inv.invert(Fp_new);
+                          F.mmult(Fe_new, Fp_new_inv);
 
-                    Fp_conv[cellID][q] = Fp_new;
-                    Fe_conv[cellID][q] = Fe_new;
-                  }
-                
-                // Reorient if the twin threshold has been reached
-                if (!this->twin_mask[cellID][q][0]
-                    && this->twinfraction_iter1[cellID][q][0] > this->userInputs_cp.MPtwinLowerThresholdFraction1)
-                  {
-                    // Get the current orientation for this point
-                    for (unsigned int i = 0; i < dim; i++)
-                      {
-                        rot1 = rot_conv[cellID][q];
-                      }
-                    odfpoint(rotmat, rot1);
+                          Fp_conv[cellID][q] = Fp_new;
+                          Fe_conv[cellID][q] = Fe_new;
+                        }
+                      
+                      // Reorient if the twin threshold has been reached
+                      if (!this->twin_mask[cellID][q][0]
+                          && this->twinfraction_iter1[cellID][q][idx] > this->userInputs_cp.MPtwinLowerThresholdFraction1)
+                        {
+                          // Get the current orientation for this point
+                          for (unsigned int i = 0; i < dim; i++)
+                            {
+                              rot1 = rot_conv[cellID][q];
+                            }
+                          odfpoint(rotmat, rot1);
 
-                    temp1.reinit(dim, dim);
-                    temp1[0][0] = 1.0;
-                    temp1[1][1] = 1.0;
-                    temp1[2][2] = 1.0;
-                    for (unsigned int i = 0; i < 3; i++)
-                      {
-                        for (unsigned int j = 0; j < 3; j++)
-                          {
-                            temp1[i][j] -= 2*n_alpha[n_slip_systemsWOtwin][i]*n_alpha[n_slip_systemsWOtwin][j];
-                          }
-                      }
-                    rotmat.mmult(rotmat_twin, temp1);
-                    tr = rotmat_twin.trace();
+                          temp1.reinit(dim, dim);
+                          temp1[0][0] = 1.0;
+                          temp1[1][1] = 1.0;
+                          temp1[2][2] = 1.0;
+                          for (unsigned int i = 0; i < 3; i++)
+                            {
+                              for (unsigned int j = 0; j < 3; j++)
+                                {
+                                  temp1[i][j] -= 2*n_alpha[n_slip_systemsWOtwin + idx][i]*n_alpha[n_slip_systemsWOtwin + idx][j];
+                                }
+                            }
+                          rotmat.mmult(rotmat_twin, temp1);
+                          tr = rotmat_twin.trace();
 
-                    rot_new = 0.0;
-                    rot_new[0] = (-1 / (1 + tr)) * (rotmat_twin(1,2) - rotmat_twin(2,1));
-                    rot_new[1] = (-1 / (1 + tr)) * (rotmat_twin(2,0) - rotmat_twin(0,2));
-                    rot_new[2] = (-1 / (1 + tr)) * (rotmat_twin(0,1) - rotmat_twin(1,0));
+                          rot_new = 0.0;
+                          rot_new[0] = (-1 / (1 + tr)) * (rotmat_twin(1,2) - rotmat_twin(2,1));
+                          rot_new[1] = (-1 / (1 + tr)) * (rotmat_twin(2,0) - rotmat_twin(0,2));
+                          rot_new[2] = (-1 / (1 + tr)) * (rotmat_twin(0,1) - rotmat_twin(1,0));
 
-                    // Very large Rodrigues vector norm leads to NaN or Inf, so cap the norm at 10000
-                    double rnew_Norm, max_rnew_Norm;
-                    max_rnew_Norm = 10000;
-                    rnew_Norm = sqrt(rot_new(0)*rot_new(0) + rot_new(1)*rot_new(1) + rot_new(2)*rot_new(2));
+                          // Very large Rodrigues vector norm leads to NaN or Inf, so cap the norm at 10000
+                          double rnew_Norm, max_rnew_Norm;
+                          max_rnew_Norm = 10000;
+                          rnew_Norm = sqrt(rot_new(0)*rot_new(0) + rot_new(1)*rot_new(1) + rot_new(2)*rot_new(2));
 
-                    if (rnew_Norm > max_rnew_Norm)
-                      {
-                        rot_new(0) = rot_new(0) * max_rnew_Norm / rnew_Norm;
-                        rot_new(1) = rot_new(1) * max_rnew_Norm / rnew_Norm;
-                        rot_new(2) = rot_new(2) * max_rnew_Norm / rnew_Norm;
-                      }
+                          if (rnew_Norm > max_rnew_Norm)
+                            {
+                              rot_new(0) = rot_new(0) * max_rnew_Norm / rnew_Norm;
+                              rot_new(1) = rot_new(1) * max_rnew_Norm / rnew_Norm;
+                              rot_new(2) = rot_new(2) * max_rnew_Norm / rnew_Norm;
+                            }
 
-                    for (unsigned int i = 0; i < dim; i++)
-                      {
-                        rot_conv[cellID][q][i] = rot_new[i];
-                        rot_iter[cellID][q][i] = rot_new[i];
-                      }
-                    
-                    this->twin_mask[cellID][q][0] = true;
-                  }
-              }
+                          for (unsigned int i = 0; i < dim; i++)
+                            {
+                              rot_conv[cellID][q][i] = rot_new[i];
+                              rot_iter[cellID][q][i] = rot_new[i];
+                            }
+                          
+                          this->twin_mask[cellID][q][0] = true;
+                        }
+                    }
+
+                }
 
             cellID++;
 
@@ -237,7 +241,10 @@ template <int dim> void crystalPlasticity<dim>::update_twin_df() {
           {
             for (unsigned int q = 0; q < num_quad_points; ++q)
               {
-                this->postprocessValues(cellID, q, 3, 0) = energy[cellID][q][0]; 
+                for (unsigned int i = 0; i < this->userInputs_cp.numTwinSystems1; i++)
+                  {
+                    this->postprocessValues(cellID, q, 26 - i, 0) = energy[cellID][q][i]; 
+                  }
               }
             cellID++;
           }

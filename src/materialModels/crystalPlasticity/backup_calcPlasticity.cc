@@ -24,20 +24,19 @@
 //////
 //////Finally, the PRISMS-Plasticity should be recompiled.
 //////////////////////////////////////////////////////////////////////////////
-////
-//
+
+// This file has been modified to work with PRISMS-MP for twinning
+// Modified 26 August 2026 by Phil Staublin
+// University of Michigan
+
 template <int dim>
 void
 crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                                             unsigned int quadPtID,
                                             unsigned int StiffnessCalFlag)
 {
+  // TODO: remove this or ensure it works with PRISMS-MP
   multiphaseInit(cellID, quadPtID);
-
-  // PRISMS-MP: Turn off twinning inside constitutive
-  unsigned int n_twin_variants_mp = n_twin_systems;
-  n_Tslip_systems = n_slip_systems;
-  n_twin_systems = 0;
 
   // Throughout, variables with the suffix "_t" are at time t
   // Variables with the suffix "_tau" are at time t + dt
@@ -48,9 +47,16 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   // Slip resistance
   Vector<double> s_alpha_t(n_Tslip_systems), slipfraction_t(n_slip_systems);
   
-  // Twin fractions (not used)
-  Vector<double> twinfraction_t(n_twin_systems);
-  Vector<double> twinfraction_tau(n_twin_systems);
+  // TODO: change this to get twin fraction from PF
+  std::vector<double> twinfraction_t(n_twin_systems);
+  std::vector<double> twinfraction_tau(n_twin_systems);
+  twinfraction_t = twinfraction_conv[cellID][quadPtID];
+  twinfraction_tau = this->twinfraction_iter1[cellID][quadPtID];
+  for (unsigned int i = 0; i < n_twin_systems; i++)
+    {
+      if (twinfraction_tau[i] < 0.0) // order parameter shouldn't be negative
+        twinfraction_tau[i] = 0.0;
+    }
   
   // Backstress terms
   Vector<double> W_kh_t(n_Tslip_systems), W_kh_t1(n_Tslip_systems),
@@ -193,12 +199,10 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   std::cout.precision(16);
   F_tau = F; // Deformation Gradient
 
-  tol1       = this->userInputs_cp.modelStressTolerance;
-  delgam_ref = UserMatConstants(0) * this->userInputs_cp.delT; // Reference slip increment
-  strexp     = UserMatConstants(
-    1); // Strain rate sensitivity exponent ; the higher the less sensitive
-  locres_tol =
-    UserMatConstants(2); // Tolerance for innter residual of nonlinear constitutive model
+  tol1        = this->userInputs_cp.modelStressTolerance;
+  delgam_ref  = UserMatConstants(0) * this->userInputs_cp.delT; // Reference slip increment
+  strexp      = UserMatConstants(1); // Strain rate sensitivity exponent ; the higher the less sensitive
+  locres_tol  = UserMatConstants(2); // Tolerance for innter residual of nonlinear constitutive model
   locres_tol2 = UserMatConstants(3); // Tolerance for outer slip resistance loop
   nitr1 = UserMatConstants(4); // Maximum number of iterations for inner loop convergence
   nitr2 = UserMatConstants(5); // Maximum number of iterations for outer loop convergence
@@ -230,12 +234,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   FE_t = Fe_conv[cellID][quadPtID];
   FP_t = Fp_conv[cellID][quadPtID];
   rot1 = rot_conv[cellID][quadPtID];
-  for (unsigned int i = 0; i < dim; i++)
-    {
-      rot_parent[i] = rot_original[cellID][quadPtID][i];
-    }
-  Tinter_diff_guess =
-    TinterStress_diff[cellID][quadPtID]; // Stress increment from previous increment
+  Tinter_diff_guess = TinterStress_diff[cellID][quadPtID]; // Stress increment from previous increment
 
   for (unsigned int i = 0; i < n_Tslip_systems; i++)
     {
@@ -260,8 +259,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   for (unsigned int i = 0; i < n_slip_systems; i++)
     slipfraction_t(i) = slipfraction_conv[cellID][quadPtID][i];
 
-  for (unsigned int i = 0; i < n_twin_systems; i++)
-    twinfraction_t(i) = twinfraction_conv[cellID][quadPtID][i];
   /////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////Rotating the Elsatic modulus from crystal to
@@ -334,11 +331,23 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             }
         }
       // Transform the Schmid tensor matrix to sample coordinates
-      rotmat.mmult(temp2, temp);
-      temp2.mTmult(temp, rotmat);
+      if (i < n_slip_systems)
+        {
+          rotmat.mmult(temp2, temp);
+          temp2.mTmult(temp, rotmat);
 
-      rotmat.mmult(temp4, temp3);
-      temp4.mTmult(temp3, rotmat);
+          rotmat.mmult(temp4, temp3);
+          temp4.mTmult(temp3, rotmat);
+        }
+      else
+        {
+          // Twin systems should use the parent grain rotation matrix
+          rotmat_parent.mmult(temp2, temp);
+          temp2.mTmult(temp, rotmat_parent);
+
+          rotmat_parent.mmult(temp4, temp3);
+          temp4.mTmult(temp3, rotmat_parent);
+        }
 
       for (unsigned int j = 0; j < dim; j++)
         {
@@ -363,7 +372,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   signed_slip_tau  = signed_slip_t;
   Ep_tau           = Ep_t;
   Ep_eff_cum_tau   = Ep_eff_cum_t;
-  twinfraction_tau = twinfraction_t;
   //////////////////////////////////////////////////////////////////
 
   /////////////Dividing the applied DeltaF to small increments///////
@@ -578,19 +586,18 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                         sgnm = -1;
                       else
                         sgnm = 1;
+                      delgam_tau(i) =
+                          delgam_ref *
+                          pow(fabs((sctmp1 - W_kh_tau_it(i)) / s_alpha_it(i)), 1.0 / strexp) *
+                          sgnm;
                     }
                   else // For twin systems due to asymmetry of slip
                     {
-                      if ((sctmp1 - W_kh_tau_it(i)) <= 0)
-                        sgnm = 0;
-                      else
-                        sgnm = 1;
+                      // PRISMS-MP: For twins, we apply eigendeformation outside of the constitutive model
+                      // Skip computing delta-gamma for twins.
+                      delgam_tau(i) = 0.0;
                     }
-
-                  delgam_tau(i) =
-                    delgam_ref *
-                    pow(fabs((sctmp1 - W_kh_tau_it(i)) / s_alpha_it(i)), 1.0 / strexp) *
-                    sgnm;
+                  
                   LP_acc.add(delgam_tau(i), temp);
                 }
 
@@ -926,19 +933,19 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                     sgnm = -1;
                   else
                     sgnm = 1;
+                  delgam_tau(i) =
+                      delgam_ref *
+                      pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_it(i)),
+                          (1.0 / strexp)) *
+                      sgnm;
                 }
               else // For twin systems due to asymmetry of slip
                 {
-                  if (sctmp1 <= 0)
-                    sgnm = 0;
-                  else
-                    sgnm = 1;
+                  // PRISMS-MP: no shear increment for twins inside constitutive
+                  // Eigendeformation is applied externally based on phase field
+                  delgam_tau(i) = 0.0;
                 }
-              delgam_tau(i) =
-                delgam_ref *
-                pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_it(i)),
-                    (1.0 / strexp)) *
-                sgnm;
+              
               for (unsigned int j = 0; j < n_Tslip_systems; j++)
                 {
                   s_alpha_iterp(j) =
@@ -1005,21 +1012,26 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                 sgnm = -1;
               else
                 sgnm = 1;
+              delgam_tau(i) =
+                  delgam_ref *
+                  pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
+                      (1.0 / strexp)) *
+                  sgnm;
             }
           else // For twin systems due to asymmetry of slip
             {
-              if ((resolved_shear_tau(i) - W_kh_tau(i)) <= 0)
-                sgnm = 0;
-              else
-                sgnm = 1;
+              // PRISMS-MP: no shear increment for twins inside constitutive
+              delgam_tau(i) = 0.0;
             }
-
-          delgam_tau(i) =
-            delgam_ref *
-            pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
-                (1.0 / strexp)) *
-            sgnm;
+    
           LP_acc.add(delgam_tau(i), temp);
+        }
+      
+      // PRISMS-MP: set the driving force for twin growth, to pass to the PF model
+      for (unsigned int i = 0; i < n_twin_systems; i++)
+        {
+          energy[cellID][quadPtID][i] = resolved_shear_tau(n_slip_systems + i)
+              * this->userInputs_cp.twinShear1;
         }
 
       for (unsigned int i = 0; i < n_slip_systems; i++)
@@ -1063,10 +1075,10 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       Ep_eff_cum_tau     = Ep_eff_cum_t + del_Ep_eff_cum_tau;
       Ep_eff_cum_t       = Ep_eff_cum_tau;
 
-      for (unsigned int i = 0; i < n_twin_systems; i++)
-        twinfraction_tau(i) =
-          twinfraction_t(i) + fabs(delgam_tau(i + n_slip_systems)) / twinShear;
-      twinfraction_t = twinfraction_tau;
+      // for (unsigned int i = 0; i < n_twin_systems; i++)
+      //  twinfraction_tau(i) =
+      //    twinfraction_t(i) + fabs(delgam_tau(i + n_slip_systems)) / twinShear;
+      // twinfraction_t = twinfraction_tau;
       temp.equ(1.0, matrixExponential(LP_acc));
       temp.mmult(FP_tau, FP_t);
       FP_t = FP_tau;
@@ -1145,8 +1157,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       for (unsigned int i = 0; i < n_slip_systems; i++)
         slipfraction_t(i) = slipfraction_conv[cellID][quadPtID][i];
 
-      for (unsigned int i = 0; i < n_twin_systems; i++)
-        twinfraction_t(i) = twinfraction_conv[cellID][quadPtID][i];
       /////////////////////////////////////////////////////////////////////////////
 
       /// For the Algorithmic Tangent Modulus calculation, the Dt should be returned back
@@ -1498,7 +1508,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   stateVar_iter[cellID][quadPtID][dim * dim + 4 * n_Tslip_systems] = Ep_eff_cum_tau;
 
   for (unsigned int i = 0; i < n_twin_systems; i++)
-    twinfraction_iter[cellID][quadPtID][i] = twinfraction_tau(i);
+    twinfraction_iter[cellID][quadPtID][i] = twinfraction_tau[i];
 
   for (unsigned int i = 0; i < n_slip_systems; i++)
     slipfraction_iter[cellID][quadPtID][i] = slipfraction_tau(i);
@@ -1507,51 +1517,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
     {
       F = F_tau; // Updating Deformation Gradient if it is Taylor model
     }
-  
-  // PRISMS-MP: Compute the driving force for twinning (twin resolved shear stress)
-  // calculate resolved shear stress
-  Vector<double> rss(n_twin_variants_mp);
-  FullMatrix<double> temprot(dim, dim);
-  rss = 0.0;
-  
-  for (unsigned int i = 0; i < n_twin_variants_mp; i++)
-    {
-      for (unsigned int j = 0; j < dim; j++)
-        {
-          m1(j) = m_alpha[n_slip_systems + i][j];
-          n1(j) = n_alpha[n_slip_systems + i][j];
-        }
-      temp = 0.0;
-      temprot = 0.0;
-      for (unsigned int j = 0; j < dim; j++)
-        {
-          for (unsigned int k = 0; k < dim; k++)
-            {
-              temp[j][k] = m1(j) * n1(k);
-            }
-        }
-      
-      // The twin systems should use the original grain orientation.
-      rotmat_parent.mmult(temprot, temp);
-      temprot.mTmult(temp, rotmat_parent);
-
-      for (unsigned int j = 0; j < dim; j++)
-        {
-          for (unsigned int k = 0; k < dim; k++)
-            {
-              rss(i) += T_tau[j][k] * temp[j][k];
-            }
-        }
-    }
-
-  for (unsigned int i = 0; i < n_twin_variants_mp; i++)
-    {
-      energy[cellID][quadPtID][i] = rss(i) * this->userInputs_cp.twinShear1;
-    }
-  
-  // Put back the number of twin systems before post-processing
-  n_twin_systems = n_twin_variants_mp;
-  n_Tslip_systems = n_slip_systems + n_twin_systems;
 
 }
 

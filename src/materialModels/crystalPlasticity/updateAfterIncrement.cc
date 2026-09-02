@@ -286,16 +286,21 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
           this->postprocessValues(cellID, q, 1, 0) = eqvstrain;
           this->postprocessValues(cellID, q, 2, 0) = twin_ouput[cellID][q];
 
+          // TODO: Create a new object for storing the twin driving force ("energy").
+          // It will need to project to nodes like postprocessValues,
+          // and then interpolate to the PF mesh in data_transfer.
+          // Using the postprocessValues for this purpose is confusing.
+
           ////////User Defined Variables for visualization outputs (output_Var1
           /// to output_Var24)////////
           this->postprocessValues(cellID, q, 3, 0) = energy[cellID][q][0]; //cp_twin
-          this->postprocessValues(cellID, q, 4, 0) = std::max(this->twinfraction_iter1[cellID][q][0] - twinfraction_conv[cellID][q][0], 0.0);
+          this->postprocessValues(cellID, q, 4, 0) = T[0][1]; // xy component of Cauchy stress
           this->postprocessValues(cellID, q, 5, 0) = this->twinfraction_iter1[cellID][q][0];
           this->postprocessValues(cellID, q, 6, 0) = rss[12];
           this->postprocessValues(cellID, q, 7, 0) = this->twin_mask[cellID][q][0];
           this->postprocessValues(cellID, q, 8, 0) = Fp_conv[cellID][q][0][0];
-          this->postprocessValues(cellID, q, 9, 0) = twinfraction_conv[cellID][q][0];  // stress_xy
-          this->postprocessValues(cellID, q, 10, 0) = 0;
+          this->postprocessValues(cellID, q, 9, 0) = Fp_conv[cellID][q][0][1];
+          this->postprocessValues(cellID, q, 10, 0) = Fp_conv[cellID][q][1][0];
           this->postprocessValues(cellID, q, 11, 0) = 0;
           this->postprocessValues(cellID, q, 12, 0) = 0;
           this->postprocessValues(cellID, q, 13, 0) = 0;
@@ -306,12 +311,17 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
           this->postprocessValues(cellID, q, 18, 0) = 0;
           this->postprocessValues(cellID, q, 19, 0) = 0;
           this->postprocessValues(cellID, q, 20, 0) = 0;
-          this->postprocessValues(cellID, q, 21, 0) = 0;
+          this->postprocessValues(cellID, q, 21, 0) = 0; // Note: the last N postprocessValues are used for twin energies
           this->postprocessValues(cellID, q, 22, 0) = 0;
           this->postprocessValues(cellID, q, 23, 0) = 0;
           this->postprocessValues(cellID, q, 24, 0) = 0;
           this->postprocessValues(cellID, q, 25, 0) = 0;
           this->postprocessValues(cellID, q, 26, 0) = 0;
+
+          for (unsigned int i = 0; i < this->userInputs_cp.numTwinSystems1; i++)
+            {
+              this->postprocessValues(cellID, q, 26 - i, 0) = energy[cellID][q][i];
+            }
         }
 
         if (CheckBufferRegion == 1) {
