@@ -5,9 +5,9 @@
 ####################################################################
 # Common Parameters (Used by both CP and PF)
 ####################################################################
-set Domain size X                                = 120.0
-set Domain size Y                                = 120.0
-set Domain size Z                                = 2.0
+set Domain size X                                = 20.0
+set Domain size Y                                = 20.0
+set Domain size Z                                = 20.0
 set Number of dimensions                         = 3
 
 ####################################################################
@@ -23,9 +23,9 @@ set Order of quadrature                          = 2
 # ==================================================================
 # Mesh parameters
 # ==================================================================
-set CP Subdivisions X                               = 120
-set CP Subdivisions Y                               = 120
-set CP Subdivisions Z                               = 2
+set CP Subdivisions X                               = 20
+set CP Subdivisions Y                               = 20
+set CP Subdivisions Z                               = 20
 set CP Refine factor                                = 0
 set Write Mesh To EPS                            = false
 
@@ -95,6 +95,27 @@ set Time before coupling                          = 0.70
 # ==================================================================
 # Elasticity parameters
 # ==================================================================
+# Flag to indicate if User Material Model is enabled
+set Enable User Material Model                   = true
+
+# Flag to indicate if User Material Model is enabled Phase 1
+set Enable User Material Model 1                  = true
+
+# Initial guess stress flag
+set Advanced Rate Dependent Model enabled  = false
+
+# Number of User Material Constants in a Material model Phase 1
+set Number of User Material Constants 1              = 12
+
+# Number of User Material State Variables in a Material model Phase 1
+set Number of User Material State Variables 1        = 62
+
+# Material Constants in a Material model Phase 1
+set User Material Constants 1             = 1.0e-3, 0.04 , 1.0e-6 , 1.0e-6 ,  10000 , 10000,  0, 0, 0, 0 , 200.0, 200.0
+
+# Material State Variables in a Material model Phase 1
+set User Material State Variables Initial Values 1        = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
 set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
 set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
@@ -108,7 +129,7 @@ set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
 # ==================================================================
 set Number of Slip Systems                       = 12
 set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
-set Initial Slip Resistance                      = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
+set Initial Slip Resistance                      = 100,100,100,100,100,100,100,100,100,100,100,100
 set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 set Saturation Stress                            = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
@@ -147,9 +168,9 @@ set Max Solver Iterations                        = 2
 # ==================================================================
 # Input microstructure
 # ==================================================================
-set Voxels in X direction                        = 120
-set Voxels in Y direction                        = 120
-set Voxels in Z direction                        = 2
+set Voxels in X direction                        = 20
+set Voxels in Y direction                        = 20
+set Voxels in Z direction                        = 20
 set Grain ID file name                           = grainID.txt
 set Header Lines GrainID File                    = 1
 set Orientations file name                       = orientations.txt
@@ -168,9 +189,9 @@ set Orientations file name                       = orientations.txt
 # The number of elements in each direction is 2^(refineFactor) * subdivisions
 # Subdivisions Z ignored in 2D
 # For optimal performance, use refineFactor primarily to determine the element size
-set PF Subdivisions X = 120
-set PF Subdivisions Y = 120
-set PF Subdivisions Z = 2
+set PF Subdivisions X = 20
+set PF Subdivisions Y = 20
+set PF Subdivisions Z = 20
 set PF Refine factor = 0
 set Element degree = 1
 
