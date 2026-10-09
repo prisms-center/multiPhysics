@@ -111,28 +111,28 @@ set Number of User Material Constants 1              = 12
 set Number of User Material State Variables 1        = 62
 
 # Material Constants in a Material model Phase 1
-set User Material Constants 1             = 1.0e-3, 0.04 , 1.0e-6 , 1.0e-6 ,  10000 , 10000,  0, 0, 0, 0 , 200.0, 200.0
+set User Material Constants 1             = 1.0e-3, 0.05 , 1.0e-6 , 1.0e-6 ,  10000 , 10000,  0, 0, 0, 0 , 200.0, 200.0
 
 # Material State Variables in a Material model Phase 1
 set User Material State Variables Initial Values 1        = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
-set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
-set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
-set Elastic Stiffness row 3                      = 2.079e4, 2.079e4, 6.111e4, 0, 0, 0
-set Elastic Stiffness row 4                      = 0, 0, 0, 1.658e4, 0, 0
-set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.658e4, 0
-set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
+set Elastic Stiffness row 1                      = 5.94e4,  2.561e4, 2.144e4, 0, 0, 0
+set Elastic Stiffness row 2                      = 2.561e4, 5.94e4,  2.144e4, 0, 0, 0
+set Elastic Stiffness row 3                      = 2.144e4, 2.144e4, 6.16e4, 0, 0, 0
+set Elastic Stiffness row 4                      = 0, 0, 0, 1.64e4, 0, 0
+set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.64e4, 0
+set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.64e4
 
 # ==================================================================
 # Slip parameters
 # ==================================================================
 set Number of Slip Systems                       = 12
 set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
-set Initial Slip Resistance                      = 100,100,100,100,100,100,100,100,100,100,100,100
-set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
+set Initial Slip Resistance                      = 6, 6, 6, 78, 78, 78, 140, 140, 140, 140, 140, 140
+set Initial Hardening Modulus                    = 76, 76, 76, 163, 163, 163, 187, 187, 187, 187, 187, 187
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-set Saturation Stress                            = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
+set Saturation Stress                            = 120, 120, 120, 150, 150, 150, 150, 150, 150, 150, 150, 150
 set Slip Directions File                         = slipDirections.txt
 set Slip Normals File                            = slipNormals.txt
 
@@ -142,7 +142,7 @@ set Slip Normals File                            = slipNormals.txt
 set Twinning enabled                             = true
 set Advanced Twinning Model enabled              = false
 set Number of Twin Systems                       = 1
-set Initial Slip Resistance Twin                 = 60
+set Initial Slip Resistance Twin                 = 30
 set Initial Hardening Modulus Twin               = 116
 set Power Law Exponent Twin                      = 1
 set Saturation Stress Twin                       = 100
