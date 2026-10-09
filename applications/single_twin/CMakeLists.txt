@@ -60,6 +60,24 @@ ADD_EXECUTABLE(main ${MAIN})
 
 DEAL_II_SETUP_TARGET(main)
 
+# Older deal.II installations may export the SDK's C headers through zlib.
+# An explicit -isystem SDK/usr/include precedes libc++'s math.h wrapper and
+# breaks <cmath>. The compiler already searches these headers via its sysroot.
+if(APPLE AND TARGET dealii::interface_zlib)
+  foreach(include_property INTERFACE_INCLUDE_DIRECTORIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
+    get_target_property(zlib_include_dirs dealii::interface_zlib ${include_property})
+    if(zlib_include_dirs)
+      set(zlib_filtered_include_dirs "")
+      foreach(include_dir ${zlib_include_dirs})
+        if(NOT include_dir MATCHES "/MacOSX[^/]*\\.sdk/usr/include/?$")
+          list(APPEND zlib_filtered_include_dirs "${include_dir}")
+        endif()
+      endforeach()
+      set_property(TARGET dealii::interface_zlib PROPERTY ${include_property} "${zlib_filtered_include_dirs}")
+    endif()
+  endforeach()
+endif()
+
 set(cmd "cmake")
 set(arg "CMakeLists.txt")
 set(dir ${PROJECT_SOURCE_DIR}/../../)
