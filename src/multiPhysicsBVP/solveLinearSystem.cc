@@ -28,6 +28,7 @@ void MultiPhysicsBVP<dim,degree>::solveLinearSystem(AffineConstraints<double>& c
     pcout << "\nWarning: solver did not converge in "
 	  << solver_control.last_step()
 	  << " iterations as per set tolerances. consider increasing maxSolverIterations or decreasing relSolverTolerance.\n";
+    throw;
   }
   constraintmatrix.distribute (completely_distributed_solutionInc);
   dxGhosts=completely_distributed_solutionInc;

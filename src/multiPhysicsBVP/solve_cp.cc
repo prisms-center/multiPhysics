@@ -113,6 +113,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
         {
           // solve time increment
           success = solveNonLinearSystem();
+          if (!success)
+            return;
         }
       
       // Check CRSS at seeding point
@@ -141,6 +143,11 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
             {
               // solve time increment
               success = solveNonLinearSystem();
+              if (!success)
+                {
+                  loadFactorSetByModel = old_load_factor;
+                  return;
+                }
             }
           loadFactorSetByModel = old_load_factor;
 

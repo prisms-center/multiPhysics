@@ -29,8 +29,16 @@ bool MultiPhysicsBVP<dim,degree>::solveNonLinearSystem(){
     if (!resetIncrement){
       //Calculate residual norms and check for convergence
       currentNorm=residual.l2_norm();
-      initialNorm=std::max(initialNorm, currentNorm);
+      if (currentIteration == 0)
+        initialNorm=std::max(initialNorm, currentNorm);
       relNorm=currentNorm/initialNorm;
+      if (currentIteration > 0 &&
+          (currentNorm <= userInputs_cp.absNonLinearTolerance ||
+           relNorm <= userInputs_cp.relNonLinearTolerance))
+        {
+          oldSolution=solution;
+          return true;
+        }
       //print iteration information
       sprintf(buffer,
         "nonlinear iteration %3u [current residual: %8.2e, initial residual: %8.2e, relative residual: %8.2e]\n",
@@ -76,8 +84,8 @@ bool MultiPhysicsBVP<dim,degree>::solveNonLinearSystem(){
 
     //check if maxNonLinearIterations reached
 
-    //update old solution to new converged solution
-    oldSolution=solution;
-    return true;
+    pcout << "Mechanical solve reached the nonlinear iteration limit; "
+             "residual = " << currentNorm << std::endl;
+    return false;
   }
   #include "../../include/multiPhysicsBVP_template_instantiations.h"
