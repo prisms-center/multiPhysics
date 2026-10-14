@@ -1,6 +1,9 @@
 #include "userFunctions.cc"
 
 #include "../../../include/crystalPlasticity.h"
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
 
 //////////////////////////////////////////////////////////////////////////
 //////calculatePlasticity.cc numerically integrates the constitive model.
@@ -591,12 +594,32 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                     delgam_ref *
                     pow(fabs((sctmp1 - W_kh_tau_it(i)) / s_alpha_it(i)), 1.0 / strexp) *
                     sgnm;
+                  if (!std::isfinite(delgam_tau(i)))
+                    {
+                      std::cerr << "Nonfinite slip increment: system=" << i
+                                << " shear=" << sctmp1
+                                << " backstress=" << W_kh_tau_it(i)
+                                << " resistance=" << s_alpha_it(i)
+                                << " reference=" << delgam_ref
+                                << " exponent=" << 1.0 / strexp << std::endl;
+                      throw std::runtime_error("Nonfinite local slip increment");
+                    }
                   LP_acc.add(delgam_tau(i), temp);
                 }
 
               LP_acc2.equ(1.0, LP_acc);
               LP_acc.equ(-1.0, LP_acc);
               temp1.equ(1.0, matrixExponential(LP_acc));
+              for (unsigned int j = 0; j < dim; ++j)
+                for (unsigned int k = 0; k < dim; ++k)
+                  if (!std::isfinite(temp1[j][k]))
+                    {
+                      std::cerr << "Nonfinite plastic matrix exponential"
+                                << " entry=(" << j << "," << k << ")"
+                                << " slip_norm=" << delgam_tau.linfty_norm()
+                                << std::endl;
+                      throw std::runtime_error("Nonfinite plastic matrix exponential");
+                    }
               LP_acc.equ(1.0, temp1);
 
               // Loop over slip systems
@@ -788,17 +811,64 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                   locres_vec(j) = G_iter(j);
                 }
 
+              for (unsigned int j = 0; j < locres_vec.size(); ++j)
+                if (!std::isfinite(locres_vec(j)))
+                  {
+                    std::cerr << "Nonfinite local residual: component=" << j
+                              << " value=" << locres_vec(j) << std::endl;
+                    throw std::runtime_error("Nonfinite local residual");
+                  }
+              for (unsigned int j = 0; j < J_iter.m(); ++j)
+                for (unsigned int k = 0; k < J_iter.n(); ++k)
+                  if (!std::isfinite(J_iter[j][k]))
+                    {
+                      std::cerr << "Nonfinite local Jacobian: entry=("
+                                << j << "," << k << ")"
+                                << " value=" << J_iter[j][k] << std::endl;
+                      throw std::runtime_error("Nonfinite local Jacobian");
+                    }
+
               // Invert Jacobian
+              const double residual_max = locres_vec.linfty_norm();
               J_iter_inv.invert(J_iter);
+              for (unsigned int j = 0; j < J_iter_inv.m(); ++j)
+                for (unsigned int k = 0; k < J_iter_inv.n(); ++k)
+                  if (!std::isfinite(J_iter_inv[j][k]))
+                    {
+                      std::cerr << "Nonfinite inverse Jacobian: entry=("
+                                << j << "," << k << ")"
+                                << " residual_max=" << residual_max << std::endl;
+                      throw std::runtime_error("Nonfinite inverse local Jacobian");
+                    }
 
               J_iter_inv.vmult(stateVar_diff, locres_vec);
               stateVar_diff.equ(-1.0, stateVar_diff);
+              for (unsigned int j = 0; j < stateVar_diff.size(); ++j)
+                if (!std::isfinite(stateVar_diff(j)))
+                  {
+                    std::cerr << "Nonfinite Newton direction: component=" << j
+                              << " residual_max=" << residual_max << std::endl;
+                    throw std::runtime_error("Nonfinite local Newton direction");
+                  }
               Fold      = locres_vec.l2_norm();
               Fold      = 0.5 * Fold * Fold;
+              if (!std::isfinite(Fold))
+                {
+                  std::cerr << "Nonfinite local objective: residual_max="
+                            << residual_max << " Fold=" << Fold << std::endl;
+                  throw std::runtime_error("Nonfinite local Newton objective");
+                }
               J_iter_cp = 0;
               J_iter_cp.add(0.5, J_iter);
               J_iter_cp.Tadd(0.5, J_iter);
               J_iter_cp.vmult(gradFold, locres_vec);
+              for (unsigned int j = 0; j < gradFold.size(); ++j)
+                if (!std::isfinite(gradFold(j)))
+                  {
+                    std::cerr << "Nonfinite objective gradient: component=" << j
+                              << " residual_max=" << residual_max << std::endl;
+                    throw std::runtime_error("Nonfinite local objective gradient");
+                  }
 
               // Implement cubic line search
               lnsrch(stateVar_temp,

@@ -1,4 +1,7 @@
 #include "../../../include/crystalPlasticity.h"
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
 
 //implementation of the getElementalValues method
 template <int dim>
@@ -137,8 +140,44 @@ void crystalPlasticity<dim>::getElementalValues(FEValues<dim>& fe_values,
 					F[i][i]+=1;
 				}
 
-				//Update strain, stress, and tangent for current time step/quadrature point
-				calculatePlasticity(cellID, q, 1);
+					auto fail_nonfinite = [&](const char *stage) {
+						std::cerr << "Nonfinite CPFE " << stage
+						          << " rank=" << Utilities::MPI::this_mpi_process(this->mpi_communicator)
+						          << " cell=" << cellID << " q=" << q
+						          << " phi=" << this->twinfraction_iter1[cellID][q][0]
+						          << " detFp=" << Fp_conv[cellID][q].determinant()
+						          << std::endl;
+						throw std::runtime_error("Nonfinite CPFE constitutive diagnostic");
+					};
+					for (unsigned int i=0; i<dim; ++i) {
+						if (!std::isfinite(rot_conv[cellID][q][i]))
+							fail_nonfinite("orientation before material call");
+						for (unsigned int j=0; j<dim; ++j)
+							if (!std::isfinite(F[i][j]) ||
+							    !std::isfinite(Fp_conv[cellID][q][i][j]) ||
+							    !std::isfinite(Fe_conv[cellID][q][i][j]))
+								fail_nonfinite("state before material call");
+					}
+					//Update strain, stress, and tangent for current time step/quadrature point
+					try {
+						calculatePlasticity(cellID, q, 1);
+					} catch (const std::exception &e) {
+						std::cerr << "Material failure rank="
+						          << Utilities::MPI::this_mpi_process(this->mpi_communicator)
+						          << " cell=" << cellID << " q=" << q
+						          << " phi=" << this->twinfraction_iter1[cellID][q][0]
+						          << ": " << e.what() << std::endl;
+						throw;
+					}
+					for (unsigned int i=0; i<dim; ++i)
+						for (unsigned int j=0; j<dim; ++j) {
+							if (!std::isfinite(P[i][j]))
+								fail_nonfinite("stress after material call");
+							for (unsigned int k=0; k<dim; ++k)
+								for (unsigned int l=0; l<dim; ++l)
+									if (!std::isfinite(dP_dF[i][j][k][l]))
+										fail_nonfinite("tangent after material call");
+						}
 
 				//Fill local residual
 				for (unsigned int d=0; d<dofs_per_cell; ++d) {

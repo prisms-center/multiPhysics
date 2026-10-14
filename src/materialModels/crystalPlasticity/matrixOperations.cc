@@ -1,4 +1,7 @@
 #include "../../../include/crystalPlasticity.h"
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
 
 
 template <int dim>
@@ -321,12 +324,11 @@ template <int dim>
 void crystalPlasticity<dim>::lnsrch(Vector<double> &statenew, unsigned int n, Vector<double> stateold, double Fold, Vector<double> gradFold, Vector<double> srchdir,double delgam_ref, double strexp, FullMatrix<double> SCHMID_TENSOR1, unsigned int n_slip_systems, unsigned int n_Tslip_systems, Vector<double> s_alpha_tau, FullMatrix<double> Dmat, FullMatrix<double> CE_tau_trial, Vector<double> W_kh_t1, Vector<double> W_kh_t2, double hb1, double hb2, double mb1, double mb2, double rb1, double rb2, double bb1, double bb2)
 {
 
-double stpmax,tolx,alf,TestNan ;
+double stpmax,tolx,alf ;
 unsigned int chck,errnum,itr1;
 
 double magsrch,slope,tst,temp,lam_min,lam;
 
-TestNan=0;
 tolx = 1.0e-15 ;
 alf = 1.0e-4 ;
 chck = 0 ;
@@ -342,6 +344,12 @@ srchdir.equ(stpmax/magsrch,srchdir) ;
 slope = 0.0 ;
 for(unsigned int i=0 ; i<n ; i++){
 	slope = slope + srchdir(i)*gradFold(i) ;
+}
+if (!std::isfinite(Fold) || !std::isfinite(magsrch) || !std::isfinite(slope)) {
+    std::cerr << "Invalid local Newton input: Fold=" << Fold
+              << " direction_norm=" << magsrch << " slope=" << slope
+              << std::endl;
+    throw std::runtime_error("Invalid local Newton input");
 }
 
 errnum = 0 ;
@@ -448,12 +456,20 @@ while(itr1 < 300)
      for(unsigned int i=0; i<2*dim+2*n_Tslip_systems ; i++){
        loc_res_mag = loc_res_mag+0.5*resval(i)*resval(i) ;
      }
-     if (TestNan==1){
-       break ;
-     }
-     if ((std::isnan(loc_res_mag))||(std::isinf(loc_res_mag))){
-       lam=0.001*lam;
-       TestNan=1;
+     if (!std::isfinite(loc_res_mag)){
+       lam *= 0.001;
+       if (!std::isfinite(lam) || lam < lam_min) {
+         std::cerr << "No finite local trial: Fold=" << Fold
+                   << " direction_norm=" << magsrch
+                   << " slope=" << slope << " lambda=" << lam
+                   << " lambda_min=" << lam_min
+                   << " slip_norm=" << delgam.linfty_norm()
+                   << " slip_reference=" << delgam_ref
+                   << " rate_sensitivity=" << strexp << std::endl;
+         throw std::runtime_error("Local constitutive line search has no finite trial");
+       }
+       ++itr1;
+       continue;
      }
      else{
 	// Lots of conditional statements involved here
