@@ -77,6 +77,7 @@ private:
     double ecc = userInputs_pf.get_model_constant_double("ecc");
     double regval = userInputs_pf.get_model_constant_double("regval");
     double minL = userInputs_pf.get_model_constant_double("minL");
+    double del0_init = userInputs_pf.get_model_constant_double("del0_init");
 
     //Declaring constants
     //Grad. energy coefficient and mobility tensors

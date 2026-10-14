@@ -130,7 +130,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p,
         nZ_reg = std::sqrt(1.0-nX*nX-nY*nY);
         edist = 1.0/(std::sqrt((nX/a0)*(nX/a0) + (nY/b0)*(nY/b0) + (nZ_reg/a0)*(nZ_reg/a0)) + regval);
                         
-        scalar_IC = 0.5*(1.0-std::tanh((dist-edist)/(regval + 1.0*del0*std::sqrt(edist/a0))));
+        scalar_IC = 0.5*(1.0-std::tanh((dist-edist)/(regval + 1.0*del0_init*std::sqrt(edist/a0))));
 
         scalar_IC = std::min(scalar_IC, 1.0);
 

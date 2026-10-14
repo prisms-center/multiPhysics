@@ -78,10 +78,10 @@ set Quarter cycle time                           = 1.2
 # ==================================================================
 # Solver Parameters
 # ==================================================================
-set Time increment                              = 0.5
-set Time increment after phase-field coupling   = 0.5
+set Time increment                              = 1.0
+set Time increment after phase-field coupling   = 1.0
 set Steps for seeding the twin                  = 1
-set Total time                                   = 10.0
+set Total time                                   = 20.0
 set Maximum linear solver iterations             = 1000000
 set Relative linear solver tolerance             = 1.0e-9
 set Maximum non linear iterations                = 15
@@ -164,6 +164,8 @@ set Stress Tolerance                             = 1e-9
 set Max Slip Search Iterations                   = 2
 # Maximum no. of iterations to achieve non-linear convergence
 set Max Solver Iterations                        = 2
+set Absolute nonLinear solver tolerance           = 1.0e-8
+set Relative nonLinear solver tolerance           = 1.0e-10
 
 # ==================================================================
 # Input microstructure
@@ -258,12 +260,15 @@ set Model constant l0 = 1.0e-6, DOUBLE
 set Model constant a0 = 2.2, DOUBLE
 
 # eccentricity of the elliptical seed
-set Model constant ecc = 0.95, DOUBLE
+set Model constant ecc = 1.0e-6, DOUBLE
 
 # Regularization value
 set Model constant regval = 1.0e-8, DOUBLE
 
 # Minimum value of the kinetic coefficient, L
 set Model constant minL = 1.0e-5, DOUBLE
+
+# Initial twin thickness 
+set Model constant del0_init = 0.1, DOUBLE
 
 
