@@ -116,6 +116,32 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           if (!success)
             return;
         }
+
+      // Update the seeding point RSS after solving mechanics
+      if (!seeding_complete)
+        {
+          // Evaluate the twin CRSS at the seeding point
+          IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
+          IndexSet locally_relevant_dofs;
+          DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
+
+          calculate_twin_rss();
+          
+          vectorType_cp twin_rss;
+          twin_rss.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
+          twin_rss = *postFieldsWithGhosts[6]; // Index 6 needs to be the twin RSS. TO-DO: change this so it's not reliant on user-defined output variables
+          twin_rss.update_ghost_values();
+          Utilities::MPI::RemotePointEvaluation<dim, dim> rpe;
+          dealii::Point<dim> eval_point;
+          eval_point[0] = userInputs_pf.twin_nucleation_point[0] * userInputs_cp.span[0];
+          eval_point[1] = userInputs_pf.twin_nucleation_point[1] * userInputs_cp.span[1];
+          eval_point[2] = userInputs_pf.twin_nucleation_point[2] * userInputs_cp.span[2];
+          std::vector<Point<dim>> evaluation_points = { eval_point };
+          MappingQ1<dim,dim> mapping;
+          const std::vector<double> evaluated_values = VectorTools::point_values<1>(mapping, dofHandler_Scalar, twin_rss, evaluation_points, rpe);
+          seeding_point_rss = evaluated_values[0];
+          pcout << "Twin RSS at seeding point = " << seeding_point_rss << std::endl;
+        }
       
       // Check CRSS at seeding point
       // TO-DO: this needs to be re-worked for multiple twin seeds and multiple variants (effort: hard)
@@ -255,28 +281,6 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       if ((success) || (userInputs_cp.flagTaylorModel))
         {
           updateAfterIncrement();
-
-          if (!seeding_complete)
-            {
-              // Evaluate the twin CRSS at the seeding point
-              IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
-              IndexSet locally_relevant_dofs;
-              DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
-              vectorType_cp twin_rss;
-              twin_rss.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
-              twin_rss = *postFieldsWithGhosts[6]; // Index 6 needs to be the twin RSS. TO-DO: change this so it's not reliant on user-defined output variables
-              twin_rss.update_ghost_values();
-              Utilities::MPI::RemotePointEvaluation<dim, dim> rpe;
-              dealii::Point<dim> eval_point;
-              eval_point[0] = userInputs_pf.twin_nucleation_point[0] * userInputs_cp.span[0];
-              eval_point[1] = userInputs_pf.twin_nucleation_point[1] * userInputs_cp.span[1];
-              eval_point[2] = userInputs_pf.twin_nucleation_point[2] * userInputs_cp.span[2];
-              std::vector<Point<dim>> evaluation_points = { eval_point };
-              MappingQ1<dim,dim> mapping;
-              const std::vector<double> evaluated_values = VectorTools::point_values<1>(mapping, dofHandler_Scalar, twin_rss, evaluation_points, rpe);
-              seeding_point_rss = evaluated_values[0];
-              pcout << "Twin RSS at seeding point = " << seeding_point_rss << std::endl;
-            }
 
           if (seeding_complete)
             {
