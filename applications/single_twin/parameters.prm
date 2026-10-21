@@ -111,7 +111,7 @@ set Number of User Material Constants 1              = 12
 set Number of User Material State Variables 1        = 62
 
 # Material Constants in a Material model Phase 1
-set User Material Constants 1             = 1.0e-3, 0.05 , 1.0e-6 , 1.0e-6 ,  10000 , 10000,  0, 0, 0, 0 , 200.0, 200.0
+set User Material Constants 1             = 1.0e-3, 1.0, 1.0e-6 , 1.0e-6 ,  10000 , 10000,  0, 0, 0, 0 , 200.0, 200.0
 
 # Material State Variables in a Material model Phase 1
 set User Material State Variables Initial Values 1        = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -152,8 +152,8 @@ set Critical Value for Twin Visualization        = 0.03
 set Twin Directions File                         = twinDirections.txt
 set Twin Normals File                            = twinNormals.txt
 set Characteristic Twin Shear                    = 0.129
-set MP Twin Lower Threshold Fraction             = 0.5
-set MP Twin Upper Threshold Fraction             = 0.5
+set MP Twin Lower Threshold Fraction             = 1.5
+set MP Twin Upper Threshold Fraction             = 1.5
 
 # ==================================================================
 # Constitutive model parameters

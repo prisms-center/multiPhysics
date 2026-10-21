@@ -643,7 +643,24 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                   temp1.equ(-1.0, temp1);
                   temp3 = 0;
                   temp3.Tadd(1.0, temp);
+                  auto check_j00_input = [&](const char *term, double value) {
+                    if (!std::isfinite(value))
+                      {
+                        std::cerr << "Nonfinite J(0,0) input: " << term
+                                  << " system=" << i << " local_iteration=" << itr1
+                                  << " value=" << value
+                                  << " shear=" << resolved_shear_tau(i)
+                                  << " backstress=" << W_kh_tau_it(i)
+                                  << " resistance=" << s_alpha_it(i)
+                                  << " slip_increment=" << delgam_tau(i)
+                                  << std::endl;
+                        throw std::runtime_error("Nonfinite local Jacobian input");
+                      }
+                  };
                   temp4.equ(1.0, matrixExponentialGateauxDerivative2(temp1, temp3));
+                  for (unsigned int j = 0; j < dim; ++j)
+                    for (unsigned int k = 0; k < dim; ++k)
+                      check_j00_input("matrix exponential derivative", temp4[j][k]);
                   temp4.mmult(temp3, temp5);
                   temp4 = 0;
                   temp4.add(0.5, temp3);
@@ -656,6 +673,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                   nv2(0) = nv2(0) / 2.0;
                   nv2(1) = nv2(1) / 2.0;
                   nv2(2) = nv2(2) / 2.0;
+                  check_j00_input("elastic derivative", nv1(0));
+                  check_j00_input("Schmid component", nv2(0));
 
                   btemp1.outer_product(nv1, nv2);
 
@@ -675,8 +694,10 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                     pow(fabs((resolved_shear_tau(i) - W_kh_tau_it(i)) / s_alpha_it(i)),
                         (1.0 / strexp - 1.0)) *
                     sgnm;
+                  check_j00_input("slip-law derivative", sctmp2);
 
                   btemp1.equ(sctmp2, btemp1);
+                  check_j00_input("Jacobian contribution", btemp1(0, 0));
 
                   // Modification to the Jacobian of the Newton-Raphson iteration
 
@@ -688,6 +709,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                           J_iter[j][k] = J_iter[j][k] + btemp1(j, k);
                         }
                     }
+                  check_j00_input("accumulated Jacobian", J_iter[0][0]);
 
                   vtmp1.equ(-1.0 * sctmp2, nv1);
 
