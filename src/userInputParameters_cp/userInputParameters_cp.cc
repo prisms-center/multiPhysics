@@ -238,6 +238,8 @@ pcout (std::cout, dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
   absNonLinearTolerance=parameter_handler.get_double("Absolute nonLinear solver tolerance");
   relNonLinearTolerance=parameter_handler.get_double("Relative nonLinear solver tolerance");
   stopOnConvergenceFailure = parameter_handler.get_bool("Stop on convergence failure");
+  use_numeric_tangent = parameter_handler.get_bool("Use numeric tangent");
+  numeric_tangent_slip_threshold = parameter_handler.get_double("Numeric tangent slip threshold");
   enableAdaptiveTimeStepping = parameter_handler.get_bool("Enable adaptive Time stepping");
   adaptiveLoadStepFactor=parameter_handler.get_double("Adaptive load step factor");
   adaptiveLoadIncreaseFactor=parameter_handler.get_double("Adaptive load increase Factor");
@@ -763,6 +765,8 @@ void userInputParameters_cp::declare_parameters(dealii::ParameterHandler & param
   parameter_handler.declare_entry("Absolute nonLinear solver tolerance","-1",dealii::Patterns::Double(),"Non-linear solver tolerance");
   parameter_handler.declare_entry("Relative nonLinear solver tolerance","-1",dealii::Patterns::Double(),"Relative non-linear solver tolerance");
   parameter_handler.declare_entry("Stop on convergence failure","false",dealii::Patterns::Bool(),"Flag to stop problem if convergence fails");
+  parameter_handler.declare_entry("Use numeric tangent","false",dealii::Patterns::Bool(),"Use a finite-difference tangent dP/dF (9 extra constitutive evaluations per point)");
+  parameter_handler.declare_entry("Numeric tangent slip threshold","0.0",dealii::Patterns::Double(),"Use the numeric tangent only at points whose largest slip increment exceeds this (0 = everywhere)");
   parameter_handler.declare_entry("Enable adaptive Time stepping","false",dealii::Patterns::Bool(),"Flag to enable adaptive time steps");
   parameter_handler.declare_entry("Adaptive load step factor","-1",dealii::Patterns::Double(),"Load step factor");
   parameter_handler.declare_entry("Adaptive load increase Factor","-1",dealii::Patterns::Double(),"adaptive Load Increase Factor");

@@ -1,4 +1,6 @@
 // solve method for multiPhysicsBVP class
+//
+#include <fenv.h>
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/fe_field_function.h>
 #include <deal.II/numerics/matrix_tools.h>
@@ -119,7 +121,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       // TO-DO: this needs to be re-worked for multiple twin seeds and multiple variants (effort: hard)
       if (!seeding_complete && seeding_point_rss > userInputs_cp.initialSlipResistanceTwin1[0])
         {
-          pcout << "\nTwin seeding time reached. Placing seed in CPFE mesh" << std::endl;
+          // feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
+	  pcout << "\nTwin seeding time reached. Placing seed in CPFE mesh" << std::endl;
           // Place the seed if not already placed, by doing the following (seed already present in PF mesh)
           // Transfer PF data to CPFE
           interpolate_order_parameter(pf_obj,
@@ -129,18 +132,47 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                                       fe_values);
           pcout << "\nInterpolation of n complete" << std::endl;
 
-          // Update twin mask and Fstar
-          pcout << "\nUpdating twin mask" << std::endl;
-          update_twin_mask();
+          // GRADUAL SEEDING (added): put the seed in over "Steps for seeding the twin"
+          // sub-steps.  Sub-step k raises the order parameter from (k-1)/N to k/N of the
+          // interpolated seed, so update_twin_mask() adds 1/N of the twin shear each time,
+          // and mechanical equilibrium is re-solved after every sub-step.  Each solve then
+          // starts from the previous sub-step's equilibrium (continuation), which keeps the
+          // global Newton iteration close to its solution.  N = 1 is the original behaviour.
+          const unsigned int nSeedSteps = std::max(1u, userInputs_cp.stepsForSeeding);
+          const std::vector<std::vector<std::vector<double>>> seed_full = twinfraction_iter1;
+          auto set_seed_fraction = [&](const double frac) {
+            for (unsigned int c = 0; c < seed_full.size(); ++c)
+              for (unsigned int q = 0; q < seed_full[c].size(); ++q)
+                for (unsigned int v = 0; v < seed_full[c][q].size(); ++v)
+                  twinfraction_iter1[c][q][v] = frac * seed_full[c][q][v];
+          };
 
-          // Solve CPFE nonlinear problem
-          pcout << "\nResolving mechanical equilibrium..." << std::endl;
           old_load_factor = loadFactorSetByModel;
           loadFactorSetByModel = 0.0;
-          if (!userInputs_cp.flagTaylorModel)
+          for (unsigned int kSeed = 1; kSeed <= nSeedSteps; ++kSeed)
             {
-              // solve time increment
-              success = solveNonLinearSystem();
+              if (nSeedSteps > 1)
+                {
+                  // previous fraction becomes the "old" order parameter ...
+                  set_seed_fraction(double(kSeed - 1) / nSeedSteps);
+                  copy_current_op_to_old();
+                  // ... and the current fraction the "new" one
+                  set_seed_fraction(double(kSeed) / nSeedSteps);
+                  pcout << "\nSeeding sub-step " << kSeed << " of " << nSeedSteps
+                        << " (seed fraction " << double(kSeed) / nSeedSteps << ")" << std::endl;
+                }
+
+              // Update twin mask and Fstar
+              pcout << "\nUpdating twin mask" << std::endl;
+              update_twin_mask();
+
+              // Solve CPFE nonlinear problem
+              pcout << "\nResolving mechanical equilibrium..." << std::endl;
+              if (!userInputs_cp.flagTaylorModel)
+                {
+                  // solve time increment
+                  success = solveNonLinearSystem();
+                }
             }
           loadFactorSetByModel = old_load_factor;
 

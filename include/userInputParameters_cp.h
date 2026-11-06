@@ -160,6 +160,8 @@ public:
   double absNonLinearTolerance; // Non-linear solver tolerance
   double relNonLinearTolerance; // Relative non-linear solver tolerance
   bool stopOnConvergenceFailure; // Flag to stop problem if convergence fails
+  bool use_numeric_tangent; // Use a finite-difference tangent dP/dF instead of the analytical one
+  double numeric_tangent_slip_threshold; // use the numeric tangent only where max |delgam| exceeds this
 
   /*Adaptive time-stepping parameters*/
   bool enableAdaptiveTimeStepping; //Flag to enable adaptive time steps

@@ -479,6 +479,82 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   s_alpha_it = s_alpha_t;
   ///////////////////////////////////////////////////////////////////////////////////////////////
 
+  // ===== SAFEGUARD (added): keep stress iterates inside the range of the power law =====
+  // Flow rule: delgam = delgam_ref*|(tau-W)/s|^(1/strexp).  A stress iterate with
+  // |(tau-W)/s| >> 1 (e.g. right after a twin is seeded) gives delgam ~ 1e40;
+  // matrixExponential then overflows and the local residual becomes NaN.  Any physically
+  // sensible solution has |delgam| <= delgam_cap per system per (sub)step, i.e.
+  // |(tau-W)/s| <= ratio_cap.  Only the PATH of the Newton iteration changes.
+  const double delgam_cap = 1.0; // largest slip increment allowed per system per substep
+  const double ratio_cap  = std::pow(delgam_cap / delgam_ref, strexp);
+  // SAFEGUARD: explicit hardening (as in the MATLAB constitutive_cp3D_rd): solve the stress
+  // with the start-of-substep slip resistance, then harden once.  The implicit fixed-point
+  // loop on s does not converge for stiff rate sensitivity right after twin seeding.
+  // Set to false to restore the original implicit (iterated) hardening.
+  const bool     explicit_hardening = true;
+  Vector<double> s_alpha_used(n_Tslip_systems);
+  double         max_abs_delgam = 0.0; // largest slip increment at this point (all substeps)
+  auto max_ratio = [&](const Vector<double> &sv) {
+    Vector<double>     tv(2 * dim);
+    FullMatrix<double> Ts(dim, dim), Sa(dim, dim), TSa(dim, dim);
+    for (unsigned int j = 0; j < 2 * dim; j++)
+      tv(j) = sv(j);
+    matform(Ts, tv);
+    double rmax = 0.0;
+    for (unsigned int i = 0; i < n_Tslip_systems; i++)
+      {
+        for (unsigned int j = 0; j < dim; j++)
+          for (unsigned int k = 0; k < dim; k++)
+            Sa[j][k] = SCHMID_TENSOR1[dim * i + j][k];
+        Ts.mTmult(TSa, Sa);
+        const double over =
+          TSa.trace() - sv(2 * dim + i) - sv(2 * dim + n_Tslip_systems + i);
+        if (i >= n_slip_systems && over <= 0)
+          continue; // twin pseudo-slip shears in one sense only
+        const double r = std::fabs(over) / s_alpha_it(i);
+        if (!std::isfinite(r))
+          return std::numeric_limits<double>::infinity(); // NaN/Inf counts as out of range
+        rmax = std::max(rmax, r);
+      }
+    return rmax;
+  };
+  // ===== end SAFEGUARD setup =====
+
+  // DEBUG (added): stop at the FIRST non-finite quantity and say which one
+  auto vec_finite = [](const Vector<double> &v) {
+    for (unsigned int i = 0; i < v.size(); i++)
+      if (!std::isfinite(v(i)))
+        return false;
+    return true;
+  };
+  auto mat_finite = [](const FullMatrix<double> &M) {
+    for (unsigned int i = 0; i < M.m(); i++)
+      for (unsigned int j = 0; j < M.n(); j++)
+        if (!std::isfinite(M(i, j)))
+          return false;
+    return true;
+  };
+  auto report = [&](bool ok, const char *what) {
+    if (ok)
+      return;
+    std::cerr << "NONFINITE " << what << " at cell " << cellID << ", q " << quadPtID
+              << ", StiffnessCalFlag " << StiffnessCalFlag << ", inner itr " << itr1
+              << ", outer itr " << itr2 << ", ratio_cap " << ratio_cap << "\n  F_tau:";
+    for (unsigned int i = 0; i < dim; i++)
+      for (unsigned int j = 0; j < dim; j++)
+        std::cerr << ' ' << F_tau(i, j);
+    std::cerr << "\n  s_alpha_it:";
+    for (unsigned int i = 0; i < n_Tslip_systems; i++)
+      std::cerr << ' ' << s_alpha_it(i);
+    std::cerr << "\n  stateVar_it(0:5):";
+    for (unsigned int j = 0; j < 2 * dim; j++)
+      std::cerr << ' ' << stateVar_it(j);
+    std::cerr << std::endl;
+    AssertThrow(false, ExcMessage(std::string("non-finite ") + what));
+  };
+  itr1 = 0;
+  itr2 = 0;
+
   for (unsigned int Inc = 0; Inc < numberOfCuts; Inc++)
     {
       if (!this->userInputs_cp.flagTaylorModel)
@@ -517,14 +593,40 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       ////////////////////////////////////Start Nonlinear iteration for Slip
       ///increments////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      // SAFEGUARD: pull the starting stress back inside the power-law range
+      report(vec_finite(stateVar_it), "starting stress (stateVar_it) before local solve");
+      for (unsigned int cut = 0; cut < 50; cut++)
+        {
+          const double r = max_ratio(stateVar_it);
+          if (!(r > ratio_cap))
+            break;
+          const double f = 0.99 * ratio_cap / r; // exact when the backstress is zero
+          for (unsigned int j = 0; j < 2 * dim; j++)
+            stateVar_it(j) *= f;
+        }
+
       itr1    = 0;
       itr2    = 0;
       locres  = 1.0;
       locres2 = 1.0;
+      // SAFEGUARD: relaxation of the slip-resistance (outer) fixed-point iteration
+      double omega_s = 1.0, locres2_prev = std::numeric_limits<double>::infinity();
 
       while (locres2 > locres_tol2 && itr2 < nitr2)
         {
           itr2   = itr2 + 1;
+          // SAFEGUARD: slip resistances change between outer iterations, so pull the
+          // current stress back inside the power-law range before each inner solve
+          report(vec_finite(s_alpha_it), "slip resistance s_alpha_it at start of outer iteration");
+          for (unsigned int cut = 0; cut < 50; cut++)
+            {
+              const double r = max_ratio(stateVar_it);
+              if (!(r > ratio_cap))
+                break;
+              const double f = 0.99 * ratio_cap / r;
+              for (unsigned int j = 0; j < 2 * dim; j++)
+                stateVar_it(j) *= f;
+            }
           itr1   = 0;
           locres = 1.0;
           // Loop until the residual is greater than tolerance or the  number of
@@ -788,6 +890,9 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                   locres_vec(j) = G_iter(j);
                 }
 
+              report(vec_finite(locres_vec), "local residual locres_vec");
+              report(mat_finite(J_iter), "local Jacobian J_iter");
+
               // Invert Jacobian
               J_iter_inv.invert(J_iter);
 
@@ -798,7 +903,26 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               J_iter_cp = 0;
               J_iter_cp.add(0.5, J_iter);
               J_iter_cp.Tadd(0.5, J_iter);
-              J_iter_cp.vmult(gradFold, locres_vec);
+              // FIX (added): the gradient of Fold = 0.5*|R|^2 is J^T R, not sym(J) R.
+              // With the symmetric part the line search can see an ascent "slope" for a
+              // non-symmetric Jacobian and its cubic backtracking produces NaN.
+              // J^T R gives slope = gradFold . p = -|R|^2 < 0 for the Newton direction.
+              J_iter.Tvmult(gradFold, locres_vec);
+              report(vec_finite(stateVar_diff), "Newton direction stateVar_diff (J_iter singular?)");
+
+              // SAFEGUARD: shorten the Newton step if the full step leaves the power-law
+              // range (the line search below then only has to deal with finite values)
+              {
+                Vector<double> trial_state(stateVar_it.size());
+                for (unsigned int cut = 0; cut < 60; cut++)
+                  {
+                    trial_state = stateVar_it;
+                    trial_state.add(1.0, stateVar_diff);
+                    if (!(max_ratio(trial_state) > ratio_cap))
+                      break;
+                    stateVar_diff *= 0.5;
+                  }
+              }
 
               // Implement cubic line search
               lnsrch(stateVar_temp,
@@ -851,6 +975,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               stateVar_diff = 0.0;
               stateVar_diff.add(1.0, stateVar_temp, -1.0, stateVar_it);
 
+              report(vec_finite(stateVar_diff), "line-search result (stateVar_temp - stateVar_it)");
               locres = stateVar_diff.l2_norm();
               stateVar_it.equ(1.0, stateVar_temp);
 
@@ -961,10 +1086,41 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
           vtmp4 = 0.0;
           vtmp4.add(1.0, s_alpha_iterp, -1.0, s_alpha_it);
+          report(vec_finite(s_alpha_iterp), "hardened slip resistance s_alpha_iterp");
+          report(vec_finite(delgam_tau), "slip increments delgam_tau in hardening update");
           locres2    = vtmp4.l2_norm();
+          s_alpha_used = s_alpha_it; // resistance used in the inner solve just finished
+          if (explicit_hardening)
+            {
+              s_alpha_it = s_alpha_iterp; // harden once with the converged slip
+              break;
+            }
+          // SAFEGUARD: relaxed update s <- s + omega*(s_new - s).  With a stiff rate
+          // sensitivity the plain update can oscillate or diverge (large hardening moduli);
+          // halve omega whenever the change grows instead of shrinking.
+          // Halve omega unless the change shrank by at least 10%.  (A strict ">" test
+          // misses an exact two-cycle, where s flips between its initial and saturation
+          // values with a constant |ds|.)  Let omega recover when convergence is fast.
+          if (itr2 > 1)
+            {
+              if (locres2 >= 0.9 * locres2_prev)
+                omega_s = std::max(0.5 * omega_s, 1.0e-4);
+              else if (locres2 < 0.5 * locres2_prev)
+                omega_s = std::min(1.25 * omega_s, 1.0);
+            }
+          locres2_prev = locres2;
+          s_alpha_iterp.sadd(omega_s, 1.0 - omega_s, s_alpha_it); // omega*new + (1-omega)*old
           s_alpha_it = s_alpha_iterp;
 
         } // Outer while
+      if (itr2 >= nitr2 && locres2 > locres_tol2)
+        {
+          static unsigned int n_warn = 0;
+          if (n_warn++ < 20)
+            std::cerr << "WARNING: slip-resistance loop not converged at cell " << cellID
+                      << ", q " << quadPtID << " after " << itr2 << " iterations, |ds| = "
+                      << locres2 << ", omega_s = " << omega_s << std::endl;
+        }
       ////////////////////////////////////End Nonlinear iteration for Slip
       ///increments////////////////////////////////////
       ////previous end}
@@ -1016,10 +1172,12 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
           delgam_tau(i) =
             delgam_ref *
-            pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
+            pow(std::min(fabs((resolved_shear_tau(i) - W_kh_tau(i)) /
+                         (explicit_hardening ? s_alpha_used(i) : s_alpha_tau(i))), ratio_cap),
                 (1.0 / strexp)) *
             sgnm;
           LP_acc.add(delgam_tau(i), temp);
+          max_abs_delgam = std::max(max_abs_delgam, std::fabs(delgam_tau(i)));
         }
 
       for (unsigned int i = 0; i < n_slip_systems; i++)
@@ -1067,9 +1225,12 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
         twinfraction_tau(i) =
           twinfraction_t(i) + fabs(delgam_tau(i + n_slip_systems)) / twinShear;
       twinfraction_t = twinfraction_tau;
+      report(vec_finite(delgam_tau), "final slip increments delgam_tau before FP update");
+      report(mat_finite(LP_acc), "plastic increment LP_acc before matrixExponential");
       temp.equ(1.0, matrixExponential(LP_acc));
       temp.mmult(FP_tau, FP_t);
       FP_t = FP_tau;
+      report(mat_finite(FP_tau), "FP_tau right after matrixExponential update");
     }
 
   FP_inv_tau = 0.0;
@@ -1115,7 +1276,14 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   ///////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if (StiffnessCalFlag == 1)
+  // HYBRID TANGENT (added): use the finite-difference tangent only where the analytical one
+  // is unreliable, i.e. at points with appreciable plastic slip in this increment.
+  // Elastic (or nearly elastic) points keep the cheap analytical tangent, which is exact
+  // there.  Threshold 0 means "numeric tangent everywhere" when the flag is on.
+  const bool numeric_tangent_here =
+    this->userInputs_cp.use_numeric_tangent &&
+    max_abs_delgam > this->userInputs_cp.numeric_tangent_slip_threshold;
+  if (StiffnessCalFlag == 1 && !numeric_tangent_here)
     {
       ///////////////Reading the previous converged state Variables for Algorithmic
       ///Tangent Modulus calculation////////////////
@@ -1276,7 +1444,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             }
 
           sctmp2 = delgam_ref / (strexp * s_alpha_tau(i)) *
-                   pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
+                   pow(std::min(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)), ratio_cap),
                        (1.0 / strexp - 1.0)) *
                    sgnm;
 
@@ -1306,7 +1474,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                 sgnm = 1;
             }
           sctmp2 = delgam_ref / (strexp * s_alpha_tau(i)) *
-                   pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
+                   pow(std::min(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)), ratio_cap),
                        (1.0 / strexp - 1.0)) *
                    sgnm;
 
@@ -1462,6 +1630,40 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
         }
 
     } // Stiffness cal flag end
+  else if (StiffnessCalFlag == 1 && numeric_tangent_here)
+    {
+      // NUMERIC TANGENT (added): forward differences of P with respect to F,
+      //   dP_dF[m][n][o][p] = (P(F + h e_o e_p)[m][n] - P(F)[m][n]) / h,
+      // using calculatePlasticity2, which evaluates P_per for F_per without touching the
+      // stored state.  It does overwrite some shared members, so they are saved and
+      // restored here (the converged state below is written from them).
+      const double             h = 1.0e-6;
+      const FullMatrix<double> F_tau_save  = F_tau;
+      const FullMatrix<double> FE_tau_save = FE_tau;
+      const FullMatrix<double> FP_tau_save = FP_tau;
+      const unsigned int       n_twin_save  = n_twin_systems;
+      const unsigned int       n_Tslip_save = n_Tslip_systems;
+
+      dP_dF = 0.0;
+      F_per.reinit(dim, dim);
+      P_per.reinit(dim, dim);
+      for (unsigned int o = 0; o < dim; o++)
+        for (unsigned int p = 0; p < dim; p++)
+          {
+            F_per = F;
+            F_per[o][p] += h;
+            calculatePlasticity2(cellID, quadPtID, 0);
+            for (unsigned int m = 0; m < dim; m++)
+              for (unsigned int n = 0; n < dim; n++)
+                dP_dF[m][n][o][p] = (P_per[m][n] - P_tau[m][n]) / h;
+          }
+
+      F_tau           = F_tau_save;
+      FE_tau          = FE_tau_save;
+      FP_tau          = FP_tau_save;
+      n_twin_systems  = n_twin_save;
+      n_Tslip_systems = n_Tslip_save;
+    }
 
   P.reinit(dim, dim);
   P = P_tau;

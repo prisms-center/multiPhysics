@@ -1,5 +1,3 @@
-#include "userFunctions.cc"
-
 #include "../../../include/crystalPlasticity.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -24,19 +22,20 @@
 //////
 //////Finally, the PRISMS-Plasticity should be recompiled.
 //////////////////////////////////////////////////////////////////////////////
-
-// This file has been modified to work with PRISMS-MP for twinning
-// Modified 26 August 2026 by Phil Staublin
-// University of Michigan
-
+////
+//
 template <int dim>
 void
-crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
-                                            unsigned int quadPtID,
-                                            unsigned int StiffnessCalFlag)
+crystalPlasticity<dim>::calculatePlasticity2(unsigned int cellID,
+                                             unsigned int quadPtID,
+                                             unsigned int StiffnessCalFlag)
 {
-  // TODO: remove this or ensure it works with PRISMS-MP
   multiphaseInit(cellID, quadPtID);
+
+  // PRISMS-MP: Turn off twinning inside constitutive
+  unsigned int n_twin_variants_mp = n_twin_systems;
+  n_Tslip_systems = n_slip_systems;
+  n_twin_systems = 0;
 
   // Throughout, variables with the suffix "_t" are at time t
   // Variables with the suffix "_tau" are at time t + dt
@@ -47,16 +46,9 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   // Slip resistance
   Vector<double> s_alpha_t(n_Tslip_systems), slipfraction_t(n_slip_systems);
   
-  // TODO: change this to get twin fraction from PF
-  std::vector<double> twinfraction_t(n_twin_systems);
-  std::vector<double> twinfraction_tau(n_twin_systems);
-  twinfraction_t = twinfraction_conv[cellID][quadPtID];
-  twinfraction_tau = this->twinfraction_iter1[cellID][quadPtID];
-  for (unsigned int i = 0; i < n_twin_systems; i++)
-    {
-      if (twinfraction_tau[i] < 0.0) // order parameter shouldn't be negative
-        twinfraction_tau[i] = 0.0;
-    }
+  // Twin fractions (not used)
+  Vector<double> twinfraction_t(n_twin_systems);
+  Vector<double> twinfraction_tau(n_twin_systems);
   
   // Backstress terms
   Vector<double> W_kh_t(n_Tslip_systems), W_kh_t1(n_Tslip_systems),
@@ -64,7 +56,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
   // Crystal orientation (Rodrigues representation)
   Vector<double> rot1(dim);
-  Vector<double> rot_parent(dim);
 
   // Intermediate quantities
   FullMatrix<double> Tinter_diff_guess(dim, dim), Ep_t(dim, dim), iMinusL(dim, dim);
@@ -76,7 +67,6 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
   // Rotation matrix of the crystal orientation
   FullMatrix<double> rotmat(dim, dim);
-  FullMatrix<double> rotmat_parent(dim, dim);
 
   // Temp matrices for intermediate quantities
   FullMatrix<double> temp(dim, dim), temp1(dim, dim), temp2(dim, dim), temp3(dim, dim),
@@ -197,12 +187,14 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   //////////////////////////////////////////////////////////
 
   std::cout.precision(16);
-  F_tau = F; // Deformation Gradient
+  F_tau = F_per; // Deformation Gradient
 
-  tol1        = this->userInputs_cp.modelStressTolerance;
-  delgam_ref  = UserMatConstants(0) * this->userInputs_cp.delT; // Reference slip increment
-  strexp      = UserMatConstants(1); // Strain rate sensitivity exponent ; the higher the less sensitive
-  locres_tol  = UserMatConstants(2); // Tolerance for innter residual of nonlinear constitutive model
+  tol1       = this->userInputs_cp.modelStressTolerance;
+  delgam_ref = UserMatConstants(0) * this->userInputs_cp.delT; // Reference slip increment
+  strexp     = UserMatConstants(
+    1); // Strain rate sensitivity exponent ; the higher the less sensitive
+  locres_tol =
+    UserMatConstants(2); // Tolerance for innter residual of nonlinear constitutive model
   locres_tol2 = UserMatConstants(3); // Tolerance for outer slip resistance loop
   nitr1 = UserMatConstants(4); // Maximum number of iterations for inner loop convergence
   nitr2 = UserMatConstants(5); // Maximum number of iterations for outer loop convergence
@@ -234,7 +226,8 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   FE_t = Fe_conv[cellID][quadPtID];
   FP_t = Fp_conv[cellID][quadPtID];
   rot1 = rot_conv[cellID][quadPtID];
-  Tinter_diff_guess = TinterStress_diff[cellID][quadPtID]; // Stress increment from previous increment
+  Tinter_diff_guess =
+    TinterStress_diff[cellID][quadPtID]; // Stress increment from previous increment
 
   for (unsigned int i = 0; i < n_Tslip_systems; i++)
     {
@@ -259,13 +252,14 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   for (unsigned int i = 0; i < n_slip_systems; i++)
     slipfraction_t(i) = slipfraction_conv[cellID][quadPtID][i];
 
+  for (unsigned int i = 0; i < n_twin_systems; i++)
+    twinfraction_t(i) = twinfraction_conv[cellID][quadPtID][i];
   /////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////Rotating the Elsatic modulus from crystal to
   ///sample//////////////////
   rotmat = 0.0;
   odfpoint(rotmat, rot1);
-  odfpoint(rotmat_parent, rot_parent);
   elasticmoduli(Dmat2, rotmat, elasticStiffnessMatrix);
   /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -331,23 +325,11 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
             }
         }
       // Transform the Schmid tensor matrix to sample coordinates
-      if (i < n_slip_systems)
-        {
-          rotmat.mmult(temp2, temp);
-          temp2.mTmult(temp, rotmat);
+      rotmat.mmult(temp2, temp);
+      temp2.mTmult(temp, rotmat);
 
-          rotmat.mmult(temp4, temp3);
-          temp4.mTmult(temp3, rotmat);
-        }
-      else
-        {
-          // Twin systems should use the parent grain rotation matrix
-          rotmat_parent.mmult(temp2, temp);
-          temp2.mTmult(temp, rotmat_parent);
-
-          rotmat_parent.mmult(temp4, temp3);
-          temp4.mTmult(temp3, rotmat_parent);
-        }
+      rotmat.mmult(temp4, temp3);
+      temp4.mTmult(temp3, rotmat);
 
       for (unsigned int j = 0; j < dim; j++)
         {
@@ -372,6 +354,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   signed_slip_tau  = signed_slip_t;
   Ep_tau           = Ep_t;
   Ep_eff_cum_tau   = Ep_eff_cum_t;
+  twinfraction_tau = twinfraction_t;
   //////////////////////////////////////////////////////////////////
 
   /////////////Dividing the applied DeltaF to small increments///////
@@ -487,13 +470,85 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   s_alpha_it = s_alpha_t;
   ///////////////////////////////////////////////////////////////////////////////////////////////
 
+  // ===== SAFEGUARD (added): keep stress iterates inside the range of the power law =====
+  // Flow rule: delgam = delgam_ref*|(tau-W)/s|^(1/strexp).  A stress iterate with
+  // |(tau-W)/s| >> 1 (e.g. right after a twin is seeded) gives delgam ~ 1e40;
+  // matrixExponential then overflows and the local residual becomes NaN.  Any physically
+  // sensible solution has |delgam| <= delgam_cap per system per (sub)step, i.e.
+  // |(tau-W)/s| <= ratio_cap.  Only the PATH of the Newton iteration changes.
+  const double delgam_cap = 1.0; // largest slip increment allowed per system per substep
+  const double ratio_cap  = std::pow(delgam_cap / delgam_ref, strexp);
+  // SAFEGUARD: explicit hardening (as in the MATLAB constitutive_cp3D_rd).
+  const bool     explicit_hardening = true;
+  Vector<double> s_alpha_used(n_Tslip_systems);
+  auto max_ratio = [&](const Vector<double> &sv) {
+    Vector<double>     tv(2 * dim);
+    FullMatrix<double> Ts(dim, dim), Sa(dim, dim), TSa(dim, dim);
+    for (unsigned int j = 0; j < 2 * dim; j++)
+      tv(j) = sv(j);
+    matform(Ts, tv);
+    double rmax = 0.0;
+    for (unsigned int i = 0; i < n_Tslip_systems; i++)
+      {
+        for (unsigned int j = 0; j < dim; j++)
+          for (unsigned int k = 0; k < dim; k++)
+            Sa[j][k] = SCHMID_TENSOR1[dim * i + j][k];
+        Ts.mTmult(TSa, Sa);
+        const double over =
+          TSa.trace() - sv(2 * dim + i) - sv(2 * dim + n_Tslip_systems + i);
+        if (i >= n_slip_systems && over <= 0)
+          continue; // twin pseudo-slip shears in one sense only
+        const double r = std::fabs(over) / s_alpha_it(i);
+        if (!std::isfinite(r))
+          return std::numeric_limits<double>::infinity(); // NaN/Inf counts as out of range
+        rmax = std::max(rmax, r);
+      }
+    return rmax;
+  };
+  // ===== end SAFEGUARD setup =====
+
+  // DEBUG (added): stop at the FIRST non-finite quantity and say which one
+  auto vec_finite = [](const Vector<double> &v) {
+    for (unsigned int i = 0; i < v.size(); i++)
+      if (!std::isfinite(v(i)))
+        return false;
+    return true;
+  };
+  auto mat_finite = [](const FullMatrix<double> &M) {
+    for (unsigned int i = 0; i < M.m(); i++)
+      for (unsigned int j = 0; j < M.n(); j++)
+        if (!std::isfinite(M(i, j)))
+          return false;
+    return true;
+  };
+  auto report = [&](bool ok, const char *what) {
+    if (ok)
+      return;
+    std::cerr << "NONFINITE (calculatePlasticity2) " << what << " at cell " << cellID << ", q " << quadPtID
+              << ", StiffnessCalFlag " << StiffnessCalFlag << ", inner itr " << itr1
+              << ", outer itr " << itr2 << ", ratio_cap " << ratio_cap << "\n  F_tau:";
+    for (unsigned int i = 0; i < dim; i++)
+      for (unsigned int j = 0; j < dim; j++)
+        std::cerr << ' ' << F_tau(i, j);
+    std::cerr << "\n  s_alpha_it:";
+    for (unsigned int i = 0; i < n_Tslip_systems; i++)
+      std::cerr << ' ' << s_alpha_it(i);
+    std::cerr << "\n  stateVar_it(0:5):";
+    for (unsigned int j = 0; j < 2 * dim; j++)
+      std::cerr << ' ' << stateVar_it(j);
+    std::cerr << std::endl;
+    AssertThrow(false, ExcMessage(std::string("non-finite ") + what));
+  };
+  itr1 = 0;
+  itr2 = 0;
+
   for (unsigned int Inc = 0; Inc < numberOfCuts; Inc++)
     {
       if (!this->userInputs_cp.flagTaylorModel)
         {
           F_tau.add(1, div_Delta_F);
           if (Inc == (numberOfCuts - 1))
-            F_tau = F;
+            F_tau = F_per;
         }
       else
         {
@@ -508,7 +563,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
           temp.invert(iMinusL);     // inverse(I-L)
           temp.mmult(F_tau, F_tau); // F=inverse(I-L)*Fprev
           if (numberOfCuts == 1)
-            F_tau = F;
+            F_tau = F_per;
         }
 
       del_Ep_tau = 0;
@@ -525,14 +580,40 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       ////////////////////////////////////Start Nonlinear iteration for Slip
       ///increments////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      // SAFEGUARD: pull the starting stress back inside the power-law range
+      report(vec_finite(stateVar_it), "starting stress (stateVar_it) before local solve");
+      for (unsigned int cut = 0; cut < 50; cut++)
+        {
+          const double r = max_ratio(stateVar_it);
+          if (!(r > ratio_cap))
+            break;
+          const double f = 0.99 * ratio_cap / r; // exact when the backstress is zero
+          for (unsigned int j = 0; j < 2 * dim; j++)
+            stateVar_it(j) *= f;
+        }
+
       itr1    = 0;
       itr2    = 0;
       locres  = 1.0;
       locres2 = 1.0;
+      // SAFEGUARD: relaxation of the slip-resistance (outer) fixed-point iteration
+      double omega_s = 1.0, locres2_prev = std::numeric_limits<double>::infinity();
 
       while (locres2 > locres_tol2 && itr2 < nitr2)
         {
           itr2   = itr2 + 1;
+          // SAFEGUARD: slip resistances change between outer iterations, so pull the
+          // current stress back inside the power-law range before each inner solve
+          report(vec_finite(s_alpha_it), "slip resistance s_alpha_it at start of outer iteration");
+          for (unsigned int cut = 0; cut < 50; cut++)
+            {
+              const double r = max_ratio(stateVar_it);
+              if (!(r > ratio_cap))
+                break;
+              const double f = 0.99 * ratio_cap / r;
+              for (unsigned int j = 0; j < 2 * dim; j++)
+                stateVar_it(j) *= f;
+            }
           itr1   = 0;
           locres = 1.0;
           // Loop until the residual is greater than tolerance or the  number of
@@ -586,18 +667,19 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                         sgnm = -1;
                       else
                         sgnm = 1;
-                      delgam_tau(i) =
-                          delgam_ref *
-                          pow(fabs((sctmp1 - W_kh_tau_it(i)) / s_alpha_it(i)), 1.0 / strexp) *
-                          sgnm;
                     }
                   else // For twin systems due to asymmetry of slip
                     {
-                      // PRISMS-MP: For twins, we apply eigendeformation outside of the constitutive model
-                      // Skip computing delta-gamma for twins.
-                      delgam_tau(i) = 0.0;
+                      if ((sctmp1 - W_kh_tau_it(i)) <= 0)
+                        sgnm = 0;
+                      else
+                        sgnm = 1;
                     }
-                  
+
+                  delgam_tau(i) =
+                    delgam_ref *
+                    pow(fabs((sctmp1 - W_kh_tau_it(i)) / s_alpha_it(i)), 1.0 / strexp) *
+                    sgnm;
                   LP_acc.add(delgam_tau(i), temp);
                 }
 
@@ -795,6 +877,9 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                   locres_vec(j) = G_iter(j);
                 }
 
+              report(vec_finite(locres_vec), "local residual locres_vec");
+              report(mat_finite(J_iter), "local Jacobian J_iter");
+
               // Invert Jacobian
               J_iter_inv.invert(J_iter);
 
@@ -805,7 +890,23 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               J_iter_cp = 0;
               J_iter_cp.add(0.5, J_iter);
               J_iter_cp.Tadd(0.5, J_iter);
-              J_iter_cp.vmult(gradFold, locres_vec);
+              // FIX (added): the gradient of Fold = 0.5*|R|^2 is J^T R, not sym(J) R.
+              J_iter.Tvmult(gradFold, locres_vec);
+              report(vec_finite(stateVar_diff), "Newton direction stateVar_diff (J_iter singular?)");
+
+              // SAFEGUARD: shorten the Newton step if the full step leaves the power-law
+              // range (the line search below then only has to deal with finite values)
+              {
+                Vector<double> trial_state(stateVar_it.size());
+                for (unsigned int cut = 0; cut < 60; cut++)
+                  {
+                    trial_state = stateVar_it;
+                    trial_state.add(1.0, stateVar_diff);
+                    if (!(max_ratio(trial_state) > ratio_cap))
+                      break;
+                    stateVar_diff *= 0.5;
+                  }
+              }
 
               // Implement cubic line search
               lnsrch(stateVar_temp,
@@ -858,6 +959,7 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               stateVar_diff = 0.0;
               stateVar_diff.add(1.0, stateVar_temp, -1.0, stateVar_it);
 
+              report(vec_finite(stateVar_diff), "line-search result (stateVar_temp - stateVar_it)");
               locres = stateVar_diff.l2_norm();
               stateVar_it.equ(1.0, stateVar_temp);
 
@@ -933,19 +1035,19 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                     sgnm = -1;
                   else
                     sgnm = 1;
-                  delgam_tau(i) =
-                      delgam_ref *
-                      pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_it(i)),
-                          (1.0 / strexp)) *
-                      sgnm;
                 }
               else // For twin systems due to asymmetry of slip
                 {
-                  // PRISMS-MP: no shear increment for twins inside constitutive
-                  // Eigendeformation is applied externally based on phase field
-                  delgam_tau(i) = 0.0;
+                  if (sctmp1 <= 0)
+                    sgnm = 0;
+                  else
+                    sgnm = 1;
                 }
-              
+              delgam_tau(i) =
+                delgam_ref *
+                pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_it(i)),
+                    (1.0 / strexp)) *
+                sgnm;
               for (unsigned int j = 0; j < n_Tslip_systems; j++)
                 {
                   s_alpha_iterp(j) =
@@ -968,10 +1070,38 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
 
           vtmp4 = 0.0;
           vtmp4.add(1.0, s_alpha_iterp, -1.0, s_alpha_it);
+          report(vec_finite(s_alpha_iterp), "hardened slip resistance s_alpha_iterp");
+          report(vec_finite(delgam_tau), "slip increments delgam_tau in hardening update");
           locres2    = vtmp4.l2_norm();
+          s_alpha_used = s_alpha_it; // resistance used in the inner solve just finished
+          if (explicit_hardening)
+            {
+              s_alpha_it = s_alpha_iterp; // harden once with the converged slip
+              break;
+            }
+          // SAFEGUARD: relaxed update s <- s + omega*(s_new - s).  With a stiff rate
+          // sensitivity the plain update can oscillate or diverge (large hardening moduli);
+          // halve omega whenever the change grows instead of shrinking.
+          if (itr2 > 1)
+            {
+              if (locres2 >= 0.9 * locres2_prev)
+                omega_s = std::max(0.5 * omega_s, 1.0e-4);
+              else if (locres2 < 0.5 * locres2_prev)
+                omega_s = std::min(1.25 * omega_s, 1.0);
+            }
+          locres2_prev = locres2;
+          s_alpha_iterp.sadd(omega_s, 1.0 - omega_s, s_alpha_it); // omega*new + (1-omega)*old
           s_alpha_it = s_alpha_iterp;
 
         } // Outer while
+      if (itr2 >= nitr2 && locres2 > locres_tol2)
+        {
+          static unsigned int n_warn = 0;
+          if (n_warn++ < 20)
+            std::cerr << "WARNING: slip-resistance loop not converged at cell " << cellID
+                      << ", q " << quadPtID << " after " << itr2 << " iterations, |ds| = "
+                      << locres2 << ", omega_s = " << omega_s << std::endl;
+        }
       ////////////////////////////////////End Nonlinear iteration for Slip
       ///increments////////////////////////////////////
       ////previous end}
@@ -1012,26 +1142,22 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
                 sgnm = -1;
               else
                 sgnm = 1;
-              delgam_tau(i) =
-                  delgam_ref *
-                  pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
-                      (1.0 / strexp)) *
-                  sgnm;
             }
           else // For twin systems due to asymmetry of slip
             {
-              // PRISMS-MP: no shear increment for twins inside constitutive
-              delgam_tau(i) = 0.0;
+              if ((resolved_shear_tau(i) - W_kh_tau(i)) <= 0)
+                sgnm = 0;
+              else
+                sgnm = 1;
             }
-    
+
+          delgam_tau(i) =
+            delgam_ref *
+            pow(std::min(fabs((resolved_shear_tau(i) - W_kh_tau(i)) /
+                         (explicit_hardening ? s_alpha_used(i) : s_alpha_tau(i))), ratio_cap),
+                (1.0 / strexp)) *
+            sgnm;
           LP_acc.add(delgam_tau(i), temp);
-        }
-      
-      // PRISMS-MP: set the driving force for twin growth, to pass to the PF model
-      for (unsigned int i = 0; i < n_twin_systems; i++)
-        {
-          energy[cellID][quadPtID][i] = resolved_shear_tau(n_slip_systems + i)
-              * this->userInputs_cp.twinShear1;
         }
 
       for (unsigned int i = 0; i < n_slip_systems; i++)
@@ -1075,13 +1201,16 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       Ep_eff_cum_tau     = Ep_eff_cum_t + del_Ep_eff_cum_tau;
       Ep_eff_cum_t       = Ep_eff_cum_tau;
 
-      // for (unsigned int i = 0; i < n_twin_systems; i++)
-      //  twinfraction_tau(i) =
-      //    twinfraction_t(i) + fabs(delgam_tau(i + n_slip_systems)) / twinShear;
-      // twinfraction_t = twinfraction_tau;
+      for (unsigned int i = 0; i < n_twin_systems; i++)
+        twinfraction_tau(i) =
+          twinfraction_t(i) + fabs(delgam_tau(i + n_slip_systems)) / twinShear;
+      twinfraction_t = twinfraction_tau;
+      report(vec_finite(delgam_tau), "final slip increments delgam_tau before FP update");
+      report(mat_finite(LP_acc), "plastic increment LP_acc before matrixExponential");
       temp.equ(1.0, matrixExponential(LP_acc));
       temp.mmult(FP_tau, FP_t);
       FP_t = FP_tau;
+      report(mat_finite(FP_tau), "FP_tau right after matrixExponential update");
     }
 
   FP_inv_tau = 0.0;
@@ -1104,420 +1233,14 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   P_tau.equ(det_F_tau, P_tau);
   //////////////////////////////////////////////////////////////////////
 
-  ///////////////Calculation of normal stress for each slip system///////
-  for (unsigned int i = 0; i < n_Tslip_systems; i++)
-    {
-      temp7 = 0.0;
-      temp8 = 0.0;
-      for (unsigned int j = 0; j < dim; j++)
-        {
-          for (unsigned int k = 0; k < dim; k++)
-            {
-              temp7[j][k] = Normal_SCHMID_TENSOR1[dim * i + j][k];
-            }
-        }
-
-      T_star_tau.mTmult(temp8, temp7);
-      normal_stress_tau(i) = temp8.trace();
-    }
-  //////////////////////////////////////////////////////////////////////
-
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////// Computing Algorithmic Tangent Modulus
-  ///////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  if (StiffnessCalFlag == 1)
-    {
-      ///////////////Reading the previous converged state Variables for Algorithmic
-      ///Tangent Modulus calculation////////////////
-      FE_t = Fe_conv[cellID][quadPtID];
-      FP_t = Fp_conv[cellID][quadPtID];
-
-      for (unsigned int i = 0; i < n_Tslip_systems; i++)
-        {
-          W_kh_t1(i)       = stateVar_conv[cellID][quadPtID][i];
-          W_kh_t2(i)       = stateVar_conv[cellID][quadPtID][i + n_Tslip_systems];
-          signed_slip_t(i) = stateVar_conv[cellID][quadPtID][i + 2 * n_Tslip_systems];
-          s_alpha_t(i)     = s_alpha_conv[cellID][quadPtID][i];
-        }
-
-      ii = 0;
-      for (unsigned int i = 0; i < dim; i++)
-        {
-          for (unsigned int j = 0; j < dim; j++)
-            {
-              Ep_t[i][j] = stateVar_conv[cellID][quadPtID][ii + 4 * n_Tslip_systems];
-              ii         = ii + 1;
-            }
-        }
-
-      Ep_eff_cum_t = stateVar_conv[cellID][quadPtID][4 * n_Tslip_systems + dim * dim];
-
-      for (unsigned int i = 0; i < n_slip_systems; i++)
-        slipfraction_t(i) = slipfraction_conv[cellID][quadPtID][i];
-
-      /////////////////////////////////////////////////////////////////////////////
-
-      /// For the Algorithmic Tangent Modulus calculation, the Dt should be returned back
-      /// to the increment Dt. The reason for this is the initial value are brought back
-      /// to the previously converged values. Accordingly, the time between the variable_t
-      /// and variable_tau is the original Dt and not the one divided by numberOfCuts for
-      /// constitutive model integration. Hence, Dt should be brought back to the original
-      /// value in line 111 as below:
-      delgam_ref = UserMatConstants(0) * this->userInputs_cp.delT;
-      // Contribution 1 - Most straightforward because no need to invoke constitutive
-      // model
-      FE_tau.mmult(temp, T_star_tau);
-      temp.mTmult(temp1, FE_tau);
-      temp1.mTmult(temp2, F_inv_tau);
-      left(ntemp1, temp2);
-      left(ntemp2, F_inv_tau);
-      trpose(ntemp3, ntemp2);
-      ntemp1.mmult(cnt4, ntemp3);
-      cnt4.equ(-1.0, cnt4);
-
-      // Part from isotropic hardening
-      Pmat = IdentityMatrix(n_Tslip_systems);
-
-      for (unsigned int j = 0; j < n_slip_systems; j++)
-        {
-          sctmp1 =
-            powerLawExponent[j] * initialHardeningModulus[j] / saturationStress[j] *
-            pow((1 - s_alpha_tau(j) / saturationStress[j]), powerLawExponent[j] - 1) *
-            fabs(delgam_tau(j));
-          for (unsigned int i = 0; i < n_Tslip_systems; i++)
-            {
-              Pmat[i][j] = Pmat[i][j] + sctmp1 * q[i][j];
-            }
-        }
-
-      for (unsigned int j = 0; j < n_twin_systems; j++)
-        {
-          sctmp1 = powerLawExponentTwin[j] * initialHardeningModulusTwin[j] /
-                   saturationStressTwin[j] *
-                   pow((1 - s_alpha_tau(j + n_slip_systems) / saturationStressTwin[j]),
-                       powerLawExponentTwin[j] - 1) *
-                   fabs(delgam_tau(j + n_slip_systems));
-          for (unsigned int i = 0; i < n_Tslip_systems; i++)
-            {
-              Pmat[i][j + n_slip_systems] =
-                Pmat[i][j + n_slip_systems] + sctmp1 * q[i][j + n_slip_systems];
-            }
-        }
-
-      Qmat = 0;
-      for (unsigned int j = 0; j < n_slip_systems; j++)
-        {
-          if (delgam_tau(j) <= 0)
-            sgnm = -1;
-          else
-            sgnm = 1;
-
-          sctmp1 = initialHardeningModulus[j] *
-                   pow((1 - s_alpha_tau(j) / saturationStress[j]), powerLawExponent[j]) *
-                   sgnm;
-          for (unsigned int i = 0; i < n_Tslip_systems; i++)
-            {
-              Qmat[i][j] = Qmat[i][j] + sctmp1 * q[i][j];
-            }
-        }
-
-      for (unsigned int j = 0; j < n_twin_systems; j++)
-        {
-          if (delgam_tau(j + n_slip_systems) <= 0)
-            sgnm = 0;
-          else
-            sgnm = 1;
-          sctmp1 = initialHardeningModulusTwin[j] *
-                   pow((1 - s_alpha_tau(j + n_slip_systems) / saturationStressTwin[j]),
-                       powerLawExponentTwin[j]) *
-                   sgnm;
-          for (unsigned int i = 0; i < n_Tslip_systems; i++)
-            {
-              Qmat[i][j + n_slip_systems] =
-                Qmat[i][j + n_slip_systems] + sctmp1 * q[i][j + n_slip_systems];
-            }
-        }
-
-      Pmat_inv.invert(Pmat);
-      Pmat_inv.mmult(Pmat, Qmat);
-
-      for (unsigned int j = 0; j < n_Tslip_systems; j++)
-        {
-          sctmp1 = delgam_tau(j) / strexp / s_alpha_tau(j);
-          for (unsigned int i = 0; i < n_Tslip_systems; i++)
-            {
-              Pmat[i][j] = Pmat[i][j] * sctmp1;
-            }
-        }
-
-      Qmat2 = 0;
-      for (unsigned int i = 0; i < n_Tslip_systems; i++)
-        {
-          for (unsigned int j = 0; j < dim; j++)
-            {
-              for (unsigned int k = 0; k < dim; k++)
-                {
-                  temp[j][k] = SCHMID_TENSOR1[dim * i + j][k];
-                }
-            }
-
-          temp2.equ(1.0, temp);
-          temp2.symmetrize();
-          vtmp1 = vecform(temp2);
-
-          Dmat.vmult(vtmp2, vtmp1);
-          matform(temp2, vtmp2);
-          FE_tau.mmult(temp3, temp2);
-          temp2 = 0;
-          temp2.Tadd(1.0, temp3);
-
-          if (i < n_slip_systems)
-            {
-              sgnm = 1;
-            }
-          else
-            {
-              if ((resolved_shear_tau(i) - W_kh_tau(i)) <= 0)
-                sgnm = 0;
-              else
-                sgnm = 1;
-            }
-
-          sctmp2 = delgam_ref / (strexp * s_alpha_tau(i)) *
-                   pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
-                       (1.0 / strexp - 1.0)) *
-                   sgnm;
-
-          for (unsigned int j = 0; j < dim; j++)
-            {
-              for (unsigned int k = 0; k < dim; k++)
-                {
-                  Qmat2[i][3 * j + k] = sctmp2 * temp2[k][j];
-                }
-            }
-        }
-
-      // Part from backstress
-      Rmat = 0;
-
-      for (unsigned int i = 0; i < n_Tslip_systems; i++)
-        {
-          if (i < n_slip_systems)
-            {
-              sgnm = 1;
-            }
-          else
-            {
-              if ((resolved_shear_tau(i) - W_kh_tau_it(i)) <= 0)
-                sgnm = 0;
-              else
-                sgnm = 1;
-            }
-          sctmp2 = delgam_ref / (strexp * s_alpha_tau(i)) *
-                   pow(fabs((resolved_shear_tau(i) - W_kh_tau(i)) / s_alpha_tau(i)),
-                       (1.0 / strexp - 1.0)) *
-                   sgnm;
-
-          if (i < n_slip_systems)
-            { // For slip systems due to symmetry of slip
-              if (delgam_tau(i) < 0)
-                sgnm = -1;
-              else
-                sgnm = 1;
-            }
-          else // For twin systems due to asymmetry of slip
-            {
-              if (delgam_tau(i) <= 0)
-                sgnm = 0;
-              else
-                sgnm = 1;
-            }
-
-          modifier1_num = h_back1 - r_back1 * pow(fabs(W_kh_tau1(i)) / b_back1, m_back1) *
-                                      W_kh_tau1(i) * sgnm;
-          modifier2_num = h_back2 - r_back2 * pow(fabs(W_kh_tau2(i)) / b_back2, m_back2) *
-                                      W_kh_tau2(i) * sgnm;
-
-          modifier1_den = 1 + (m_back1 + 1) * r_back1 *
-                                pow(fabs(W_kh_tau1(i)) / b_back1, m_back1) *
-                                fabs(delgam_tau(i));
-          modifier2_den = 1 + (m_back2 + 1) * r_back2 *
-                                pow(fabs(W_kh_tau2(i)) / b_back2, m_back2) *
-                                fabs(delgam_tau(i));
-
-          sctmp1 = modifier1_num / modifier1_den + modifier2_num / modifier2_den;
-
-          modifier   = 1 + sctmp1 * sctmp2;
-          Rmat[i][i] = modifier;
-        }
-
-      Smat = 0;
-      Smat.add(1.0, Pmat, 1.0, Rmat);
-      Pmat.invert(Smat);
-      Pmat.mmult(dgamdFe, Qmat2);
-
-      dFpdFe = 0;
-
-      for (unsigned int i = 0; i < n_Tslip_systems; i++)
-        {
-          for (unsigned int j = 0; j < dim; j++)
-            {
-              for (unsigned int k = 0; k < dim; k++)
-                {
-                  temp[j][k] = SCHMID_TENSOR1[dim * i + j][k];
-                }
-            }
-
-          temp2.equ(1.0, matrixExponentialGateauxDerivative2(LP_acc, temp));
-          temp2.mmult(temp3, FP_t);
-          vecform9(nvec1, temp3);
-
-          for (unsigned int j = 0; j < dim * dim; j++)
-            {
-              nvec2(j) = dgamdFe[i][j];
-            }
-
-          ntemp1.outer_product(nvec1, nvec2);
-          dFpdFe.add(1.0, ntemp1);
-        }
-      left(ntemp1, FE_tau);
-      ntemp1.mmult(ntemp2, dFpdFe);
-      right(ntemp1, FP_tau);
-      ntemp3 = 0;
-      ntemp3.add(1.0, ntemp1, 1.0, ntemp2);
-      dFedF.invert(ntemp3);
-
-      // Compute remaining contributions which depend solely on dFedF
-      // Contribution 1
-      T_star_tau.mTmult(temp1, FE_tau);
-      temp1.mmult(temp2, F_inv_tau);
-      right(ntemp1, temp2);
-      ntemp1.mmult(cnt1, dFedF);
-
-      // Contribution 2
-      temp = 0.0;
-      temp.Tadd(1.0, FE_tau);
-      left(ntemp1, temp);
-      TM.mmult(ntemp2, ntemp1);
-      ntemp1.equ(0.5, ntemp2);
-
-      left(ntemp2, temp);
-      trpose(ntemp3, ntemp2);
-      TM.mmult(ntemp2, ntemp3);
-      ntemp2.equ(0.5, ntemp2);
-
-      ntemp3 = 0.0;
-      ntemp3.add(1.0, ntemp1, 1.0, ntemp2);
-      ntemp3.mmult(ntemp4, dFedF);
-
-      left(ntemp1, FE_tau);
-
-      temp1 = 0.0;
-      temp1.Tadd(1.0, FE_tau);
-      temp1.mTmult(temp2, F_inv_tau);
-      right(ntemp2, temp2);
-
-      ntemp1.mmult(ntemp3, ntemp4);
-      ntemp3.mmult(cnt2, ntemp2);
-
-      // Contribution 3
-      FE_tau.mmult(temp1, T_star_tau);
-      left(ntemp1, temp1);
-
-      left(ntemp2, F_inv_tau);
-      ntemp2.mmult(ntemp3, dFedF);
-      trpose(ntemp4, ntemp3);
-      ntemp1.mmult(cnt3, ntemp4);
-
-      // Assemble contributions to PK1_Stiff
-      PK1_Stiff = 0.0;
-      PK1_Stiff.add(1.0, cnt1);
-      PK1_Stiff.add(1.0, cnt2);
-      PK1_Stiff.add(1.0, cnt3);
-      PK1_Stiff.add(1.0, cnt4);
-
-      ////////////////// End Computation ////////////////////////////////////////
-      dP_dF = 0.0;
-
-      L = IdentityMatrix(dim);
-      for (unsigned int m = 0; m < dim; m++)
-        {
-          for (unsigned int n = 0; n < dim; n++)
-            {
-              for (unsigned int o = 0; o < dim; o++)
-                {
-                  for (unsigned int p = 0; p < dim; p++)
-                    {
-                      for (unsigned int i = 0; i < dim; i++)
-                        {
-                          for (unsigned int j = 0; j < dim; j++)
-                            {
-                              for (unsigned int k = 0; k < dim; k++)
-                                {
-                                  for (unsigned int l = 0; l < dim; l++)
-                                    {
-                                      dP_dF[m][n][o][p] =
-                                        dP_dF[m][n][o][p] +
-                                        PK1_Stiff(dim * i + j, dim * k + l) * L(i, m) *
-                                          L(j, n) * L(k, o) * L(l, p);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    } // Stiffness cal flag end
-
-  P.reinit(dim, dim);
-  P = P_tau;
-  T = T_tau;
-
-  T_inter.reinit(dim, dim);
-  T_inter = T_star_tau;
-
-  sres_tau.reinit(n_Tslip_systems);
-  sres_tau = s_alpha_tau;
-
-  // Update the history variables
-  Fe_iter[cellID][quadPtID]      = FE_tau;
-  Fp_iter[cellID][quadPtID]      = FP_tau;
-  s_alpha_iter[cellID][quadPtID] = sres_tau;
-  W_kh_iter[cellID][quadPtID]    = W_kh_tau;
-
-  for (unsigned int i = 0; i < n_Tslip_systems; i++)
-    {
-      stateVar_iter[cellID][quadPtID][i]                       = W_kh_tau1(i);
-      stateVar_iter[cellID][quadPtID][i + n_Tslip_systems]     = W_kh_tau2(i);
-      stateVar_iter[cellID][quadPtID][i + 2 * n_Tslip_systems] = signed_slip_tau(i);
-      stateVar_iter[cellID][quadPtID][i + 3 * n_Tslip_systems] = normal_stress_tau(i);
-    }
-  ii = 0;
-  for (unsigned int i = 0; i < dim; i++)
-    {
-      for (unsigned int j = 0; j < dim; j++)
-        {
-          stateVar_iter[cellID][quadPtID][ii + 4 * n_Tslip_systems] = Ep_tau[i][j];
-          ii                                                        = ii + 1;
-        }
-    }
-  stateVar_iter[cellID][quadPtID][dim * dim + 4 * n_Tslip_systems] = Ep_eff_cum_tau;
-
-  for (unsigned int i = 0; i < n_twin_systems; i++)
-    twinfraction_iter[cellID][quadPtID][i] = twinfraction_tau[i];
-
-  for (unsigned int i = 0; i < n_slip_systems; i++)
-    slipfraction_iter[cellID][quadPtID][i] = slipfraction_tau(i);
-
-  if (this->userInputs_cp.flagTaylorModel)
-    {
-      F = F_tau; // Updating Deformation Gradient if it is Taylor model
-    }
+  P_per.reinit(dim, dim);
+  P_per = P_tau;
+  
+  // Put back the number of twin systems before post-processing
+  n_twin_systems = n_twin_variants_mp;
+  n_Tslip_systems = n_slip_systems + n_twin_systems;
 
 }
+
 
 #include "../../../include/crystalPlasticity_template_instantiations.h"

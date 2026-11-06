@@ -12,7 +12,10 @@ void MultiPhysicsBVP<dim,degree>::solveLinearSystem(AffineConstraints<double>& c
 
   vectorType_cp completely_distributed_solutionInc (locally_owned_dofs, mpi_communicator);
   SolverControl solver_control(userInputs_cp.maxLinearSolverIterations, userInputs_cp.relLinearSolverTolerance*b.l2_norm());
-  PETScWrappers::SolverBiCG solver(solver_control, mpi_communicator);
+  // GMRES (added): the crystal-plasticity tangent is non-symmetric, where BiCG can break
+  // down or stagnate.  Restart length 200.
+  PETScWrappers::SolverGMRES solver(solver_control, mpi_communicator,
+                                    PETScWrappers::SolverGMRES::AdditionalData(200));
   PETScWrappers::PreconditionJacobi preconditioner(A);
 
   //solve Ax=b

@@ -132,10 +132,10 @@ set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
 # ==================================================================
 set Number of Slip Systems                       = 12
 set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
-set Initial Slip Resistance                      = 10, 10, 10, 40, 40, 40, 80, 80, 80, 80, 80, 80
-set Initial Hardening Modulus                    = 300, 300, 300, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
+set Initial Slip Resistance                      = 6,6,6,78,78,78,140,140,140,140,140,140
+set Initial Hardening Modulus                    = 76,76,76,163,163,163,187,187,187,187,187,187,187,187
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-set Saturation Stress                            = 20, 20, 20, 80, 80, 80, 160, 160, 160, 160, 160, 160
+set Saturation Stress                            = 120,120,120,150,150,150,150,150,150,150,150,150
 set Slip Directions File                         = slipDirections.txt
 set Slip Normals File                            = slipNormals.txt
 

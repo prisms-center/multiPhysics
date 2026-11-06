@@ -5,9 +5,9 @@
 ####################################################################
 # Common Parameters (Used by both CP and PF)
 ####################################################################
-set Domain size X                                = 120.0
-set Domain size Y                                = 120.0
-set Domain size Z                                = 2.0
+set Domain size X                                = 20.0
+set Domain size Y                                = 20.0
+set Domain size Z                                = 20.0
 set Number of dimensions                         = 3
 
 ####################################################################
@@ -23,9 +23,9 @@ set Order of quadrature                          = 2
 # ==================================================================
 # Mesh parameters
 # ==================================================================
-set CP Subdivisions X                               = 120
-set CP Subdivisions Y                               = 120
-set CP Subdivisions Z                               = 2
+set CP Subdivisions X                               = 20
+set CP Subdivisions Y                               = 20
+set CP Subdivisions Z                               = 20
 set CP Refine factor                                = 0
 set Write Mesh To EPS                            = false
 
@@ -80,11 +80,11 @@ set Quarter cycle time                           = 1.2
 # ==================================================================
 set Time increment                              = 0.5
 set Time increment after phase-field coupling   = 0.5
-set Steps for seeding the twin                  = 1
+set Steps for seeding the twin                  = 5
 set Total time                                   = 10.0
 set Maximum linear solver iterations             = 1000000
 set Relative linear solver tolerance             = 1.0e-9
-set Maximum non linear iterations                = 15
+set Maximum non linear iterations                = 30
 
 # ==================================================================
 # PRISMS-MP parameters
@@ -95,6 +95,27 @@ set Time before coupling                          = 0.70
 # ==================================================================
 # Elasticity parameters
 # ==================================================================
+# Flag to indicate if User Material Model is enabled
+set Enable User Material Model                   = true
+
+# Flag to indicate if User Material Model is enabled Phase 1
+set Enable User Material Model 1                  = true
+
+# Initial guess stress flag
+set Advanced Rate Dependent Model enabled  = false
+
+# Number of User Material Constants in a Material model Phase 1
+set Number of User Material Constants 1              = 12
+
+# Number of User Material State Variables in a Material model Phase 1
+set Number of User Material State Variables 1        = 62
+
+# Material Constants in a Material model Phase 1
+set User Material Constants 1             = 1.0e-3, 0.04 , 1.0e-6 , 1.0e-6 ,  10000 , 500,  0, 0, 0, 0 , 200.0, 200.0
+
+# Material State Variables in a Material model Phase 1
+set User Material State Variables Initial Values 1        = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
 set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
 set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
@@ -108,10 +129,10 @@ set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
 # ==================================================================
 set Number of Slip Systems                       = 12
 set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
-set Initial Slip Resistance                      = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
-set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
+set Initial Slip Resistance                      = 6, 6, 6, 78, 78, 78, 140, 140, 140, 140, 140, 140
+set Initial Hardening Modulus                    = 76, 76, 76, 163, 163, 163, 187, 187, 187, 187, 187, 187
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-set Saturation Stress                            = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
+set Saturation Stress                            = 120, 120, 120, 150, 150, 150, 150, 150, 150, 150, 150, 150
 set Slip Directions File                         = slipDirections.txt
 set Slip Normals File                            = slipNormals.txt
 
@@ -121,7 +142,7 @@ set Slip Normals File                            = slipNormals.txt
 set Twinning enabled                             = true
 set Advanced Twinning Model enabled              = false
 set Number of Twin Systems                       = 1
-set Initial Slip Resistance Twin                 = 60
+set Initial Slip Resistance Twin                 = 4
 set Initial Hardening Modulus Twin               = 116
 set Power Law Exponent Twin                      = 1
 set Saturation Stress Twin                       = 100
@@ -140,16 +161,16 @@ set MP Twin Upper Threshold Fraction             = 0.5
 # Stress tolerance for the yield surface (MPa)
 set Stress Tolerance                             = 1e-9
 # Maximum no. of active slip search iterations
-set Max Slip Search Iterations                   = 2
+set Max Slip Search Iterations                   = 20
 # Maximum no. of iterations to achieve non-linear convergence
-set Max Solver Iterations                        = 2
+set Max Solver Iterations                        = 20
 
 # ==================================================================
 # Input microstructure
 # ==================================================================
-set Voxels in X direction                        = 120
-set Voxels in Y direction                        = 120
-set Voxels in Z direction                        = 2
+set Voxels in X direction                        = 20
+set Voxels in Y direction                        = 20
+set Voxels in Z direction                        = 20
 set Grain ID file name                           = grainID.txt
 set Header Lines GrainID File                    = 1
 set Orientations file name                       = orientations.txt
@@ -168,9 +189,9 @@ set Orientations file name                       = orientations.txt
 # The number of elements in each direction is 2^(refineFactor) * subdivisions
 # Subdivisions Z ignored in 2D
 # For optimal performance, use refineFactor primarily to determine the element size
-set PF Subdivisions X = 120
-set PF Subdivisions Y = 120
-set PF Subdivisions Z = 2
+set PF Subdivisions X = 20
+set PF Subdivisions Y = 20
+set PF Subdivisions Z = 20
 set PF Refine factor = 0
 set Element degree = 1
 
@@ -178,8 +199,8 @@ set Element degree = 1
 # Time step parameters
 # ==================================================================
 set Time step = 0.01
-set Number of phase field steps per CPFE step = 100
-set Phase field steps between re-solving mechanics = 50
+set Number of phase field steps per CPFE step = 50
+set Phase field steps between re-solving mechanics = 10
 
 # ==================================================================
 # Output parameters
@@ -229,6 +250,7 @@ set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
 
 # Twin energy barrier (double well height) 
 set Model constant delf_tw = 8.7173, DOUBLE
+set Model constant alpha = 0.0, DOUBLE
 
 # Unit lenght (in m)
 set Model constant l0 = 1.0e-6, DOUBLE
@@ -245,4 +267,7 @@ set Model constant regval = 1.0e-8, DOUBLE
 # Minimum value of the kinetic coefficient, L
 set Model constant minL = 1.0e-5, DOUBLE
 
-
+set Use numeric tangent                          = true
+set Numeric tangent slip threshold               = 1.0e-6
+set Absolute nonLinear solver tolerance          = 1.0e-8
+set Relative nonLinear solver tolerance          = 1.0e-10

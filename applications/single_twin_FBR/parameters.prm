@@ -95,6 +95,27 @@ set Time before coupling                          = 0.70
 # ==================================================================
 # Elasticity parameters
 # ==================================================================
+# Flag to indicate if User Material Model is enabled
+set Enable User Material Model                   = true
+
+# Flag to indicate if User Material Model is enabled Phase 1
+set Enable User Material Model 1                  = true
+
+# Initial guess stress flag
+set Advanced Rate Dependent Model enabled  = false
+
+# Number of User Material Constants in a Material model Phase 1
+set Number of User Material Constants 1              = 12
+
+# Number of User Material State Variables in a Material model Phase 1
+set Number of User Material State Variables 1        = 62
+
+# Material Constants in a Material model Phase 1
+set User Material Constants 1             = 1.0e-3, 0.04 , 1.0e-6 , 1.0e-6 ,  10000 , 10000,  0, 0, 0, 0 , 200.0, 200.0
+
+# Material State Variables in a Material model Phase 1
+set User Material State Variables Initial Values 1        = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
 set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
 set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
@@ -108,7 +129,7 @@ set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
 # ==================================================================
 set Number of Slip Systems                       = 12
 set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
-set Initial Slip Resistance                      = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
+set Initial Slip Resistance                      = 100,100,100,100,100,100,100,100,100,100,100,100
 set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 set Saturation Stress                            = 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
@@ -213,7 +234,7 @@ set Twin nucleation point (x, y, z) = 0.5, 0.5, 0.5
 # Model constants
 # ==================================================================
 # The gradient energy tensor in the twin plane reference plane
-set Model constant Kij_tp = ((1.935,0,0),(0,0.48375,0),(0,0,1.935)), TENSOR
+set Model constant Kij_tp = ((0.127,0,0),(0,0.031749,0),(0,0,0.127)), TENSOR
 
 # The mobility tensor in the twin plane reference plane
 set Model constant Lij_tp = ((4.8,0,0),(0,0.6,0),(0,0,4.8)), TENSOR
@@ -228,10 +249,10 @@ set Model constant tn = (0.592273119665566, -0.341949045072694, 0.72957755056984
 set Model constant euler_angs = (316.851, 90.0, 30.0), TENSOR
 
 # Twin energy barrier (double well height) 
-set Model constant delf_tw = 0.6192, DOUBLE
+set Model constant delf_tw = 8.7173, DOUBLE
 
 # Unit lenght (in m)
-set Model constant l0 = 5.0e-6, DOUBLE
+set Model constant l0 = 1.0e-6, DOUBLE
 
 # Radius of initial semimajor axis of the ellipsoid
 set Model constant a0 = 2.2, DOUBLE
@@ -243,8 +264,6 @@ set Model constant ecc = 0.95, DOUBLE
 set Model constant regval = 1.0e-8, DOUBLE
 
 # Minimum value of the kinetic coefficient, L
-set Model constant minL = 1.0e-6, DOUBLE
+set Model constant minL = 1.0e-5, DOUBLE
 
-# Coefficient for the Forward-Backward Regularization term (FBR)
-set Model constant fbr_mu = 0.0, DOUBLE
 

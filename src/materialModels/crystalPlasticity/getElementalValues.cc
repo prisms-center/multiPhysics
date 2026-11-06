@@ -1,5 +1,9 @@
 #include "../../../include/crystalPlasticity.h"
-
+#include <map>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <cstdlib>
 //implementation of the getElementalValues method
 template <int dim>
 void crystalPlasticity<dim>::getElementalValues(FEValues<dim>& fe_values,
@@ -121,7 +125,7 @@ void crystalPlasticity<dim>::getElementalValues(FEValues<dim>& fe_values,
 				}
 			}
 
-
+   #include "cp_unit_test.inc"
 
 			//loop over quadrature points
 			for (unsigned int q=0; q<num_quad_points; ++q){
