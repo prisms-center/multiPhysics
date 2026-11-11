@@ -19,8 +19,10 @@ void MultiPhysicsBVP<dim,degree>::solveLinearSystem(AffineConstraints<double>& c
   PETScWrappers::PreconditionJacobi preconditioner(A);
 
   //solve Ax=b
+  bool iterative_ok = false;
   try{
     solver.solve (A, completely_distributed_solutionInc, b, preconditioner);
+    iterative_ok = true;
     char buffer[200];
     sprintf(buffer,
 	    "linear system solved in %3u iterations\n",
@@ -32,6 +34,26 @@ void MultiPhysicsBVP<dim,degree>::solveLinearSystem(AffineConstraints<double>& c
 	  << solver_control.last_step()
 	  << " iterations as per set tolerances. consider increasing maxSolverIterations or decreasing relSolverTolerance.\n";
   }
+
+  // DIRECT-SOLVER FALLBACK (added, v10): when GMRES + Jacobi fails (ill-conditioned
+  // tangent, e.g. while seeding at high stress), the partial GMRES iterate is a poor
+  // Newton direction.  Solve the same system exactly with MUMPS instead.
+  if (!iterative_ok)
+    {
+      completely_distributed_solutionInc = 0;
+      try{
+        SolverControl direct_control(1, 0.0);
+        PETScWrappers::SparseDirectMUMPS direct_solver(direct_control, mpi_communicator);
+        direct_solver.solve(A, completely_distributed_solutionInc, b);
+        pcout << "linear system solved with the direct solver (MUMPS)\n";
+      }
+      catch (std::exception &exc) {
+        pcout << "\nWarning: direct solver (MUMPS) also failed: " << exc.what() << "\n";
+      }
+      catch (...) {
+        pcout << "\nWarning: direct solver (MUMPS) also failed\n";
+      }
+    }
   constraintmatrix.distribute (completely_distributed_solutionInc);
   dxGhosts=completely_distributed_solutionInc;
   x+=completely_distributed_solutionInc;

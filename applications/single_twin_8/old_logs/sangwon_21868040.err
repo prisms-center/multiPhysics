@@ -1,0 +1,79 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) xalt/2.10.45
+
+Currently Loaded Modules:
+  1) xalt/2.10.45 (S)   4) mpc/1.1.0     7) libfabric/1.12.0
+  2) gmp/6.2.1          5) zlib/1.2.11   8) numactl/2.0.14
+  3) mpfr/4.0.2         6) gcc/11.2.0    9) openmpi/4.0.6
+
+  Where:
+   S:  Module is Sticky, requires --force to unload or purge
+
+ 
+
+
+--------------------------------------------------------
+An error occurred in line <621> of file </anvil/projects/x-mss160003/dii_w_petsc/dealii-candi/tmp/unpack/deal.II-v9.5.2/include/deal.II/lac/vector.templates.h> in function
+    void dealii::Vector<Number>::add(Number, const dealii::Vector<Number>&, Number, const dealii::Vector<Number>&) [with Number = double]
+The violated condition was: 
+    dealii::numbers::is_finite(b)
+Additional information: 
+    In a significant number of places, deal.II checks that some
+    intermediate value is a finite number (as opposed to plus or minus
+    infinity, or NaN/Not a Number). In the current function, we
+    encountered a number that is not finite (its value is (-nan,0) and
+    therefore violates the current assertion).
+    
+    This may be due to the fact that some operation in this function
+    created such a value, or because one of the arguments you passed to
+    the function already had this value from some previous operation. In
+    the latter case, this function only triggered the error but may not
+    actually be responsible for the computation of the number that is not
+    finite.
+    
+    There are two common cases where this situation happens. First, your
+    code (or something in deal.II) divides by zero in a place where this
+    should not happen. Or, you are trying to solve a linear system with an
+    unsuitable solver (such as an indefinite or non-symmetric linear
+    system using a Conjugate Gradient solver); such attempts oftentimes
+    yield an operation somewhere that tries to divide by zero or take the
+    square root of a negative value.
+    
+    In any case, when trying to find the source of the error, recall that
+    the location where you are getting this error is simply the first
+    place in the program where there is a check that a number (e.g., an
+    element of a solution vector) is in fact finite, but that the actual
+    error that computed the number may have happened far earlier. To find
+    this location, you may want to add checks for finiteness in places of
+    your program visited before the place where this error is produced.
+    One way to check for finiteness is to use the 'AssertIsFinite' macro.
+
+Stacktrace:
+-----------
+#0  /anvil/projects/x-mss160003/dii_w_petsc/dealii-candi/deal.II-v9.5.2/lib/libdeal_II.g.so.9.5.2: dealii::Vector<double>::add(double, dealii::Vector<double> const&, double, dealii::Vector<double> const&)
+#1  ./main: crystalPlasticity<3>::lnsrch(dealii::Vector<double>&, unsigned int, dealii::Vector<double>, double, dealii::Vector<double>, dealii::Vector<double>, double, double, dealii::FullMatrix<double>, unsigned int, unsigned int, dealii::Vector<double>, dealii::FullMatrix<double>, dealii::FullMatrix<double>, dealii::Vector<double>, dealii::Vector<double>, double, double, double, double, double, double, double, double)
+#2  ./main: crystalPlasticity<3>::calculatePlasticity(unsigned int, unsigned int, unsigned int)
+#3  ./main: crystalPlasticity<3>::getElementalValues(dealii::FEValues<3, 3>&, unsigned int, unsigned int, dealii::FullMatrix<double>&, dealii::Vector<double>&)
+#4  ./main: MultiPhysicsBVP<3, 1>::assemble()
+#5  ./main: MultiPhysicsBVP<3, 1>::solveNonLinearSystem()
+#6  ./main: MultiPhysicsBVP<3, 1>::solve_cp()
+#7  ./main: crystalPlasticity<3>::run()
+#8  ./main: main
+--------------------------------------------------------
+
+Calling MPI_Abort now.
+To break execution in a GDB session, execute 'break MPI_Abort' before running. You can also put the following into your ~/.gdbinit:
+  set breakpoint pending on
+  break MPI_Abort
+  set breakpoint pending auto
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 61 in communicator MPI_COMM_WORLD
+with errorcode 255.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+[warn] Epoll MOD(1) on fd 267 failed. Old events were 6; read change was 0 (none); write change was 2 (del); close change was 0 (none): Bad file descriptor

@@ -1,0 +1,16 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) xalt/2.10.45
+
+Currently Loaded Modules:
+  1) xalt/2.10.45 (S)   4) mpc/1.1.0     7) libfabric/1.12.0
+  2) gmp/6.2.1          5) zlib/1.2.11   8) numactl/2.0.14
+  3) mpfr/4.0.2         6) gcc/11.2.0    9) openmpi/4.0.6
+
+  Where:
+   S:  Module is Sticky, requires --force to unload or purge
+
+ 
+
+[2026-11-06T11:42:58.352] error: *** JOB 21999010 ON b001 CANCELLED AT 2026-11-06T11:42:58 DUE TO TIME LIMIT ***

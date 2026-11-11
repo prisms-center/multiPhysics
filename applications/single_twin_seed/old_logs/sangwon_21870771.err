@@ -1,0 +1,59 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) xalt/2.10.45
+
+Currently Loaded Modules:
+  1) xalt/2.10.45 (S)   4) mpc/1.1.0     7) libfabric/1.12.0
+  2) gmp/6.2.1          5) zlib/1.2.11   8) numactl/2.0.14
+  3) mpfr/4.0.2         6) gcc/11.2.0    9) openmpi/4.0.6
+
+  Where:
+   S:  Module is Sticky, requires --force to unload or purge
+
+ 
+
+WARNING: slip-resistance loop not converged at cell 3, q 0 after 10000 iterations, |ds| = 0.00142819, omega_s = 0.001
+WARNING: slip-resistance loop not converged at cell 23, q 5 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 12, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 31, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 2, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 0, q 1 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 18, q 5 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 4, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 0, q 2 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 12, q 6 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 3, q 1 after 10000 iterations, |ds| = 0.000135874, omega_s = 0.001
+WARNING: slip-resistance loop not converged at cell 48, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 46, q 2 after 10000 iterations, |ds| = 1.32787e-05, omega_s = 0.001
+WARNING: slip-resistance loop not converged at cell 3, q 4 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 27, q 2 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 9, q 5 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 2, q 1 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 10, q 1 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 15, q 0 after 10000 iterations, |ds| = 0.000107624, omega_s = 0.001
+WARNING: slip-resistance loop not converged at cell 0, q 5 after 10000 iterations, |ds| = 0.00414546, omega_s = 0.001
+WARNING: slip-resistance loop not converged at cell 7, q 1 after 10000 iterations, |ds| = 0.0063779, omega_s = 0.001
+WARNING: slip-resistance loop not converged at cell 7, q 4 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 5, q 3 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 18, q 1 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 3, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 17, q 1 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 12, q 4 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 4, q 2 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 28, q 7 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 4, q 3 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 12, q 2 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 2, q 2 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 33, q 1 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 46, q 4 after 10000 iterations, |ds| = 8.6046e-05, omega_s = 0.001
+WARNING: slip-resistance loop not converged at cell 50, q 2 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 2, q 2 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 38, q 4 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 27, q 6 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 0, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 0, q 6 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 0, q 3 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 18, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+WARNING: slip-resistance loop not converged at cell 1, q 0 after 10000 iterations, |ds| = 234.819, omega_s = 1
+[2026-11-01T19:29:29.361] error: *** JOB 21870771 ON b008 CANCELLED AT 2026-11-01T19:29:29 DUE TO TIME LIMIT ***

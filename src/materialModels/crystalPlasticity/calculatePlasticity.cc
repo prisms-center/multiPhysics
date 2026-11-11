@@ -631,7 +631,13 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
           locres = 1.0;
           // Loop until the residual is greater than tolerance or the  number of
           // iterations crosses a certain specified maximum
-          while (locres > locres_tol && itr1 < nitr1)
+          // v11: converge on the local RESIDUAL, not on the step size.  The old test
+          // (step < tol) also stopped when the line search or the ratio safeguard made the
+          // step tiny although the residual was still large, leaving the stress unconverged
+          // at hard points (seed region at high load) -> noisy global residual and tangent.
+          double       res_norm = 1.0e300;
+          unsigned int n_stall  = 0;
+          while (itr1 < nitr1)
             {
               itr1 = itr1 + 1;
               // Residual for the stress part of the non-linear algebraic equation
@@ -896,6 +902,11 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               // Invert Jacobian
               J_iter_inv.invert(J_iter);
 
+              // v11: converged when the residual itself is small
+              res_norm = locres_vec.l2_norm();
+              if (res_norm <= locres_tol)
+                break;
+
               J_iter_inv.vmult(stateVar_diff, locres_vec);
               stateVar_diff.equ(-1.0, stateVar_diff);
               Fold      = locres_vec.l2_norm();
@@ -979,7 +990,28 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
               locres = stateVar_diff.l2_norm();
               stateVar_it.equ(1.0, stateVar_temp);
 
+              // v11: stop if the iteration has stalled (tiny steps, residual not small)
+              if (locres <= locres_tol)
+                {
+                  if (++n_stall >= 20)
+                    break;
+                }
+              else
+                n_stall = 0;
+
             } // inner while
+
+          // v11: report points where the local stress solve did not converge
+          if (res_norm > locres_tol)
+            {
+              static unsigned int n_local_warn = 0;
+              if (n_local_warn < 20)
+                std::cout << "WARNING: local stress solve not converged at cell " << cellID
+                          << ", quad pt " << quadPtID << ": |R| = " << res_norm
+                          << " after " << itr1 << " inner iterations"
+                          << (n_stall >= 20 ? " (stalled)" : "") << std::endl;
+              n_local_warn++;
+            }
 
           for (unsigned int j = 0; j < 2 * dim; j++)
             {
