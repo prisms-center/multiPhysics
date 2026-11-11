@@ -1,6 +1,18 @@
 // All of the methods for the 'variableContainer' class
 #include "../../include/variableContainer.h"
 
+namespace {
+dealii::EvaluationFlags::EvaluationFlags evaluation_flags(
+    bool values, bool gradients, bool hessians = false)
+{
+    auto flags = dealii::EvaluationFlags::nothing;
+    if (values)    flags |= dealii::EvaluationFlags::values;
+    if (gradients) flags |= dealii::EvaluationFlags::gradients;
+    if (hessians)  flags |= dealii::EvaluationFlags::hessians;
+    return flags;
+}
+}
+
 template <int dim, int degree, typename T>
 variableContainer<dim,degree,T>::variableContainer(const dealii::MatrixFree<dim,double> &data, std::vector<variable_info> _varInfoList, std::vector<variable_info> _varChangeInfoList)
 {
@@ -119,12 +131,12 @@ void variableContainer<dim,degree,T>::reinit_and_eval(const std::vector<vectorTy
             if (varInfoList[i].is_scalar) {
                 scalar_vars[varInfoList[i].scalar_or_vector_index].reinit(cell);
                 scalar_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*src[i]);
-                scalar_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
+                scalar_vars[varInfoList[i].scalar_or_vector_index].evaluate(evaluation_flags(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian));
             }
             else {
                 vector_vars[varInfoList[i].scalar_or_vector_index].reinit(cell);
                 vector_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*src[i]);
-                vector_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
+                vector_vars[varInfoList[i].scalar_or_vector_index].evaluate(evaluation_flags(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian));
             }
         }
     }
@@ -140,12 +152,12 @@ void variableContainer<dim,degree,T>::reinit_and_eval_change_in_solution(const v
     if (varChangeInfoList[var_being_solved].is_scalar) {
         scalar_change_in_vars[0].reinit(cell);
         scalar_change_in_vars[0].read_dof_values(src);
-        scalar_change_in_vars[0].evaluate(varChangeInfoList[var_being_solved].need_value, varChangeInfoList[var_being_solved].need_gradient, varChangeInfoList[var_being_solved].need_hessian);
+        scalar_change_in_vars[0].evaluate(evaluation_flags(varChangeInfoList[var_being_solved].need_value, varChangeInfoList[var_being_solved].need_gradient, varChangeInfoList[var_being_solved].need_hessian));
     }
     else {
         vector_change_in_vars[0].reinit(cell);
         vector_change_in_vars[0].read_dof_values(src);
-        vector_change_in_vars[0].evaluate(varChangeInfoList[var_being_solved].need_value, varChangeInfoList[var_being_solved].need_gradient, varChangeInfoList[var_being_solved].need_hessian);
+        vector_change_in_vars[0].evaluate(evaluation_flags(varChangeInfoList[var_being_solved].need_value, varChangeInfoList[var_being_solved].need_gradient, varChangeInfoList[var_being_solved].need_hessian));
     }
 
 }
@@ -164,7 +176,7 @@ void variableContainer<dim,degree,T>::reinit_and_eval_LHS(const vectorType_pf &s
                 else{
                     scalar_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*solutionSet[i]);
                 }
-                scalar_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
+                scalar_vars[varInfoList[i].scalar_or_vector_index].evaluate(evaluation_flags(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian));
             }
             else {
                 vector_vars[varInfoList[i].scalar_or_vector_index].reinit(cell);
@@ -174,7 +186,7 @@ void variableContainer<dim,degree,T>::reinit_and_eval_LHS(const vectorType_pf &s
                 else {
                     vector_vars[varInfoList[i].scalar_or_vector_index].read_dof_values(*solutionSet[i]);
                 }
-                vector_vars[varInfoList[i].scalar_or_vector_index].evaluate(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian);
+                vector_vars[varInfoList[i].scalar_or_vector_index].evaluate(evaluation_flags(varInfoList[i].need_value, varInfoList[i].need_gradient, varInfoList[i].need_hessian));
             }
         }
     }
@@ -203,11 +215,11 @@ void variableContainer<dim,degree,T>::integrate_and_distribute(std::vector<vecto
     for (unsigned int i=0; i<num_var; i++){
         if (varInfoList[i].value_residual || varInfoList[i].gradient_residual){
             if (varInfoList[i].is_scalar) {
-                scalar_vars[varInfoList[i].scalar_or_vector_index].integrate(varInfoList[i].value_residual, varInfoList[i].gradient_residual);
+                scalar_vars[varInfoList[i].scalar_or_vector_index].integrate(evaluation_flags(varInfoList[i].value_residual, varInfoList[i].gradient_residual));
                 scalar_vars[varInfoList[i].scalar_or_vector_index].distribute_local_to_global(*dst[i]);
             }
             else {
-                vector_vars[varInfoList[i].scalar_or_vector_index].integrate(varInfoList[i].value_residual, varInfoList[i].gradient_residual);
+                vector_vars[varInfoList[i].scalar_or_vector_index].integrate(evaluation_flags(varInfoList[i].value_residual, varInfoList[i].gradient_residual));
                 vector_vars[varInfoList[i].scalar_or_vector_index].distribute_local_to_global(*dst[i]);
             }
         }
@@ -219,11 +231,11 @@ void variableContainer<dim,degree,T>::integrate_and_distribute_change_in_solutio
 
     //integrate
     if (varChangeInfoList[var_being_solved].is_scalar) {
-    	scalar_change_in_vars[0].integrate(varChangeInfoList[var_being_solved].value_residual, varChangeInfoList[var_being_solved].gradient_residual);
+        scalar_change_in_vars[0].integrate(evaluation_flags(varChangeInfoList[var_being_solved].value_residual, varChangeInfoList[var_being_solved].gradient_residual));
     	scalar_change_in_vars[0].distribute_local_to_global(dst);
     }
     else {
-        vector_change_in_vars[0].integrate(varChangeInfoList[var_being_solved].value_residual, varChangeInfoList[var_being_solved].gradient_residual);
+        vector_change_in_vars[0].integrate(evaluation_flags(varChangeInfoList[var_being_solved].value_residual, varChangeInfoList[var_being_solved].gradient_residual));
     	vector_change_in_vars[0].distribute_local_to_global(dst);
     }
 }
