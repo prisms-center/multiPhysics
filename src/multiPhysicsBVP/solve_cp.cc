@@ -117,12 +117,16 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           success = solveNonLinearSystem();
         }
 
+      // Update the seeding point RSS after solving mechanics
       if (!seeding_complete)
         {
           // Evaluate the twin CRSS at the seeding point
           IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
           IndexSet locally_relevant_dofs;
           DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
+
+          calculate_twin_rss();
+          
           vectorType_cp twin_rss;
           twin_rss.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
           twin_rss = *postFieldsWithGhosts[6]; // Index 6 needs to be the twin RSS. TO-DO: change this so it's not reliant on user-defined output variables

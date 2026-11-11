@@ -103,6 +103,7 @@ private:
   void update_twin_mask() override;
   void copy_current_op_to_old() override;
   void update_twin_df() override;
+  void calculate_twin_rss() override;
 
   // Plasticity functions
 
