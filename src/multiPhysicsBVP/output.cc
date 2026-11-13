@@ -4,7 +4,7 @@
 
 //output results
 template <int dim, int degree>
-void MultiPhysicsBVP<dim,degree>::output(){
+void MultiPhysicsBVP<dim,degree>::output(const std::string &suffix){
   DataOut<dim> data_out, data_out_Scalar;
   data_out.attach_dof_handler (dofHandler);
   data_out_Scalar.attach_dof_handler (dofHandler_Scalar);
@@ -291,7 +291,7 @@ typename DoFHandler<dim>::active_cell_iterator cell_t = dofHandler_Scalar.begin_
   unsigned int domainDigits   = (Utilities::MPI::n_mpi_processes(mpi_communicator)<10000 ? 4 : std::ceil(std::log10(Utilities::MPI::n_mpi_processes(mpi_communicator)))+1);
 
   const std::string filename = (dir+"solution-" +
-				Utilities::int_to_string (currentIncrement_cp,incrementDigits) +
+				Utilities::int_to_string (currentIncrement_cp,incrementDigits) + suffix +
 				"." +
 				Utilities::int_to_string (triangulation_cp.locally_owned_subdomain(),
 							  domainDigits));
@@ -300,7 +300,7 @@ typename DoFHandler<dim>::active_cell_iterator cell_t = dofHandler_Scalar.begin_
   //write projected fields, if any
   if (numPostProcessedFieldsWritten>0){
     const std::string filenameForProjectedFields = (dir+"projectedFields-" +
-						    Utilities::int_to_string (currentIncrement_cp,incrementDigits) +
+						    Utilities::int_to_string (currentIncrement_cp,incrementDigits) + suffix +
 						    "." +
 						    Utilities::int_to_string (triangulation_cp.locally_owned_subdomain(),
 									      domainDigits));
@@ -314,20 +314,20 @@ typename DoFHandler<dim>::active_cell_iterator cell_t = dofHandler_Scalar.begin_
     std::vector<std::string> filenames, filenamesForProjectedFields;
     for (unsigned int i=0;i<Utilities::MPI::n_mpi_processes (MPI_COMM_WORLD); ++i){
       filenames.push_back ("solution-" +
-			   Utilities::int_to_string (currentIncrement_cp, incrementDigits) +
+			   Utilities::int_to_string (currentIncrement_cp, incrementDigits) + suffix +
 			   "." +
 			   Utilities::int_to_string (i, domainDigits) +
 			   + ".vtu");
       if (numPostProcessedFieldsWritten>0){
 	filenamesForProjectedFields.push_back ("projectedFields-" +
-					       Utilities::int_to_string (currentIncrement_cp, incrementDigits) +
+					       Utilities::int_to_string (currentIncrement_cp, incrementDigits) + suffix +
 					       "." +
 					       Utilities::int_to_string (i, domainDigits) +
 					       + ".vtu");
       }
     }
     const std::string filenamepvtu = (dir+"solution-" +
-				      Utilities::int_to_string (currentIncrement_cp,incrementDigits) +
+				      Utilities::int_to_string (currentIncrement_cp,incrementDigits) + suffix +
 				      ".pvtu");
     std::ofstream master_output (filenamepvtu.c_str());
     data_out.write_pvtu_record (master_output, filenames);
@@ -335,7 +335,7 @@ typename DoFHandler<dim>::active_cell_iterator cell_t = dofHandler_Scalar.begin_
     //
     if (numPostProcessedFieldsWritten>0){
       const std::string filenamepvtuForProjectedFields = (dir+"projectedFields-" +
-							  Utilities::int_to_string (currentIncrement_cp,incrementDigits) +
+							  Utilities::int_to_string (currentIncrement_cp,incrementDigits) + suffix +
 							  ".pvtu");
       std::ofstream master_outputForProjectedFields (filenamepvtuForProjectedFields.c_str());
       data_out_Scalar.write_pvtu_record (master_outputForProjectedFields, filenamesForProjectedFields);

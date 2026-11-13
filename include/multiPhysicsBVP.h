@@ -257,7 +257,7 @@ protected:
   void
   solve_cp();
   void
-  output();
+  output(const std::string &suffix = "");
   void
   initProjection();
   void

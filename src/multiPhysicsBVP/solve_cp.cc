@@ -99,10 +99,12 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   int cp_increment_switch_flag = 1;
   // Flag to track whether seeding is complete
   bool seeding_complete = false;
+  constexpr bool run_phase_field_steps = false;
   double seeding_point_rss = 0.0;
   double old_load_factor;
   while (currentIncrement_cp < totalIncrements_cp)
     {
+      bool seed_committed_this_increment = false;
       pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
                 << ", Current time = " << currentIncrement_cp * delT
                 << ", Time increment = " << delT << std::endl;
@@ -208,10 +210,17 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           pcout << " done." << std::endl;
 
           seeding_complete = true;
+          if (success || userInputs_cp.flagTaylorModel)
+            {
+              updateAfterIncrement();
+              seed_committed_this_increment = true;
+              if (userInputs_cp.writeOutput)
+                output("-seeded");
+            }
         }
         
       // PF solve loop:
-      if (seeding_complete)
+      if (seeding_complete && run_phase_field_steps)
         {
           // If the coupling time has been reached, solve N pf steps
           for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_pftocpfe; pf_step++)
@@ -305,7 +314,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       // Commit plastic state: UpdateAfterIncrement
       if ((success) || (userInputs_cp.flagTaylorModel))
         {
-          updateAfterIncrement();
+          if (!seed_committed_this_increment || run_phase_field_steps)
+            updateAfterIncrement();
 
           if (seeding_complete)
             {
@@ -352,7 +362,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                             tabularTimeInputIncInt.end(),
                             (currentIncrement_cp + 1)) == 1)))
             {
-              if (userInputs_cp.writeOutput)
+              if (userInputs_cp.writeOutput &&
+                  (!seed_committed_this_increment || run_phase_field_steps))
                 output();
             }
           computing_timer_cp.leave_subsection("postprocess");
