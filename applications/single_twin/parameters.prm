@@ -111,18 +111,18 @@ set Number of User Material Constants 1              = 12
 set Number of User Material State Variables 1        = 62
 
 # Material Constants in a Material model Phase 1
-set User Material Constants 1             = 1.0e-3, 0.04 , 1.0e-6 , 1.0e-6 ,  10000 , 500,  0, 0, 0, 0 , 200.0, 200.0
+set User Material Constants 1             = 1.0e-3, 0.05 , 1.0e-6 , 1.0e-6 ,  10000 , 500,  0, 0, 0, 0 , 200.0, 200.0
 
 # Material State Variables in a Material model Phase 1
 set User Material State Variables Initial Values 1        = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
-set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
-set Elastic Stiffness row 2                      = 2.502e4, 5.897e4,  2.079e4, 0, 0, 0
-set Elastic Stiffness row 3                      = 2.079e4, 2.079e4, 6.111e4, 0, 0, 0
-set Elastic Stiffness row 4                      = 0, 0, 0, 1.658e4, 0, 0
-set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.658e4, 0
-set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.678e4
+set Elastic Stiffness row 1                      = 5.94e4,  2.561e4, 2.144e4, 0, 0, 0
+set Elastic Stiffness row 2                      = 2.561e4, 5.94e4,  2.144e4, 0, 0, 0
+set Elastic Stiffness row 3                      = 2.144e4, 2.144e4, 6.16e4, 0, 0, 0
+set Elastic Stiffness row 4                      = 0, 0, 0, 1.64e4, 0, 0
+set Elastic Stiffness row 5                      = 0, 0, 0, 0, 1.64e4, 0
+set Elastic Stiffness row 6                      = 0, 0, 0, 0, 0, 1.69e4
 
 # ==================================================================
 # Slip parameters
