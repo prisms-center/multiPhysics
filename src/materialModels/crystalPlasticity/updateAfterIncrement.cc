@@ -179,13 +179,16 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
         // TODO: fix the following line to consider multiple twin systems
         bool isTwinned = twinfraction_conv[cellID][q][0] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
 
-        FullMatrix<double> rotmat(dim, dim), rotmat_twin(dim, dim);
-        Vector<double> rot1(dim), rot_twin(dim);
+        FullMatrix<double> rotmat(dim, dim), rotmat_parent(dim, dim),
+            rotmat_twin(dim, dim);
+        Vector<double> rot1(dim), rot_parent(dim), rot_twin(dim);
         for (unsigned int i = 0; i < dim; i++)
           {
             rot1[i] = rot_conv[cellID][q][i];
           }
         odfpoint(rotmat, rot1);
+        rot_parent = rot_original[cellID][q];
+        odfpoint(rotmat_parent, rot_parent);
         Vector<double> quatprod(4), quat1(4), quat2(4);
         rot_twin = 0.0;
         rod2quat(quat2, rot1);
@@ -224,10 +227,11 @@ template <int dim> void crystalPlasticity<dim>::updateAfterIncrement() {
               }
             else
               {
-                // If we are outside the twin, OR we are considering the shear on
-                // the twin system, we should use the original grain orientation.
-                rotmat.mmult(temprot, temp);
-                temprot.mTmult(temp, rotmat);
+                // Resolve twin shear in the parent grain frame.
+                FullMatrix<double> &system_rotmat =
+                    (i >= n_slip_systemsWOtwin) ? rotmat_parent : rotmat;
+                system_rotmat.mmult(temprot, temp);
+                temprot.mTmult(temp, system_rotmat);
               }
 
             for (unsigned int j = 0; j < dim; j++)
