@@ -8,7 +8,7 @@
 #SBATCH --ntasks=128
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=500G
-#SBATCH -t 4:00:00
+#SBATCH -t 1:00:00
 #SBATCH --mail-user=abhiks@umich.edu
 #SBATCH --mail-type=all
 

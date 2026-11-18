@@ -82,7 +82,7 @@ set Time increment                              = 1.0
 set Time increment after phase-field coupling   = 1.0
 set Steps for seeding the twin                  = 5
 set Total time                                   = 1.1
-set Maximum linear solver iterations             = 1000000
+set Maximum linear solver iterations             = 1000
 set Relative linear solver tolerance             = 1.0e-9
 set Maximum non linear iterations                = 30
 
@@ -269,6 +269,6 @@ set Model constant regval = 1.0e-8, DOUBLE
 set Model constant minL = 1.0e-5, DOUBLE
 
 set Use numeric tangent                          = true
-set Numeric tangent slip threshold               = 1.0e-6
-set Absolute nonLinear solver tolerance          = 1.0e-8
-set Relative nonLinear solver tolerance          = 1.0e-10
+set Numeric tangent slip threshold               = 0.0
+set Absolute nonLinear solver tolerance          = 1.0e-6
+set Relative nonLinear solver tolerance          = 1.0e-8
