@@ -150,22 +150,26 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                       if (!this->twin_mask[cellID][q][0]
                           && this->twinfraction_iter1[cellID][q][idx] > this->userInputs_cp.MPtwinLowerThresholdFraction1)
                         {
-                          // Get the current orientation for this point
-                          for (unsigned int i = 0; i < dim; i++)
-                            {
-                              rot1 = rot_conv[cellID][q];
-                            }
+                          // MATLAB defines the twin orientation from the
+                          // fixed parent grain orientation.
+                          rot1 = rot_original[cellID][q];
                           odfpoint(rotmat, rot1);
 
                           temp1.reinit(dim, dim);
                           temp1[0][0] = 1.0;
                           temp1[1][1] = 1.0;
                           temp1[2][2] = 1.0;
+                          // MATLAB uses the reflection I - 2*n*n^T.
+                          // Its negative is a proper rotation with the same
+                          // effect on second-order constitutive tensors.
                           for (unsigned int i = 0; i < 3; i++)
                             {
                               for (unsigned int j = 0; j < 3; j++)
                                 {
-                                  temp1[i][j] -= 2*n_alpha[n_slip_systemsWOtwin + idx][i]*n_alpha[n_slip_systemsWOtwin + idx][j];
+                                  temp1[i][j] =
+                                    2*n_alpha[n_slip_systemsWOtwin + idx][i]*
+                                      n_alpha[n_slip_systemsWOtwin + idx][j] -
+                                    temp1[i][j];
                                 }
                             }
                           rotmat.mmult(rotmat_twin, temp1);
