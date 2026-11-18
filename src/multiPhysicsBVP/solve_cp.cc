@@ -99,10 +99,12 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   int cp_increment_switch_flag = 1;
   // Flag to track whether seeding is complete
   bool seeding_complete = false;
+  constexpr bool run_phase_field_steps = false;
   double seeding_point_rss = 0.0;
   double old_load_factor;
   while (currentIncrement_cp < totalIncrements_cp)
     {
+      bool seed_committed_this_increment = false;
       pcout << "\nCPFE: Current increment number = " << currentIncrement_cp
                 << ", Current time = " << currentIncrement_cp * delT
                 << ", Time increment = " << delT << std::endl;
@@ -115,6 +117,32 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
         {
           // solve time increment
           success = solveNonLinearSystem();
+        }
+
+      // Update the seeding point RSS after solving mechanics
+      if (!seeding_complete)
+        {
+          // Evaluate the twin CRSS at the seeding point
+          IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
+          IndexSet locally_relevant_dofs;
+          DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
+
+          calculate_twin_rss();
+          
+          vectorType_cp twin_rss;
+          twin_rss.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
+          twin_rss = *postFieldsWithGhosts[6]; // Index 6 needs to be the twin RSS. TO-DO: change this so it's not reliant on user-defined output variables
+          twin_rss.update_ghost_values();
+          Utilities::MPI::RemotePointEvaluation<dim, dim> rpe;
+          dealii::Point<dim> eval_point;
+          eval_point[0] = userInputs_pf.twin_nucleation_point[0] * userInputs_cp.span[0];
+          eval_point[1] = userInputs_pf.twin_nucleation_point[1] * userInputs_cp.span[1];
+          eval_point[2] = userInputs_pf.twin_nucleation_point[2] * userInputs_cp.span[2];
+          std::vector<Point<dim>> evaluation_points = { eval_point };
+          MappingQ1<dim,dim> mapping;
+          const std::vector<double> evaluated_values = VectorTools::point_values<1>(mapping, dofHandler_Scalar, twin_rss, evaluation_points, rpe);
+          seeding_point_rss = evaluated_values[0];
+          pcout << "Twin RSS at seeding point = " << seeding_point_rss << std::endl;
         }
       
       // Check CRSS at seeding point
@@ -182,10 +210,17 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
           pcout << " done." << std::endl;
 
           seeding_complete = true;
+          if (success || userInputs_cp.flagTaylorModel)
+            {
+              updateAfterIncrement();
+              seed_committed_this_increment = true;
+              if (userInputs_cp.writeOutput)
+                output("-seeded");
+            }
         }
         
       // PF solve loop:
-      if (seeding_complete)
+      if (seeding_complete && run_phase_field_steps)
         {
           // If the coupling time has been reached, solve N pf steps
           for (unsigned int pf_step = 1; pf_step <= userInputs_pf.increments_pftocpfe; pf_step++)
@@ -279,29 +314,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       // Commit plastic state: UpdateAfterIncrement
       if ((success) || (userInputs_cp.flagTaylorModel))
         {
-          updateAfterIncrement();
-
-          if (!seeding_complete)
-            {
-              // Evaluate the twin CRSS at the seeding point
-              IndexSet own_dofs = dofHandler_Scalar.locally_owned_dofs();
-              IndexSet locally_relevant_dofs;
-              DoFTools::extract_locally_relevant_dofs(dofHandler_Scalar, locally_relevant_dofs);
-              vectorType_cp twin_rss;
-              twin_rss.reinit(own_dofs, locally_relevant_dofs, MPI_COMM_WORLD);
-              twin_rss = *postFieldsWithGhosts[6]; // Index 6 needs to be the twin RSS. TO-DO: change this so it's not reliant on user-defined output variables
-              twin_rss.update_ghost_values();
-              Utilities::MPI::RemotePointEvaluation<dim, dim> rpe;
-              dealii::Point<dim> eval_point;
-              eval_point[0] = userInputs_pf.twin_nucleation_point[0] * userInputs_cp.span[0];
-              eval_point[1] = userInputs_pf.twin_nucleation_point[1] * userInputs_cp.span[1];
-              eval_point[2] = userInputs_pf.twin_nucleation_point[2] * userInputs_cp.span[2];
-              std::vector<Point<dim>> evaluation_points = { eval_point };
-              MappingQ1<dim,dim> mapping;
-              const std::vector<double> evaluated_values = VectorTools::point_values<1>(mapping, dofHandler_Scalar, twin_rss, evaluation_points, rpe);
-              seeding_point_rss = evaluated_values[0];
-              pcout << "Twin RSS at seeding point = " << seeding_point_rss << std::endl;
-            }
+          if (!seed_committed_this_increment || run_phase_field_steps)
+            updateAfterIncrement();
 
           if (seeding_complete)
             {
@@ -348,7 +362,8 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
                             tabularTimeInputIncInt.end(),
                             (currentIncrement_cp + 1)) == 1)))
             {
-              if (userInputs_cp.writeOutput)
+              if (userInputs_cp.writeOutput &&
+                  (!seed_committed_this_increment || run_phase_field_steps))
                 output();
             }
           computing_timer_cp.leave_subsection("postprocess");

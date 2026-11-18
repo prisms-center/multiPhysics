@@ -125,8 +125,6 @@ void crystalPlasticity<dim>::getElementalValues(FEValues<dim>& fe_values,
 				}
 			}
 
-   #include "cp_unit_test.inc"
-
 			//loop over quadrature points
 			for (unsigned int q=0; q<num_quad_points; ++q){
 				//Get deformation gradient
