@@ -140,7 +140,14 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                           // Adjust Fe and Fp
                           Fstar.mmult(Fp_new, FP_t);
                           Fp_new_inv.invert(Fp_new);
-                          F.mmult(Fe_new, Fp_new_inv);
+                          // v12: keep the start-of-increment total deformation F_t = Fe*Fp
+                          // unchanged (Fe_new = F_t * Fp_new^-1 = Fe_old * Fstar^-1).  Using the
+                          // CURRENT F here made the local solve start from the full elastic trial
+                          // stress of the increment (far above the slip resistances), where it
+                          // stalls at the slip cap.
+                          FullMatrix<double> F_start(dim, dim);
+                          Fe_conv[cellID][q].mmult(F_start, FP_t);
+                          F_start.mmult(Fe_new, Fp_new_inv);
 
                           Fp_conv[cellID][q] = Fp_new;
                           Fe_conv[cellID][q] = Fe_new;
@@ -157,15 +164,20 @@ template <int dim> void crystalPlasticity<dim>::update_twin_mask() {
                             }
                           odfpoint(rotmat, rot1);
 
+                          // v13: twin orientation = parent * (2 n(x)n - I), the 180-degree
+                          // ROTATION about the twin-plane normal.  The previous I - 2 n(x)n is a
+                          // reflection (det = -1); converting it to a Rodrigues vector below
+                          // (valid for proper rotations only) gave a wrong twin orientation.
+                          // For stresses/slip the two are equivalent (they differ by -I).
                           temp1.reinit(dim, dim);
-                          temp1[0][0] = 1.0;
-                          temp1[1][1] = 1.0;
-                          temp1[2][2] = 1.0;
+                          temp1[0][0] = -1.0;
+                          temp1[1][1] = -1.0;
+                          temp1[2][2] = -1.0;
                           for (unsigned int i = 0; i < 3; i++)
                             {
                               for (unsigned int j = 0; j < 3; j++)
                                 {
-                                  temp1[i][j] -= 2*n_alpha[n_slip_systemsWOtwin + idx][i]*n_alpha[n_slip_systemsWOtwin + idx][j];
+                                  temp1[i][j] += 2*n_alpha[n_slip_systemsWOtwin + idx][i]*n_alpha[n_slip_systemsWOtwin + idx][j];
                                 }
                             }
                           rotmat.mmult(rotmat_twin, temp1);

@@ -487,6 +487,12 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
   // |(tau-W)/s| <= ratio_cap.  Only the PATH of the Newton iteration changes.
   const double delgam_cap = 1.0; // largest slip increment allowed per system per substep
   const double ratio_cap  = std::pow(delgam_cap / delgam_ref, strexp);
+  // v12: starting stresses above this ratio are scaled back to it before the local solve.
+  // ratio_cap (dgamma = 1 per system) is far too high a start for a stiff power law: the
+  // iteration then stalls at the cap with |R| ~ 4e4.  Start at dgamma ~ 1e-2 instead.
+  const double delgam_start = 1.0e-2;
+  const double ratio_start  =
+    std::min(0.99 * ratio_cap, std::pow(std::max(delgam_start, delgam_ref) / delgam_ref, strexp));
   // SAFEGUARD: explicit hardening (as in the MATLAB constitutive_cp3D_rd): solve the stress
   // with the start-of-substep slip resistance, then harden once.  The implicit fixed-point
   // loop on s does not converge for stiff rate sensitivity right after twin seeding.
@@ -598,9 +604,9 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
       for (unsigned int cut = 0; cut < 50; cut++)
         {
           const double r = max_ratio(stateVar_it);
-          if (!(r > ratio_cap))
+          if (!(r > ratio_start))
             break;
-          const double f = 0.99 * ratio_cap / r; // exact when the backstress is zero
+          const double f = ratio_start / r; // exact when the backstress is zero (v12)
           for (unsigned int j = 0; j < 2 * dim; j++)
             stateVar_it(j) *= f;
         }
@@ -621,9 +627,9 @@ crystalPlasticity<dim>::calculatePlasticity(unsigned int cellID,
           for (unsigned int cut = 0; cut < 50; cut++)
             {
               const double r = max_ratio(stateVar_it);
-              if (!(r > ratio_cap))
+              if (!(r > ratio_start))
                 break;
-              const double f = 0.99 * ratio_cap / r;
+              const double f = ratio_start / r; // v12
               for (unsigned int j = 0; j < 2 * dim; j++)
                 stateVar_it(j) *= f;
             }
