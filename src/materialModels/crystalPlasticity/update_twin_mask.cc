@@ -296,92 +296,9 @@ template <int dim> void crystalPlasticity<dim>::calculate_twin_rss() {
           {
             for (unsigned int q = 0; q < num_quad_points; ++q)
               {
-                // calculate resolved shear stress
-                Vector<double> rss(n_Tslip_systems);
-                Vector<double> m1(dim), n1(dim);
-                FullMatrix<double> schmidtensor(dim, dim);
-                FullMatrix<double> temprot(dim, dim);
-                FullMatrix<double> temp(dim, dim);
-                rss = 0.0;
-                unsigned int n_slip_systemsWOtwin = this->userInputs_cp.numSlipSystems1;
-                // TODO: fix the following line to consider multiple twin systems
-                bool isTwinned = twinfraction_iter[cellID][q][0] >= this->userInputs_cp.MPtwinLowerThresholdFraction1;
-
-                FullMatrix<double> rotmat(dim, dim), rotmat_parent(dim, dim),
-                    rotmat_twin(dim, dim);
-                Vector<double> rot1(dim), rot_parent(dim), rot_twin(dim);
-                for (unsigned int i = 0; i < dim; i++)
-                  {
-                    rot1[i] = rot_iter[cellID][q][i];
-                  }
-                odfpoint(rotmat, rot1);
-                rot_parent = rot_original[cellID][q];
-                odfpoint(rotmat_parent, rot_parent);
-                Vector<double> quatprod(4), quat1(4), quat2(4);
-                rot_twin = 0.0;
-                rod2quat(quat2, rot1);
-                quat1[0] = 0.0;
-                quat1[1] = n_alpha[n_slip_systemsWOtwin][0];
-                quat1[2] = n_alpha[n_slip_systemsWOtwin][1];
-                quat1[3] = n_alpha[n_slip_systemsWOtwin][2];
-                quatproduct(quatprod, quat2, quat1);
-                quat2rod(quatprod, rot_twin);
-                odfpoint(rotmat_twin, rot_twin);
-
-                for (unsigned int i = 0; i < n_Tslip_systems; i++)
-                  {
-                    schmidtensor = 0.0;
-                    for (unsigned int j = 0; j < dim; j++)
-                      {
-                        m1(j) = m_alpha[i][j];
-                        n1(j) = n_alpha[i][j];
-                      }
-                    temp = 0.0;
-                    temprot = 0.0;
-                    for (unsigned int j = 0; j < dim; j++)
-                      {
-                        for (unsigned int k = 0; k < dim; k++)
-                          {
-                            temp[j][k] = m1(j) * n1(k);
-                          }
-                      }
-                    // Convert schmid tensor to sample coordinates
-                    if (isTwinned && i < n_slip_systemsWOtwin)
-                      {
-                        // If we are inside the twin, the orientation matrix should
-                        // change, but only for the slip systems.
-                        rotmat_twin.mmult(temprot, temp);
-                        temprot.mTmult(temp, rotmat_twin);
-                      }
-                    else
-                      {
-                        // Resolve twin shear in the parent grain frame.
-                        FullMatrix<double> &system_rotmat =
-                            (i >= n_slip_systemsWOtwin) ? rotmat_parent : rotmat;
-                        system_rotmat.mmult(temprot, temp);
-                        temprot.mTmult(temp, system_rotmat);
-                      }
-
-                    for (unsigned int j = 0; j < dim; j++)
-                      {
-                        for (unsigned int k = 0; k < dim; k++)
-                          {
-                            schmidtensor[j][k] = temp[j][k];
-                          }
-                      }
-
-                    for (unsigned int j = 0; j < dim; j++)
-                      {
-                        for (unsigned int k = 0; k < dim; k++)
-                          {
-                            rss(i) += T[j][k] * schmidtensor[j][k];
-                          }
-                      }
-
-                    // TODO: change this function to not calculate all the slip system RSS
-                    // also, modify this to work with multiple twin variants
-                    this->postprocessValues(cellID, q, 6, 0) = rss[12];
-                  }
+                // TODO: change this function to not calculate all the slip system RSS
+                // also, modify this to work with multiple twin variants
+                this->postprocessValues(cellID, q, 6, 0) = energy[cellID][q][0] / this->userInputs_cp.twinShear1;
               }
             cellID++;
           }
