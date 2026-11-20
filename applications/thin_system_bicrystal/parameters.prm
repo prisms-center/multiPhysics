@@ -266,3 +266,8 @@ set Model constant fbr_mu = 0.0, DOUBLE
 
 # Parameter alpha for function h(n) = alpha*n^2 + 2*(2-alpha)*n^3 +(alpha-3)*n^4 
 set Model constant alpha = 0.0, DOUBLE
+
+set Use numeric tangent                          = true
+set Numeric tangent slip threshold               = 0.0
+set Absolute nonLinear solver tolerance          = 1.0e-8
+set Relative nonLinear solver tolerance          = 1.0e-10
