@@ -102,7 +102,7 @@ set Advanced Rate Dependent Model enabled       = false
 set Number of User Material Constants 1         = 12
 set Number of User Material State Variables 1   = 62
 set User Material Constants 1 = 1.0e-3, 0.05, 1.0e-6, 1.0e-6, 10000, 500, 0, 0, 0, 0, 200.0, 200.0
-set User Material State Variables Initial Values 1 = [the same 62 zeros as single_twin]
+set User Material State Variables Initial Values 1 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 # Elastic Stiffness Matrix -Voigt Notation (MPa)
 set Elastic Stiffness row 1                      = 5.858e4,  2.502e4, 2.079e4, 0, 0, 0
@@ -121,7 +121,7 @@ set Latent Hardening Ratio filename              = LatentHardeningRatio.txt
 set Initial Slip Resistance                      = 6, 6, 6, 78, 78, 78, 140, 140, 140, 140, 140, 140
 set Initial Hardening Modulus                    = 30, 30, 30, 2500, 2500, 2500, 3300, 3300, 3300, 3300, 3300, 3300
 set Power Law Exponent                           = 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-et Saturation Stress                             = 120, 120, 120, 150, 150, 150, 150, 150, 150, 150, 150, 150
+set Saturation Stress                             = 120, 120, 120, 150, 150, 150, 150, 150, 150, 150, 150, 150
 set Slip Directions File                         = slipDirections.txt
 set Slip Normals File                            = slipNormals.txt
 
@@ -188,7 +188,7 @@ set Element degree = 1
 # Time step parameters
 # ==================================================================
 set Time step = 0.001
-set Number of phase field steps per CPFE step = 5000
+set Number of phase field steps per CPFE step = 500
 set Phase field steps between re-solving mechanics = 10
 
 # ==================================================================

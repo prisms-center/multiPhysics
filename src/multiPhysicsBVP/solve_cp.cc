@@ -99,7 +99,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
   int cp_increment_switch_flag = 1;
   // Flag to track whether seeding is complete
   bool seeding_complete = false;
-  constexpr bool run_phase_field_steps = false;
+  constexpr bool run_phase_field_steps = true;
   double seeding_point_rss = 0.0;
   double old_load_factor;
   while (currentIncrement_cp < totalIncrements_cp)
@@ -147,7 +147,7 @@ MultiPhysicsBVP<dim, degree>::solve_cp()
       
       // Check CRSS at seeding point
       // TO-DO: this needs to be re-worked for multiple twin seeds and multiple variants (effort: hard)
-      if (!seeding_complete && seeding_point_rss > userInputs_cp.initialSlipResistanceTwin1[0])
+      if (!seeding_complete && seeding_point_rss >= userInputs_cp.initialSlipResistanceTwin1[0])
         {
           // feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
 	  pcout << "\nTwin seeding time reached. Placing seed in CPFE mesh" << std::endl;
