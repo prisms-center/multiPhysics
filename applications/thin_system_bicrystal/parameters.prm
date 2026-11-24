@@ -131,7 +131,7 @@ set Slip Normals File                            = slipNormals.txt
 set Twinning enabled                             = true
 set Advanced Twinning Model enabled              = false
 set Number of Twin Systems                       = 1
-set Initial Slip Resistance Twin                 = 180
+set Initial Slip Resistance Twin                 = 60
 set Initial Hardening Modulus Twin               = 116
 set Power Law Exponent Twin                      = 1
 set Saturation Stress Twin                       = 100
@@ -250,7 +250,7 @@ set Model constant critical_grad = 0.6, DOUBLE
 set Model constant interface_width = 0.5, DOUBLE
 
 # Radius of initial semimajor axis of the ellipsoid
-set Model constant a0 = 4.0, DOUBLE
+set Model constant a0 = 2.0, DOUBLE
 
 # eccentricity of the elliptical seed
 set Model constant ecc = 0.95, DOUBLE
